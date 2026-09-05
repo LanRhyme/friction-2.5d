@@ -37,7 +37,6 @@
         <file alias="lightsweepeffect.frag">RasterEffects/lightsweepeffect.frag</file>
         <file alias="displacementwarpeffect.frag">RasterEffects/displacementwarpeffect.frag</file>
         <file alias="filmgraineffect.frag">RasterEffects/filmgraineffect.frag</file>
-        <file alias="blackwhiteflasheffect.frag">RasterEffects/blackwhiteflasheffect.frag</file>
         <file alias="pixelarteffect.frag">RasterEffects/pixelarteffect.frag</file>
         <file alias="chromakeyeffect.frag">RasterEffects/chromakeyeffect.frag</file>
         <file alias="alpha.frag">colorshaders/alpha.frag</file>
