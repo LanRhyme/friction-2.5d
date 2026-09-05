@@ -345,7 +345,15 @@ void KeysView::mousePressEvent(QMouseEvent *e) {
         if(mIsMouseGrabbing) return;
         mFirstMove = true;
         mLastPressPos = posU;
-        if(mGraphViewed) graphMousePress(posU);
+        if(!mGraphViewed &&
+                (e->modifiers() & Qt::ControlModifier) &&
+                (e->modifiers() & Qt::AltModifier) &&
+                mCurrentScene &&
+                !mCurrentScene->getSelectedBoxesList().isEmpty()) {
+            // Ctrl+Alt + drag anywhere offsets the whole layer
+            // selection in time; takes precedence over key/clip hits
+            mOffsetingLayers = true;
+        } else if(mGraphViewed) graphMousePress(posU);
         else {
             mLastPressedKey = getKeyAtPos(posU.x(), posU.y(),
                                           mPixelsPerFrame,
@@ -786,7 +794,7 @@ void KeysView::scrollRight() {
     if(mSelecting) {
         mSelectionRect.setBottomRight(mSelectionRect.bottomRight() +
                                       QPointF(inc, 0));
-    } else if(mMovingKeys) {
+    } else if(mMovingKeys || mOffsetingLayers) {
         mLastPressPos.setX(mLastPressPos.x() - qRound(inc*mPixelsPerFrame));
         handleMouseMove(mLastMovePos, QApplication::mouseButtons());
     }
@@ -802,7 +810,7 @@ void KeysView::scrollLeft() {
     if(mSelecting) {
         mSelectionRect.setBottomRight(mSelectionRect.bottomRight() -
                                       QPointF(inc, 0));
-    } else if(mMovingKeys) {
+    } else if(mMovingKeys || mOffsetingLayers) {
         mLastPressPos.setX(mLastPressPos.x() + qRound(inc*mPixelsPerFrame));
         handleMouseMove(mLastMovePos, QApplication::mouseButtons());
     }
@@ -975,6 +983,15 @@ void KeysView::handleMouseMove(const QPoint &pos,
 //                        mLastPressedDurationRectangleMovable->changeFramePosBy(
 //                                    dDFrame);
             }
+        } else if(mOffsetingLayers) {
+            if(mFirstMove) {
+                if(mCurrentScene) {
+                    mCurrentScene->startDurationRectPosTransformForAllSelected();
+                }
+            }
+            if(iDDFrame != 0 && mCurrentScene) {
+                mCurrentScene->moveDurationRectForAllSelected(iDDFrame);
+            }
         } else if(mSelecting) {
             if(mGraphViewed) {
                 qreal value;
@@ -1046,6 +1063,12 @@ void KeysView::mouseReleaseEvent(QMouseEvent *e) {
                         Document::sInstance->actionFinished();
                     }
                 }
+            } else if(mOffsetingLayers) {
+                // a press-release without movement never started the
+                // transform; nothing to finish (selection untouched)
+                if(!mFirstMove && mCurrentScene) {
+                    mCurrentScene->finishDurationRectPosTransformForAllSelected();
+                }
             } else if(mMovingKeys) {
                 if(mFirstMove && mLastPressedKey) {
                     if(!shiftPressed) {
@@ -1079,7 +1102,11 @@ void KeysView::mouseReleaseEvent(QMouseEvent *e) {
                 }
             }
         } else if(e->button() == Qt::RightButton) {
-            if(mMovingRect) {
+            if(mOffsetingLayers) {
+                if(!mFirstMove && mCurrentScene) {
+                    mCurrentScene->cancelDurationRectPosTransformForAllSelected();
+                }
+            } else if(mMovingRect) {
                 if(!mFirstMove && mLastPressedMovable && mCurrentScene) {
                     const auto childProp = mLastPressedMovable->getParentProperty();
                     if(mMoveAllSelected) {

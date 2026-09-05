@@ -549,10 +549,9 @@ void Canvas::addBoxToSelection(BoundingBox * const box)
                        this, &Canvas::schedulePivotUpdate);
     connCtx << connect(box, &BoundingBox::fillStrokeSettingsChanged,
                        this, &Canvas::selectedPaintSettingsChanged);
-    connCtx << connect(box, &BoundingBox::visibilityChanged,
-                       this, [this, box](const bool visible) {
-        if (!visible) { removeBoxFromSelection(box); }
-    });
+    // AE semantics: hiding a layer (eye toggle) does NOT drop it from
+    // the selection - the multi-selection must survive hide/show so a
+    // second eye click re-opens the whole set at once
     connCtx << connect(box, &BoundingBox::parentChanged,
                        this, [this, box]() {
         removeBoxFromSelection(box);

@@ -250,6 +250,7 @@ private:
         mScalingKeys = false;
         mAltScalingKeys = false;
         mMovingRect = false;
+        mOffsetingLayers = false;
         mSelecting = false;
         mIsMouseGrabbing = false;
 #ifndef QT_DEBUG
@@ -286,6 +287,9 @@ private:
     int mAltScaleGrabAbs = 0;
     bool mMovingRect = false;
     bool mMoveAllSelected = false;
+    // Ctrl+Alt + press-drag anywhere in the timeline shifts every
+    // selected layer's clip in time together, no need to grab a clip bar
+    bool mOffsetingLayers = false;
     bool mPressedCtrlPoint = false;
 
     qptr<Canvas> mCurrentScene;

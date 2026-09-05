@@ -2080,6 +2080,10 @@ void BoxSingleWidget::mousePressEvent(QMouseEvent *event) {
                         const auto group = sceneQ->groupSelectedBoxes();
                         if(group) {
                             group->enableSwitchLayer();
+                            // tag switch groups with the palette yellow
+                            // (matches the swatch menu's Yellow) so they
+                            // stand out in the layer list
+                            group->setLabelColor(QColor(232, 215, 32));
                             Document::sInstance->actionFinished();
                         }
                     });
@@ -2111,6 +2115,8 @@ void BoxSingleWidget::mousePressEvent(QMouseEvent *event) {
                                      mParent->currentScene())]() {
                         if(!contQ) return;
                         contQ->enableSwitchLayer();
+                        // same auto yellow tag as new switch groups
+                        contQ->setLabelColor(QColor(232, 215, 32));
                         // select the group so the switch panel auto-binds
                         if(sceneQ) {
                             sceneQ->clearBoxesSelection();
