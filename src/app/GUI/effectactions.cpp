@@ -23,6 +23,8 @@
 
 #include "mainwindow.h"
 
+#include <QStatusBar>
+
 #include "RasterEffects/rastereffectmenucreator.h"
 #include "BlendEffects/blendeffectmenucreator.h"
 #include "TransformEffects/transformeffectmenucreator.h"
@@ -172,7 +174,10 @@ void MainWindow::setupMenuEffects()
 void MainWindow::addRasterEffect(const qsptr<RasterEffect> &effect)
 {
     const auto box = getCurrentBox();
-    if (!box) { return; }
+    if (!box) {
+        statusBar()->showMessage(tr("请先选中一个图层"), 3000);
+        return;
+    }
 
     box->addRasterEffect(effect);
     mDocument.actionFinished();
@@ -181,7 +186,10 @@ void MainWindow::addRasterEffect(const qsptr<RasterEffect> &effect)
 void MainWindow::addBlendEffect(const qsptr<BlendEffect> &effect)
 {
     const auto box = getCurrentBox();
-    if (!box) { return; }
+    if (!box) {
+        statusBar()->showMessage(tr("请先选中一个图层"), 3000);
+        return;
+    }
 
     box->addBlendEffect(effect);
     mDocument.actionFinished();
@@ -190,7 +198,10 @@ void MainWindow::addBlendEffect(const qsptr<BlendEffect> &effect)
 void MainWindow::addTransformEffect(const qsptr<TransformEffect> &effect)
 {
     const auto box = getCurrentBox();
-    if (!box) { return; }
+    if (!box) {
+        statusBar()->showMessage(tr("请先选中一个图层"), 3000);
+        return;
+    }
 
     box->addTransformEffect(effect);
     mDocument.actionFinished();
@@ -199,7 +210,10 @@ void MainWindow::addTransformEffect(const qsptr<TransformEffect> &effect)
 void MainWindow::addPathEffect(const qsptr<PathEffect> &effect)
 {
     const auto box = getCurrentBox();
-    if (!box) { return; }
+    if (!box) {
+        statusBar()->showMessage(tr("请先选中一个图层"), 3000);
+        return;
+    }
 
     box->addPathEffect(effect);
     mDocument.actionFinished();

@@ -125,6 +125,8 @@ QuickEffectSearchDialog::QuickEffectSearchDialog(MainWindow * const mainWindow,
     mListWidget->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     mListWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     connect(mListWidget, &QListWidget::itemActivated, this, &QuickEffectSearchDialog::onItemActivated);
+    // single click applies too (Enter / double-click keep working)
+    connect(mListWidget, &QListWidget::itemClicked, this, &QuickEffectSearchDialog::onItemActivated);
     mainLayout->addWidget(mListWidget);
 
     setStyleSheet("QDialog { background: #25252b; border: 1px solid #555; border-radius: 6px; }");

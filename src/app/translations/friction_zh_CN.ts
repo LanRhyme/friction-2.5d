@@ -4083,22 +4083,22 @@ Added layers: %3</source>
     <message>
         <location filename="../GUI/effectactions.cpp" line="96"/>
         <source>Path Effects</source>
-        <translation>路径效果</translation>
+        <translation>路径特效</translation>
     </message>
     <message>
         <location filename="../GUI/effectactions.cpp" line="97"/>
         <source>Fill Effects</source>
-        <translation>填充效果</translation>
+        <translation>填充特效</translation>
     </message>
     <message>
         <location filename="../GUI/effectactions.cpp" line="98"/>
         <source>Outline Base Effects</source>
-        <translation>描边基础效果</translation>
+        <translation>描边基础特效</translation>
     </message>
     <message>
         <location filename="../GUI/effectactions.cpp" line="99"/>
         <source>Outline Effects</source>
-        <translation>描边效果</translation>
+        <translation>描边特效</translation>
     </message>
     <message>
         <location filename="../GUI/effectactions.cpp" line="59"/>
@@ -4116,67 +4116,67 @@ Added layers: %3</source>
     <message>
         <location filename="../GUI/effectactions.cpp" line="37"/>
         <source>Quick Search Effects...</source>
-        <translation type="unfinished"></translation>
+        <translation>快速搜索特效...</translation>
     </message>
     <message>
         <location filename="../GUI/effectactions.cpp" line="38"/>
         <source>Quick Search Effects (AE: FX Console)</source>
-        <translation type="unfinished"></translation>
+        <translation>快速搜索特效（AE：FX 控制台）</translation>
     </message>
     <message>
         <location filename="../GUI/effectactions.cpp" line="45"/>
         <source>General</source>
-        <translation type="unfinished">常规</translation>
+        <translation>常规</translation>
     </message>
     <message>
         <location filename="../GUI/effectactions.cpp" line="70"/>
         <source>Custom</source>
-        <translation type="unfinished"></translation>
+        <translation>自定义</translation>
     </message>
     <message>
         <location filename="../GUI/effectactions.cpp" line="83"/>
         <source>Shader</source>
-        <translation type="unfinished">着色器</translation>
+        <translation>着色器</translation>
     </message>
     <message>
         <location filename="../GUI/effectactions.cpp" line="105"/>
         <source> (Path Effect)</source>
-        <translation>（路径效果）</translation>
+        <translation>（路径特效）</translation>
     </message>
     <message>
         <location filename="../GUI/effectactions.cpp" line="113"/>
         <source> (Fill Effect)</source>
-        <translation>（填充效果）</translation>
+        <translation>（填充特效）</translation>
     </message>
     <message>
         <location filename="../GUI/effectactions.cpp" line="121"/>
         <source> (Outline Base Effect)</source>
-        <translation>（描边基础效果）</translation>
+        <translation>（描边基础特效）</translation>
     </message>
     <message>
         <location filename="../GUI/effectactions.cpp" line="129"/>
         <source> (Outline Effect)</source>
-        <translation>（描边效果）</translation>
+        <translation>（描边特效）</translation>
     </message>
     <message>
         <location filename="../GUI/effectactions.cpp" line="157"/>
         <source>Transform Effects</source>
-        <translation>变换效果</translation>
+        <translation>变换特效</translation>
     </message>
     <message>
         <location filename="../GUI/effectactions.cpp" line="162"/>
         <source> (Transform Effect)</source>
-        <translation>（变换效果）</translation>
+        <translation>（变换特效）</translation>
     </message>
     <message>
         <location filename="../GUI/effectactions.cpp" line="141"/>
         <source>Blend Effects</source>
-        <translation>混合效果</translation>
+        <translation>混合特效</translation>
     </message>
     <message>
         <location filename="../GUI/effectactions.cpp" line="146"/>
         <source> (Blend Effect)</source>
-        <translation>（混合效果）</translation>
+        <translation>（混合特效）</translation>
     </message>
     <message>
         <source>Raster Effects</source>
@@ -4187,7 +4187,7 @@ Added layers: %3</source>
         <location filename="../GUI/effectactions.cpp" line="72"/>
         <location filename="../GUI/effectactions.cpp" line="85"/>
         <source> (Raster Effect)</source>
-        <translation>（栅格效果）</translation>
+        <translation>（光栅特效）</translation>
     </message>
     <message>
         <location filename="../GUI/extraactions.cpp" line="37"/>
@@ -7328,37 +7328,37 @@ Select the layers you want to import:</source>
     <message>
         <location filename="../GUI/quickeffectsearchdialog.cpp" line="111"/>
         <source>Search Effects (Ctrl+Space)...</source>
-        <translation type="unfinished"></translation>
+        <translation>搜索特效…（Ctrl+Space）</translation>
     </message>
     <message>
         <location filename="../GUI/quickeffectsearchdialog.cpp" line="143"/>
         <source>General</source>
-        <translation type="unfinished">常规</translation>
+        <translation>常规</translation>
     </message>
     <message>
         <location filename="../GUI/quickeffectsearchdialog.cpp" line="152"/>
         <source>Custom</source>
-        <translation type="unfinished"></translation>
+        <translation>自定义</translation>
     </message>
     <message>
         <location filename="../GUI/quickeffectsearchdialog.cpp" line="161"/>
         <source>Shader</source>
-        <translation type="unfinished">着色器</translation>
+        <translation>着色器</translation>
     </message>
     <message>
         <location filename="../GUI/quickeffectsearchdialog.cpp" line="171"/>
         <source>Path Effects</source>
-        <translation type="unfinished"></translation>
+        <translation>路径特效</translation>
     </message>
     <message>
         <location filename="../GUI/quickeffectsearchdialog.cpp" line="180"/>
         <source>Blend Effects</source>
-        <translation type="unfinished">混合效果</translation>
+        <translation>混合特效</translation>
     </message>
     <message>
         <location filename="../GUI/quickeffectsearchdialog.cpp" line="189"/>
         <source>Transform Effects</source>
-        <translation type="unfinished">变换效果</translation>
+        <translation>变换特效</translation>
     </message>
 </context>
 <context>
