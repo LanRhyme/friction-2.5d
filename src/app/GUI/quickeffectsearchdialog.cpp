@@ -31,6 +31,7 @@
 #include <QGuiApplication>
 #include <QPainter>
 #include <QStyledItemDelegate>
+#include <QTimer>
 
 #include "RasterEffects/rastereffectmenucreator.h"
 #include "BlendEffects/blendeffectmenucreator.h"
@@ -39,6 +40,28 @@
 #include "themesupport.h"
 
 namespace {
+// token matches a key when contained, or as an in-order subsequence
+// ("bur" matches "blur") - case-insensitive
+bool tokenMatchesKey(const QString &token, const QString &key)
+{
+    if (token.isEmpty()) { return true; }
+    if (key.contains(token, Qt::CaseInsensitive)) { return true; }
+    int pos = 0;
+    for (const auto &c : key) {
+        if (pos >= token.size()) { break; }
+        if (c.toLower() == token.at(pos).toLower()) { ++pos; }
+    }
+    return pos >= token.size();
+}
+
+QStringList buildKeys(const QString &name, const QString &category)
+{
+    QStringList keys;
+    keys << name.toLower();
+    if (!category.isEmpty()) { keys << category.toLower(); }
+    return keys;
+}
+
 class QuickEffectItemDelegate : public QStyledItemDelegate {
 public:
     explicit QuickEffectItemDelegate(QObject *parent = nullptr) : QStyledItemDelegate(parent) {}
@@ -96,7 +119,10 @@ public:
 
 QuickEffectSearchDialog::QuickEffectSearchDialog(MainWindow * const mainWindow,
                                                  QWidget * const parent) :
-    QDialog(parent, Qt::FramelessWindowHint | Qt::Popup),
+    // Qt::Tool instead of Qt::Popup: popup windows never get an IME
+    // input context on Windows, making Chinese input impossible;
+    // outside clicks now close via WindowDeactivate (see event())
+    QDialog(parent, Qt::FramelessWindowHint | Qt::Tool),
     mMainWindow(mainWindow)
 {
     setAttribute(Qt::WA_TranslucentBackground, false);
@@ -108,7 +134,7 @@ QuickEffectSearchDialog::QuickEffectSearchDialog(MainWindow * const mainWindow,
     mainLayout->setSpacing(4);
 
     mSearchEdit = new QLineEdit(this);
-    mSearchEdit->setPlaceholderText(tr("Search Effects (Ctrl+Space)..."));
+    mSearchEdit->setPlaceholderText(tr("搜索特效…（支持中文 / 模糊匹配）"));
     mSearchEdit->setClearButtonEnabled(true);
     mSearchEdit->setFixedHeight(36);
     QFont f = mSearchEdit->font();
@@ -118,6 +144,14 @@ QuickEffectSearchDialog::QuickEffectSearchDialog(MainWindow * const mainWindow,
     mSearchEdit->installEventFilter(this);
     connect(mSearchEdit, &QLineEdit::textChanged, this, &QuickEffectSearchDialog::onSearchTextChanged);
     mainLayout->addWidget(mSearchEdit);
+
+    // placeholder shown instead of the full effect list - results
+    // only appear while searching (user request)
+    mHintLabel = new QLabel(this);
+    mHintLabel->setAlignment(Qt::AlignCenter);
+    mHintLabel->setWordWrap(true);
+    mHintLabel->setStyleSheet("QLabel { color: #9aa0ab; font-size: 13px; padding: 12px 4px; background: transparent; border: none; }");
+    mainLayout->addWidget(mHintLabel);
 
     mListWidget = new QListWidget(this);
     mListWidget->setItemDelegate(new QuickEffectItemDelegate(this));
@@ -143,7 +177,7 @@ void QuickEffectSearchDialog::populateEffects()
         [this](const QString &name, const QString &cat,
                const RasterEffectMenuCreator::EffectCreator &creator) {
             const QString category = cat.isEmpty() ? tr("General") : cat;
-            mAllEffects.append({name, category, name, [this, creator]() {
+            mAllEffects.append({name, category, name, buildKeys(name, cat), [this, creator]() {
                 if (mMainWindow) mMainWindow->addRasterEffect(creator());
             }});
         });
@@ -152,7 +186,7 @@ void QuickEffectSearchDialog::populateEffects()
         [this](const QString &name, const QString &cat,
                const RasterEffectMenuCreator::EffectCreator &creator) {
             const QString category = cat.isEmpty() ? tr("Custom") : cat;
-            mAllEffects.append({name, category, name, [this, creator]() {
+            mAllEffects.append({name, category, name, buildKeys(name, cat), [this, creator]() {
                 if (mMainWindow) mMainWindow->addRasterEffect(creator());
             }});
         });
@@ -161,7 +195,7 @@ void QuickEffectSearchDialog::populateEffects()
         [this](const QString &name, const QString &cat,
                const RasterEffectMenuCreator::EffectCreator &creator) {
             const QString category = cat.isEmpty() ? tr("Shader") : cat;
-            mAllEffects.append({name, category, name, [this, creator]() {
+            mAllEffects.append({name, category, name, buildKeys(name, cat), [this, creator]() {
                 if (mMainWindow) mMainWindow->addRasterEffect(creator());
             }});
         });
@@ -170,7 +204,7 @@ void QuickEffectSearchDialog::populateEffects()
     PathEffectMenuCreator::forEveryEffect(
         [this](const QString &name,
                const PathEffectMenuCreator::EffectCreator &creator) {
-            mAllEffects.append({name, tr("Path Effects"), name, [this, creator]() {
+            mAllEffects.append({name, tr("Path Effects"), name, buildKeys(name, QString()), [this, creator]() {
                 if (mMainWindow) mMainWindow->addPathEffect(creator());
             }});
         });
@@ -179,7 +213,7 @@ void QuickEffectSearchDialog::populateEffects()
     BlendEffectMenuCreator::forEveryEffect(
         [this](const QString &name,
                const BlendEffectMenuCreator::EffectCreator &creator) {
-            mAllEffects.append({name, tr("Blend Effects"), name, [this, creator]() {
+            mAllEffects.append({name, tr("Blend Effects"), name, buildKeys(name, QString()), [this, creator]() {
                 if (mMainWindow) mMainWindow->addBlendEffect(creator());
             }});
         });
@@ -188,7 +222,7 @@ void QuickEffectSearchDialog::populateEffects()
     TransformEffectMenuCreator::forEveryEffect(
         [this](const QString &name,
                const TransformEffectMenuCreator::EffectCreator &creator) {
-            mAllEffects.append({name, tr("Transform Effects"), name, [this, creator]() {
+            mAllEffects.append({name, tr("Transform Effects"), name, buildKeys(name, QString()), [this, creator]() {
                 if (mMainWindow) mMainWindow->addTransformEffect(creator());
             }});
         });
@@ -216,29 +250,49 @@ void QuickEffectSearchDialog::showAtCursor()
 
     move(x, y);
     show();
+    raise();
+    activateWindow();
     mSearchEdit->setFocus();
 }
 
 void QuickEffectSearchDialog::onSearchTextChanged(const QString &text)
 {
     mListWidget->clear();
-    const QString filter = text.trimmed().toLower();
+    const QString filter = text.trimmed();
 
+    // results only while searching - never a full list up front
+    if (filter.isEmpty()) {
+        mHintLabel->setText(tr("输入关键词搜索特效\n如：模糊 / 阴影 / blur"));
+        mHintLabel->show();
+        return;
+    }
+
+    // every whitespace-separated token must match at least one key
+    // (localized name, English name or category), fuzzy per token
+    const QString normalized = QString(filter).replace(QChar(0x3000), QChar(' '));
+    const auto tokens = normalized.split(QChar(' '), Qt::SkipEmptyParts);
     for (const auto &item : mAllEffects) {
-        if (filter.isEmpty() ||
-            item.displayName.toLower().contains(filter) ||
-            item.category.toLower().contains(filter) ||
-            item.rawName.toLower().contains(filter)) {
-
+        bool allMatch = true;
+        for (const auto &token : tokens) {
+            bool tokenMatch = false;
+            for (const auto &key : item.keys) {
+                if (tokenMatchesKey(token, key)) { tokenMatch = true; break; }
+            }
+            if (!tokenMatch) { allMatch = false; break; }
+        }
+        if (allMatch) {
             auto listItem = new QListWidgetItem(mListWidget);
             listItem->setText(item.displayName);
             listItem->setIcon(QIcon::fromTheme("effect"));
             listItem->setData(Qt::UserRole + 1, item.category);
-            listItem->setData(Qt::UserRole, QVariant::fromValue(static_cast<quintptr>(mListWidget->count())));
         }
     }
 
-    if (mListWidget->count() > 0) {
+    if (mListWidget->count() == 0) {
+        mHintLabel->setText(tr("没有匹配的特效，换个关键词试试"));
+        mHintLabel->show();
+    } else {
+        mHintLabel->hide();
         mListWidget->setCurrentRow(0);
     }
 }
@@ -262,6 +316,21 @@ void QuickEffectSearchDialog::applySelected()
     if (current) {
         onItemActivated(current);
     }
+}
+
+bool QuickEffectSearchDialog::event(QEvent *event)
+{
+    // Qt::Tool has no popup grab - close when the dialog loses
+    // activation (click elsewhere). Delayed check: a click on the
+    // IME candidate window briefly deactivates without meaning to
+    // dismiss, so give it 150ms to come back before hiding.
+    if (event->type() == QEvent::WindowDeactivate) {
+        QTimer::singleShot(150, this, [this]() {
+            if (!isVisible() || isActiveWindow()) { return; }
+            hide();
+        });
+    }
+    return QDialog::event(event);
 }
 
 bool QuickEffectSearchDialog::eventFilter(QObject *obj, QEvent *event)

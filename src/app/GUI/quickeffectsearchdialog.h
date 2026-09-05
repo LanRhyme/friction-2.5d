@@ -27,6 +27,7 @@
 #include <QDialog>
 #include <QLineEdit>
 #include <QListWidget>
+#include <QLabel>
 #include <functional>
 #include <QList>
 
@@ -36,6 +37,9 @@ struct QuickEffectItem {
     QString displayName;
     QString category;
     QString rawName;
+    // lowercase search keys: display name (localized), raw English
+    // name and category - tokens fuzzy-match against any of these
+    QStringList keys;
     std::function<void()> applyFunc;
 };
 
@@ -51,6 +55,7 @@ public:
 
 protected:
     bool eventFilter(QObject *obj, QEvent *event) override;
+    bool event(QEvent *event) override;
 
 private slots:
     void onSearchTextChanged(const QString &text);
@@ -60,6 +65,7 @@ private slots:
 private:
     MainWindow *mMainWindow = nullptr;
     QLineEdit *mSearchEdit = nullptr;
+    QLabel *mHintLabel = nullptr;
     QListWidget *mListWidget = nullptr;
     QList<QuickEffectItem> mAllEffects;
 };
