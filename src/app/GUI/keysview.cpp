@@ -350,9 +350,10 @@ void KeysView::mousePressEvent(QMouseEvent *e) {
                 (e->modifiers() & Qt::AltModifier) &&
                 mCurrentScene &&
                 !mCurrentScene->getSelectedBoxesList().isEmpty()) {
-            // Ctrl+Alt + drag anywhere offsets the whole layer
-            // selection in time (clip + all keyframes); takes
-            // precedence over key/clip hits
+            // Ctrl+Alt + drag anywhere staggers the selected layers
+            // in time: the k-th layer from the top offsets by k*drag,
+            // the drag scales the spacing (clip + all keyframes move);
+            // takes precedence over key/clip hits
             mOffsetingLayers = true;
             setCursor(Qt::SizeHorCursor);
         } else if(mGraphViewed) graphMousePress(posU);
@@ -992,7 +993,7 @@ void KeysView::handleMouseMove(const QPoint &pos,
                 }
             }
             if(iDDFrame != 0 && mCurrentScene) {
-                mCurrentScene->shiftAllForAllSelected(iDDFrame);
+                mCurrentScene->staggerShiftAllForAllSelected(iDDFrame);
             }
         } else if(mSelecting) {
             if(mGraphViewed) {

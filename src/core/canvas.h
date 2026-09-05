@@ -766,11 +766,12 @@ public:
     void finishDurationRectPosTransformForAllSelected();
     void cancelDurationRectPosTransformForAllSelected();
 
-    // whole-layer time shift for the Ctrl+Alt timeline drag: unlike
-    // the duration-rect moves above this also shifts layers without a
-    // duration rect (all their keys move)
+    // staggered whole-layer time shift for the Ctrl+Alt timeline
+    // drag: the k-th selected layer from the top offsets by k*dFrame
+    // (AE sequence-layers spacing; layers without a duration rect move
+    // all their keys)
     void startShiftAllForAllSelected();
-    void shiftAllForAllSelected(const int dFrame);
+    void staggerShiftAllForAllSelected(const int dFrame);
     void finishShiftAllForAllSelected();
     void cancelShiftAllForAllSelected();
 

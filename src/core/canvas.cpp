@@ -1795,16 +1795,41 @@ void Canvas::startShiftAllForAllSelected()
     });
 }
 
-void Canvas::shiftAllForAllSelected(const int dFrame)
+void Canvas::staggerShiftAllForAllSelected(const int dFrame)
 {
+    // AE "sequence layers" stagger: the k-th selected layer from the
+    // top row offsets by k*dFrame, so the drag scales the spacing
+    // between layers proportionally (top selected layer = anchor);
+    // a lone selection shifts uniformly
+    int shifting = 0;
+    for (const auto& box : mSelectedBoxes) {
+        if (!selectedAncestorWillShift(box, mSelectedBoxes)) shifting++;
+    }
+    forEachSelectedSound([this, &shifting](eBoxOrSound* s) {
+        if (!selectedAncestorWillShift(s, mSelectedBoxes)) shifting++;
+    });
+    if (shifting < 2) {
+        for (const auto& box : mSelectedBoxes) {
+            if (selectedAncestorWillShift(box, mSelectedBoxes)) continue;
+            box->moveShiftAllBy(dFrame);
+        }
+        forEachSelectedSound([this, dFrame](eBoxOrSound* s) {
+            if (!selectedAncestorWillShift(s, mSelectedBoxes)) {
+                s->moveShiftAllBy(dFrame);
+            }
+        });
+        return;
+    }
+    int k = 0;
     for (const auto& box : mSelectedBoxes) {
         if (selectedAncestorWillShift(box, mSelectedBoxes)) continue;
-        box->moveShiftAllBy(dFrame);
+        if (dFrame != 0) box->moveShiftAllBy(k*dFrame);
+        k++;
     }
-    forEachSelectedSound([this, dFrame](eBoxOrSound* s) {
-        if (!selectedAncestorWillShift(s, mSelectedBoxes)) {
-            s->moveShiftAllBy(dFrame);
-        }
+    forEachSelectedSound([this, dFrame, &k](eBoxOrSound* s) {
+        if (selectedAncestorWillShift(s, mSelectedBoxes)) return;
+        const int kk = k++;
+        if (dFrame != 0) s->moveShiftAllBy(kk*dFrame);
     });
 }
 

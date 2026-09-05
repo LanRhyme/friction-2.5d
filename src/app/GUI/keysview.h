@@ -287,9 +287,10 @@ private:
     int mAltScaleGrabAbs = 0;
     bool mMovingRect = false;
     bool mMoveAllSelected = false;
-    // Ctrl+Alt + press-drag anywhere in the timeline shifts every
-    // selected layer in time as a whole (clip + all keyframes; works
-    // for layers without a duration rect too)
+    // Ctrl+Alt + press-drag anywhere in the timeline staggers the
+    // selected layers in time (AE sequence layers): the k-th layer
+    // from the top offsets by k*drag frames - clip + all keyframes
+    // move, works for layers without a duration rect too
     bool mOffsetingLayers = false;
     bool mPressedCtrlPoint = false;
 
