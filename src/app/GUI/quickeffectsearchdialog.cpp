@@ -136,11 +136,12 @@ QuickEffectSearchDialog::QuickEffectSearchDialog(MainWindow * const mainWindow,
     mSearchEdit = new QLineEdit(this);
     mSearchEdit->setPlaceholderText(tr("搜索特效…（支持中文 / 模糊匹配）"));
     mSearchEdit->setClearButtonEnabled(true);
+    // capsule: black field, radius = half the fixed height
     mSearchEdit->setFixedHeight(36);
     QFont f = mSearchEdit->font();
     f.setPointSize(f.pointSize() + 2);
     mSearchEdit->setFont(f);
-    mSearchEdit->setStyleSheet("QLineEdit { background: #1e1e24; color: #fff; border: 1px solid #4a5568; border-radius: 4px; padding: 4px 8px; }");
+    mSearchEdit->setStyleSheet("QLineEdit { background: #000000; color: #fff; border: 1px solid #4a5568; border-radius: 18px; padding: 2px 14px; }");
     mSearchEdit->installEventFilter(this);
     connect(mSearchEdit, &QLineEdit::textChanged, this, &QuickEffectSearchDialog::onSearchTextChanged);
     mainLayout->addWidget(mSearchEdit);
