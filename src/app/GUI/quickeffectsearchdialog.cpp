@@ -32,6 +32,7 @@
 #include <QPainter>
 #include <QStyledItemDelegate>
 #include <QTimer>
+#include <QGraphicsDropShadowEffect>
 
 #include "RasterEffects/rastereffectmenucreator.h"
 #include "BlendEffects/blendeffectmenucreator.h"
@@ -121,17 +122,19 @@ QuickEffectSearchDialog::QuickEffectSearchDialog(MainWindow * const mainWindow,
                                                  QWidget * const parent) :
     // Qt::Tool instead of Qt::Popup: popup windows never get an IME
     // input context on Windows, making Chinese input impossible;
-    // outside clicks now close via WindowDeactivate (see event())
+    // outside clicks now close via WindowDeactivate (see event()).
+    // Translucent frameless window: the panel IS just the capsule
+    // search field - the result list floats below in its own card
+    // and only exists while there are results.
     QDialog(parent, Qt::FramelessWindowHint | Qt::Tool),
     mMainWindow(mainWindow)
 {
-    setAttribute(Qt::WA_TranslucentBackground, false);
+    setAttribute(Qt::WA_TranslucentBackground, true);
     setFixedWidth(420);
-    setFixedHeight(360);
 
     const auto mainLayout = new QVBoxLayout(this);
-    mainLayout->setContentsMargins(6, 6, 6, 6);
-    mainLayout->setSpacing(4);
+    mainLayout->setContentsMargins(0, 0, 0, 0);
+    mainLayout->setSpacing(8);
 
     mSearchEdit = new QLineEdit(this);
     mSearchEdit->setPlaceholderText(tr("搜索特效…（支持中文 / 模糊匹配）"));
@@ -146,25 +149,45 @@ QuickEffectSearchDialog::QuickEffectSearchDialog(MainWindow * const mainWindow,
     connect(mSearchEdit, &QLineEdit::textChanged, this, &QuickEffectSearchDialog::onSearchTextChanged);
     mainLayout->addWidget(mSearchEdit);
 
-    // placeholder shown instead of the full effect list - results
-    // only appear while searching (user request)
-    mHintLabel = new QLabel(this);
-    mHintLabel->setAlignment(Qt::AlignCenter);
-    mHintLabel->setWordWrap(true);
-    mHintLabel->setStyleSheet("QLabel { color: #9aa0ab; font-size: 13px; padding: 12px 4px; background: transparent; border: none; }");
-    mainLayout->addWidget(mHintLabel);
+    // floating results card - hidden until a search produces rows
+    mListCard = new QFrame(this);
+    mListCard->setObjectName(QStringLiteral("effectListCard"));
+    mListCard->setStyleSheet(
+                "QFrame#effectListCard {"
+                "  background-color: rgba(22, 22, 28, 235);"
+                "  border: 1px solid #33343c;"
+                "  border-radius: 12px;"
+                "}");
+    // soft drop shadow sells the floating look on the transparent window
+    const auto shadow = new QGraphicsDropShadowEffect(this);
+    shadow->setBlurRadius(24);
+    shadow->setOffset(0, 6);
+    shadow->setColor(QColor(0, 0, 0, 170));
+    mListCard->setGraphicsEffect(shadow);
 
-    mListWidget = new QListWidget(this);
+    const auto cardLayout = new QVBoxLayout(mListCard);
+    cardLayout->setContentsMargins(6, 6, 6, 6);
+    cardLayout->setSpacing(0);
+
+    mListWidget = new QListWidget(mListCard);
     mListWidget->setItemDelegate(new QuickEffectItemDelegate(this));
-    mListWidget->setStyleSheet("QListWidget { background: #18181c; border: 1px solid #333; border-radius: 4px; }");
+    mListWidget->setStyleSheet("QListWidget { background: transparent; border: none; }"
+                               "QListWidget::item { border: none; }");
     mListWidget->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     mListWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     connect(mListWidget, &QListWidget::itemActivated, this, &QuickEffectSearchDialog::onItemActivated);
     // single click applies too (Enter / double-click keep working)
     connect(mListWidget, &QListWidget::itemClicked, this, &QuickEffectSearchDialog::onItemActivated);
-    mainLayout->addWidget(mListWidget);
+    cardLayout->addWidget(mListWidget);
 
-    setStyleSheet("QDialog { background: #25252b; border: 1px solid #555; border-radius: 6px; }");
+    mNoMatchLabel = new QLabel(tr("没有匹配的特效，换个关键词试试"), mListCard);
+    mNoMatchLabel->setAlignment(Qt::AlignCenter);
+    mNoMatchLabel->setStyleSheet("QLabel { color: #9aa0ab; font-size: 13px; padding: 10px 4px; background: transparent; border: none; }");
+    mNoMatchLabel->hide();
+    cardLayout->addWidget(mNoMatchLabel);
+
+    mListCard->hide();
+    mainLayout->addWidget(mListCard);
 
     populateEffects();
 }
@@ -261,10 +284,9 @@ void QuickEffectSearchDialog::onSearchTextChanged(const QString &text)
     mListWidget->clear();
     const QString filter = text.trimmed();
 
-    // results only while searching - never a full list up front
+    // empty query: just the capsule - no list, no card
     if (filter.isEmpty()) {
-        mHintLabel->setText(tr("输入关键词搜索特效\n如：模糊 / 阴影 / blur"));
-        mHintLabel->show();
+        updateResultsGeometry();
         return;
     }
 
@@ -289,13 +311,32 @@ void QuickEffectSearchDialog::onSearchTextChanged(const QString &text)
         }
     }
 
-    if (mListWidget->count() == 0) {
-        mHintLabel->setText(tr("没有匹配的特效，换个关键词试试"));
-        mHintLabel->show();
-    } else {
-        mHintLabel->hide();
+    updateResultsGeometry();
+    if (mListWidget->count() > 0) {
         mListWidget->setCurrentRow(0);
     }
+}
+
+// the panel hugs its content: capsule only when there is nothing to
+// show, the card floats in below while there are rows (or the
+// no-match hint); the list never reserves space up front
+void QuickEffectSearchDialog::updateResultsGeometry()
+{
+    const int rows = mListWidget->count();
+    if (rows > 0) {
+        // delegate row height is 34; cap at 8 visible rows + scrollbar
+        const int listH = qMin(rows, 8) * 34 + 4;
+        mListWidget->setFixedHeight(listH);
+        mNoMatchLabel->hide();
+    } else if (!mSearchEdit->text().trimmed().isEmpty()) {
+        mNoMatchLabel->show();
+        mListWidget->setFixedHeight(0);
+    } else {
+        mNoMatchLabel->hide();
+        mListWidget->setFixedHeight(0);
+    }
+    mListCard->setVisible(rows > 0 || mNoMatchLabel->isVisible());
+    adjustSize();
 }
 
 void QuickEffectSearchDialog::onItemActivated(QListWidgetItem *item)

@@ -33,6 +33,8 @@
 
 class MainWindow;
 
+class QFrame;
+
 struct QuickEffectItem {
     QString displayName;
     QString category;
@@ -65,9 +67,12 @@ private slots:
 private:
     MainWindow *mMainWindow = nullptr;
     QLineEdit *mSearchEdit = nullptr;
-    QLabel *mHintLabel = nullptr;
+    QFrame *mListCard = nullptr;
+    QLabel *mNoMatchLabel = nullptr;
     QListWidget *mListWidget = nullptr;
     QList<QuickEffectItem> mAllEffects;
+
+    void updateResultsGeometry();
 };
 
 #endif // QUICKEFFECTSEARCHDIALOG_H
