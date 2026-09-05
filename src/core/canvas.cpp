@@ -20,6 +20,7 @@
 */
 
 #include "canvas.h"
+#include "Timeline/durationrectangle.h"
 #include "Boxes/internallinkgroupbox.h"
 #include "Boxes/bone.h"
 #include "Boxes/bonelayer.h"
@@ -1784,15 +1785,33 @@ bool selectedAncestorWillShift(eBoxOrSound* const item,
 
 void Canvas::startShiftAllForAllSelected()
 {
+    // layers without a duration rect have nothing visible to stagger
+    // (and keyless ones nothing at all) - give them a full-scene bar
+    // first so every selected row gets an in-point the drag can offset
+    int created = 0;
+    const auto ensureRect = [this, &created](eBoxOrSound* const item) {
+        if (item->hasDurationRectangle()) return;
+        const auto dur = enve::make_shared<DurationRectangle>(*item);
+        dur->setMinRelFrame(getMinFrame());
+        dur->setMaxRelFrame(getMaxFrame());
+        item->setDurationRectangle(dur);
+        created++;
+    };
+    int shifting = 0;
     for (const auto& box : mSelectedBoxes) {
         if (selectedAncestorWillShift(box, mSelectedBoxes)) continue;
+        ensureRect(box);
         box->startShiftAllTransform();
+        shifting++;
     }
-    forEachSelectedSound([this](eBoxOrSound* s) {
-        if (!selectedAncestorWillShift(s, mSelectedBoxes)) {
-            s->startShiftAllTransform();
-        }
+    forEachSelectedSound([this, &ensureRect, &shifting](eBoxOrSound* s) {
+        if (selectedAncestorWillShift(s, mSelectedBoxes)) return;
+        ensureRect(s);
+        s->startShiftAllTransform();
+        shifting++;
     });
+    qWarning() << "阶梯偏移: 开始 参与层数" << shifting
+               << "自动新建片段" << created;
 }
 
 void Canvas::staggerShiftAllForAllSelected(const int dFrame)
@@ -1848,6 +1867,10 @@ void Canvas::staggerShiftAllForAllSelected(const int dFrame)
         const int kk = k++;
         if (dFrame != 0) s->moveShiftAllBy(kk*dFrame);
     });
+    if (dFrame != 0) {
+        qWarning() << "阶梯偏移: 步进" << dFrame << "帧 层数" << k
+                   << (bottomUp ? "向上(底部锚点)" : "向下(顶部锚点)");
+    }
 }
 
 void Canvas::finishShiftAllForAllSelected()

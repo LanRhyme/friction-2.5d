@@ -345,15 +345,23 @@ void KeysView::mousePressEvent(QMouseEvent *e) {
         if(mIsMouseGrabbing) return;
         mFirstMove = true;
         mLastPressPos = posU;
+        if((e->modifiers() & Qt::ControlModifier) &&
+                (e->modifiers() & Qt::AltModifier)) {
+            qWarning() << "阶梯偏移: Ctrl+Alt按下 graph视图"
+                       << mGraphViewed << "场景"
+                       << bool(mCurrentScene) << "选中"
+                       << (mCurrentScene ?
+                               mCurrentScene->getSelectedBoxesList().count() : -1);
+        }
         if(!mGraphViewed &&
                 (e->modifiers() & Qt::ControlModifier) &&
                 (e->modifiers() & Qt::AltModifier) &&
                 mCurrentScene &&
                 !mCurrentScene->getSelectedBoxesList().isEmpty()) {
             // Ctrl+Alt + drag anywhere staggers the selected layers
-            // in time: the k-th layer from the top offsets by k*drag,
-            // the drag scales the spacing (clip + all keyframes move);
-            // takes precedence over key/clip hits
+            // in time: the k-th layer from the anchor offsets by
+            // k*drag, the drag scales the spacing (clip + all
+            // keyframes move); takes precedence over key/clip hits
             mOffsetingLayers = true;
             setCursor(Qt::SizeHorCursor);
         } else if(mGraphViewed) graphMousePress(posU);
