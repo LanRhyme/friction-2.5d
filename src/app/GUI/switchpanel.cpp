@@ -91,8 +91,8 @@ void SwitchPreview::paintEvent(QPaintEvent*)
     QRectF box((width() - side) / 2.0, (height() - side) / 2.0, side, side);
     const qreal radius = 10.0;
     const int inset = 6;
-    p.setPen(QPen(QColor(0x72, 0x72, 0x72), 1.0));
-    p.setBrush(QColor(8, 8, 10));
+    p.setPen(QPen(QColor(58, 58, 62), 1.0));
+    p.setBrush(QColor(0x72, 0x72, 0x72));
     p.drawRoundedRect(box, radius, radius);
 
     if(!mImage.isNull()) {
