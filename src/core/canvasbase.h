@@ -124,6 +124,11 @@ protected:
 
     ConnContextObjList<BoundingBox*> mSelectedBoxes;
     QPointer<BoundingBox> mLastSelectedBox;
+    // rows in the order the user selected them (mSelectedBoxes itself
+    // is re-sorted by z on every add); the first-to-last direction
+    // decides the Ctrl+Alt stagger direction: top-down selection
+    // anchors the top row, bottom-up anchors the bottom row
+    QList<QPointer<BoundingBox>> mSelectionOrderList;
 
     ConnContextObjList<Property*> mSelectedProps;
 };

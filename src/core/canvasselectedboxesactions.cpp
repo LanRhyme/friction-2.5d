@@ -561,6 +561,7 @@ void Canvas::addBoxToSelection(BoundingBox * const box)
     });
 
     box->setSelected(true);
+    mSelectionOrderList.append(box);
     // selecting a track member makes it the active owner of the
     // track's single timeline row
     if(box->isInTrack()) {
@@ -584,6 +585,7 @@ void Canvas::addBoxToSelection(BoundingBox * const box)
 void Canvas::removeBoxFromSelection(BoundingBox * const box) {
     if(!box->isSelected()) return;
     mSelectedBoxes.removeObj(box);
+    mSelectionOrderList.removeAll(box);
     box->setSelected(false);
     schedulePivotUpdate();
     //if(mCurrentMode == CanvasMode::paint) updatePaintBox();
@@ -621,6 +623,7 @@ void Canvas::clearBoxesSelectionList() {
     //if(mCurrentMode == CanvasMode::paint)
         //mPaintTarget.setPaintBox(nullptr);
     mSelectedBoxes.clear();
+    mSelectionOrderList.clear();
     emit selectedPaintSettingsChanged();
     emit objectSelectionChanged();
 }

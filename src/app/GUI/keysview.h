@@ -289,8 +289,10 @@ private:
     bool mMoveAllSelected = false;
     // Ctrl+Alt + press-drag anywhere in the timeline staggers the
     // selected layers in time (AE sequence layers): the k-th layer
-    // from the top offsets by k*drag frames - clip + all keyframes
-    // move, works for layers without a duration rect too
+    // from the anchor offsets by k*drag frames; the anchor end comes
+    // from the selection order (top-down pick anchors the top row,
+    // bottom-up anchors the bottom) - clip + all keyframes move,
+    // works for layers without a duration rect too
     bool mOffsetingLayers = false;
     bool mPressedCtrlPoint = false;
 

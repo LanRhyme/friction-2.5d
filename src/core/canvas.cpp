@@ -1797,14 +1797,32 @@ void Canvas::startShiftAllForAllSelected()
 
 void Canvas::staggerShiftAllForAllSelected(const int dFrame)
 {
-    // AE "sequence layers" stagger: the k-th selected layer from the
-    // top row offsets by k*dFrame, so the drag scales the spacing
-    // between layers proportionally (top selected layer = anchor);
-    // a lone selection shifts uniformly
-    int shifting = 0;
+    // AE "sequence layers" stagger with a direction taken from the
+    // selection order: rows picked top-down anchor the top row,
+    // bottom-up anchors the bottom row. The k-th row from the anchor
+    // offsets by k*dFrame, so the drag scales the spacing between
+    // layers proportionally; a lone selection shifts uniformly
+    QList<BoundingBox*> rows;
     for (const auto& box : mSelectedBoxes) {
-        if (!selectedAncestorWillShift(box, mSelectedBoxes)) shifting++;
+        if (!selectedAncestorWillShift(box, mSelectedBoxes)) rows << box;
     }
+    // direction from the selection order (prune stale entries while
+    // walking; mSelectedBoxes is z-ascending = top row first)
+    bool bottomUp = false;
+    {
+        QList<BoundingBox*> picked;
+        for (const auto& wp : mSelectionOrderList) {
+            if (wp && mSelectedBoxes.contains(wp.data())) picked << wp.data();
+        }
+        mSelectionOrderList.clear();
+        for (const auto b : picked) mSelectionOrderList.append(b);
+        if (picked.count() >= 2) {
+            bottomUp = picked.first()->getZIndex() >
+                       picked.last()->getZIndex();
+        }
+    }
+    if (bottomUp) std::reverse(rows.begin(), rows.end());
+    int shifting = rows.count();
     forEachSelectedSound([this, &shifting](eBoxOrSound* s) {
         if (!selectedAncestorWillShift(s, mSelectedBoxes)) shifting++;
     });
@@ -1821,8 +1839,7 @@ void Canvas::staggerShiftAllForAllSelected(const int dFrame)
         return;
     }
     int k = 0;
-    for (const auto& box : mSelectedBoxes) {
-        if (selectedAncestorWillShift(box, mSelectedBoxes)) continue;
+    for (const auto box : rows) {
         if (dFrame != 0) box->moveShiftAllBy(k*dFrame);
         k++;
     }
