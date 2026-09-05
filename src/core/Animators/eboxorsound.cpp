@@ -113,6 +113,26 @@ void eBoxOrSound::shiftAll(const int shift) {
     else anim_shiftAllKeys(shift);
 }
 
+void eBoxOrSound::startShiftAllTransform() {
+    if(hasDurationRectangle()) mDurationRectangle->startPosTransform();
+    else anim_startAllKeysTransform();
+}
+
+void eBoxOrSound::cancelShiftAllTransform() {
+    if(hasDurationRectangle()) mDurationRectangle->cancelPosTransform();
+    else anim_cancelAllKeysTransform();
+}
+
+void eBoxOrSound::finishShiftAllTransform() {
+    if(hasDurationRectangle()) mDurationRectangle->finishPosTransform();
+    else anim_finishAllKeysTransform();
+}
+
+void eBoxOrSound::moveShiftAllBy(const int shift) {
+    if(hasDurationRectangle()) mDurationRectangle->changeFramePosBy(shift);
+    else anim_moveAllKeysBy(shift);
+}
+
 QMimeData *eBoxOrSound::SWT_createMimeData() {
     return new eMimeData(QList<eBoxOrSound*>() << this);
 }

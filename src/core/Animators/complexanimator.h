@@ -74,6 +74,10 @@ public:
     void anim_addKeyAtRelFrame(const int relFrame);
     void anim_setRecording(const bool rec);
     void anim_shiftAllKeys(const int shift);
+    void anim_startAllKeysTransform();
+    void anim_cancelAllKeysTransform();
+    void anim_finishAllKeysTransform();
+    void anim_moveAllKeysBy(const int shift);
 
     void ca_swapChildren(Property * const child1, Property * const child2);
     void ca_swapChildren(const int id1, const int id2);

@@ -288,7 +288,8 @@ private:
     bool mMovingRect = false;
     bool mMoveAllSelected = false;
     // Ctrl+Alt + press-drag anywhere in the timeline shifts every
-    // selected layer's clip in time together, no need to grab a clip bar
+    // selected layer in time as a whole (clip + all keyframes; works
+    // for layers without a duration rect too)
     bool mOffsetingLayers = false;
     bool mPressedCtrlPoint = false;
 

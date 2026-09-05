@@ -766,6 +766,14 @@ public:
     void finishDurationRectPosTransformForAllSelected();
     void cancelDurationRectPosTransformForAllSelected();
 
+    // whole-layer time shift for the Ctrl+Alt timeline drag: unlike
+    // the duration-rect moves above this also shifts layers without a
+    // duration rect (all their keys move)
+    void startShiftAllForAllSelected();
+    void shiftAllForAllSelected(const int dFrame);
+    void finishShiftAllForAllSelected();
+    void cancelShiftAllForAllSelected();
+
     void startMinFramePosTransformForAllSelected();
     void finishMinFramePosTransformForAllSelected();
     void cancelMinFramePosTransformForAllSelected();

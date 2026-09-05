@@ -351,8 +351,10 @@ void KeysView::mousePressEvent(QMouseEvent *e) {
                 mCurrentScene &&
                 !mCurrentScene->getSelectedBoxesList().isEmpty()) {
             // Ctrl+Alt + drag anywhere offsets the whole layer
-            // selection in time; takes precedence over key/clip hits
+            // selection in time (clip + all keyframes); takes
+            // precedence over key/clip hits
             mOffsetingLayers = true;
+            setCursor(Qt::SizeHorCursor);
         } else if(mGraphViewed) graphMousePress(posU);
         else {
             mLastPressedKey = getKeyAtPos(posU.x(), posU.y(),
@@ -986,11 +988,11 @@ void KeysView::handleMouseMove(const QPoint &pos,
         } else if(mOffsetingLayers) {
             if(mFirstMove) {
                 if(mCurrentScene) {
-                    mCurrentScene->startDurationRectPosTransformForAllSelected();
+                    mCurrentScene->startShiftAllForAllSelected();
                 }
             }
             if(iDDFrame != 0 && mCurrentScene) {
-                mCurrentScene->moveDurationRectForAllSelected(iDDFrame);
+                mCurrentScene->shiftAllForAllSelected(iDDFrame);
             }
         } else if(mSelecting) {
             if(mGraphViewed) {
@@ -1005,7 +1007,18 @@ void KeysView::handleMouseMove(const QPoint &pos,
             }
         }
         mFirstMove = false;
-    } else updateHovered(posU);
+    } else {
+        updateHovered(posU);
+        // Ctrl+Alt armed (no buttons yet): show the horizontal
+        // double-arrow cursor announcing the layer-offset drag
+        if(!mGraphViewed &&
+                (QApplication::keyboardModifiers() & Qt::ControlModifier) &&
+                (QApplication::keyboardModifiers() & Qt::AltModifier) &&
+                mCurrentScene &&
+                !mCurrentScene->getSelectedBoxesList().isEmpty()) {
+            setCursor(Qt::SizeHorCursor);
+        }
+    }
 
     if(mIsMouseGrabbing) Document::sInstance->updateScenes();
     else update();
@@ -1067,7 +1080,7 @@ void KeysView::mouseReleaseEvent(QMouseEvent *e) {
                 // a press-release without movement never started the
                 // transform; nothing to finish (selection untouched)
                 if(!mFirstMove && mCurrentScene) {
-                    mCurrentScene->finishDurationRectPosTransformForAllSelected();
+                    mCurrentScene->finishShiftAllForAllSelected();
                 }
             } else if(mMovingKeys) {
                 if(mFirstMove && mLastPressedKey) {
@@ -1104,7 +1117,7 @@ void KeysView::mouseReleaseEvent(QMouseEvent *e) {
         } else if(e->button() == Qt::RightButton) {
             if(mOffsetingLayers) {
                 if(!mFirstMove && mCurrentScene) {
-                    mCurrentScene->cancelDurationRectPosTransformForAllSelected();
+                    mCurrentScene->cancelShiftAllForAllSelected();
                 }
             } else if(mMovingRect) {
                 if(!mFirstMove && mLastPressedMovable && mCurrentScene) {

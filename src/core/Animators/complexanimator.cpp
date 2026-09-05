@@ -441,3 +441,35 @@ void ComplexAnimator::anim_shiftAllKeys(const int shift) {
         }
     }
 }
+
+void ComplexAnimator::anim_startAllKeysTransform() {
+    for(const auto &property : ca_mChildren) {
+        if(const auto asAnim = enve_cast<Animator*>(property.get())) {
+            asAnim->anim_startAllKeysTransform();
+        }
+    }
+}
+
+void ComplexAnimator::anim_cancelAllKeysTransform() {
+    for(const auto &property : ca_mChildren) {
+        if(const auto asAnim = enve_cast<Animator*>(property.get())) {
+            asAnim->anim_cancelAllKeysTransform();
+        }
+    }
+}
+
+void ComplexAnimator::anim_finishAllKeysTransform() {
+    for(const auto &property : ca_mChildren) {
+        if(const auto asAnim = enve_cast<Animator*>(property.get())) {
+            asAnim->anim_finishAllKeysTransform();
+        }
+    }
+}
+
+void ComplexAnimator::anim_moveAllKeysBy(const int shift) {
+    for(const auto &property : ca_mChildren) {
+        if(const auto asAnim = enve_cast<Animator*>(property.get())) {
+            asAnim->anim_moveAllKeysBy(shift);
+        }
+    }
+}

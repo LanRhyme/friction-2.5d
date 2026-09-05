@@ -55,6 +55,35 @@ void Animator::anim_shiftAllKeys(const int shift) {
     }
 }
 
+void Animator::anim_startAllKeysTransform() {
+    for(const auto& key : anim_mKeys) {
+        key->startFrameTransform();
+    }
+}
+
+void Animator::anim_cancelAllKeysTransform() {
+    for(const auto& key : anim_mKeys) {
+        key->cancelFrameTransform();
+    }
+}
+
+void Animator::anim_finishAllKeysTransform() {
+    for(const auto& key : anim_mKeys) {
+        key->finishFrameTransform();
+    }
+    anim_mergeKeysIfNeeded();
+}
+
+void Animator::anim_moveAllKeysBy(const int shift) {
+    QList<Key*> keys;
+    for(const auto& key : anim_mKeys) {
+        keys << key;
+    }
+    for(const auto key : keys) {
+        key->moveToRelFrame(key->getRelFrame() + shift);
+    }
+}
+
 bool Animator::anim_nextRelFrameWithKey(const int relFrame, int &nextRelFrame) {
     const auto key = anim_getNextKey(relFrame);
     if(!key) return false;

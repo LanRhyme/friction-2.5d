@@ -84,6 +84,9 @@ ContainerBox* Canvas::groupSelectedBoxes() {
     }
     clearBoxesSelectionList();
     newGroup->planCenterPivotPosition();
+    // tag plain groups with the palette orange (switch groups override
+    // with the yellow tag when converted)
+    newGroup->setLabelColor(QColor(240, 140, 30));
     schedulePivotUpdate();
     addBoxToSelection(newGroup.get());
     return newGroup.get();

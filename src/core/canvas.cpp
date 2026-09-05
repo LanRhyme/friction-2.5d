@@ -1764,6 +1764,76 @@ void Canvas::moveDurationRectForAllSelected(const int dFrame)
     forEachSelectedSound([dFrame](eBoxOrSound* s) { s->moveDurationRect(dFrame); });
 }
 
+namespace {
+// a selected item inside a selected group shifts with the group's
+// recursive walk; shifting it again by itself would double-apply
+template <class ListT>
+bool selectedAncestorWillShift(eBoxOrSound* const item,
+                               const ListT& selected)
+{
+    auto parent = item->getParentGroup();
+    while (parent) {
+        for (const auto& sel : selected) {
+            if (sel == parent) return true;
+        }
+        parent = parent->getParentGroup();
+    }
+    return false;
+}
+}
+
+void Canvas::startShiftAllForAllSelected()
+{
+    for (const auto& box : mSelectedBoxes) {
+        if (selectedAncestorWillShift(box, mSelectedBoxes)) continue;
+        box->startShiftAllTransform();
+    }
+    forEachSelectedSound([this](eBoxOrSound* s) {
+        if (!selectedAncestorWillShift(s, mSelectedBoxes)) {
+            s->startShiftAllTransform();
+        }
+    });
+}
+
+void Canvas::shiftAllForAllSelected(const int dFrame)
+{
+    for (const auto& box : mSelectedBoxes) {
+        if (selectedAncestorWillShift(box, mSelectedBoxes)) continue;
+        box->moveShiftAllBy(dFrame);
+    }
+    forEachSelectedSound([this, dFrame](eBoxOrSound* s) {
+        if (!selectedAncestorWillShift(s, mSelectedBoxes)) {
+            s->moveShiftAllBy(dFrame);
+        }
+    });
+}
+
+void Canvas::finishShiftAllForAllSelected()
+{
+    for (const auto& box : mSelectedBoxes) {
+        if (selectedAncestorWillShift(box, mSelectedBoxes)) continue;
+        box->finishShiftAllTransform();
+    }
+    forEachSelectedSound([this](eBoxOrSound* s) {
+        if (!selectedAncestorWillShift(s, mSelectedBoxes)) {
+            s->finishShiftAllTransform();
+        }
+    });
+}
+
+void Canvas::cancelShiftAllForAllSelected()
+{
+    for (const auto& box : mSelectedBoxes) {
+        if (selectedAncestorWillShift(box, mSelectedBoxes)) continue;
+        box->cancelShiftAllTransform();
+    }
+    forEachSelectedSound([this](eBoxOrSound* s) {
+        if (!selectedAncestorWillShift(s, mSelectedBoxes)) {
+            s->cancelShiftAllTransform();
+        }
+    });
+}
+
 void Canvas::startMinFramePosTransformForAllSelected()
 {
     for (const auto& box : mSelectedBoxes) {

@@ -116,6 +116,10 @@ public:
     void prp_setupTreeViewMenu(PropertyMenu * const menu);
 
     void shiftAll(const int shift);
+    void startShiftAllTransform();
+    void cancelShiftAllTransform();
+    void finishShiftAllTransform();
+    void moveShiftAllBy(const int shift);
 
     void strokeWidthAction(const QrealAction& action);
 

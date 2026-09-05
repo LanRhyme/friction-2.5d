@@ -694,6 +694,50 @@ void ContainerBox::shiftAll(const int shift) {
     }
 }
 
+void ContainerBox::startShiftAllTransform() {
+    if(const auto durRect = getDurationRectangle()) {
+        durRect->startPosTransform();
+        return;
+    }
+    anim_startAllKeysTransform();
+    for(const auto& box : mContained) {
+        box->startShiftAllTransform();
+    }
+}
+
+void ContainerBox::cancelShiftAllTransform() {
+    if(const auto durRect = getDurationRectangle()) {
+        durRect->cancelPosTransform();
+        return;
+    }
+    anim_cancelAllKeysTransform();
+    for(const auto& box : mContained) {
+        box->cancelShiftAllTransform();
+    }
+}
+
+void ContainerBox::finishShiftAllTransform() {
+    if(const auto durRect = getDurationRectangle()) {
+        durRect->finishPosTransform();
+        return;
+    }
+    anim_finishAllKeysTransform();
+    for(const auto& box : mContained) {
+        box->finishShiftAllTransform();
+    }
+}
+
+void ContainerBox::moveShiftAllBy(const int shift) {
+    if(const auto durRect = getDurationRectangle()) {
+        durRect->changeFramePosBy(shift);
+        return;
+    }
+    anim_moveAllKeysBy(shift);
+    for(const auto& box : mContained) {
+        box->moveShiftAllBy(shift);
+    }
+}
+
 void ContainerBox::updateRelBoundingRect() {
     SkPath boundingPaths;
     const auto minMax = getContainedMinMax();

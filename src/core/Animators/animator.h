@@ -79,6 +79,13 @@ public:
 
     virtual void anim_removeAllKeys();
     virtual void anim_shiftAllKeys(const int shift);
+    // interactive whole-animator key shift: one transform start/finish
+    // pair, undo-free per-step moves (the drag version of
+    // anim_shiftAllKeys)
+    virtual void anim_startAllKeysTransform();
+    virtual void anim_cancelAllKeysTransform();
+    virtual void anim_finishAllKeysTransform();
+    virtual void anim_moveAllKeysBy(const int shift);
     virtual void anim_getKeysInRect(const QRectF &selectionRect,
                                     const qreal pixelsPerFrame,
                                     QList<Key*>& keysList,

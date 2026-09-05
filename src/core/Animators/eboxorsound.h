@@ -50,6 +50,13 @@ public:
     virtual bool isFrameInDurationRect(const int relFrame) const;
     virtual bool isFrameFInDurationRect(const qreal relFrame) const;
     virtual void shiftAll(const int shift);
+    // interactive whole-layer time shift (the drag version of
+    // shiftAll): one start/finish pair, undo-free per-step moves;
+    // layers without a duration rect move all their keys instead
+    virtual void startShiftAllTransform();
+    virtual void cancelShiftAllTransform();
+    virtual void finishShiftAllTransform();
+    virtual void moveShiftAllBy(const int shift);
 
     QMimeData *SWT_createMimeData();
 
