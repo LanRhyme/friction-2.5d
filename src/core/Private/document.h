@@ -86,6 +86,13 @@ public:
     // (bitmaps auto-detect masks without this switch)
     bool fMaskPenActive = false;
 
+    // PS-style auto-select (object mode): clicking a position covered
+    // by visible pixels selects the layer that owns those pixels,
+    // instead of the top-most bounding rectangle
+    bool fAutoSelectLayer = AppSupport::getSettings("canvas",
+                                                    "AutoSelectLayer",
+                                                    false).toBool();
+
     bool fGizmoPositionVisibility = AppSupport::getSettings("gizmos",
                                                             "Position",
                                                             true).toBool();

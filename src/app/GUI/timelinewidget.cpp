@@ -494,7 +494,80 @@ void TimelineWidget::setCurrentScene(Canvas * const scene) {
             mBoxesListWidget->updateVisible();
             update();
         });
+        connect(scene, &Canvas::objectSelectionChanged,
+                this, &TimelineWidget::revealAutoSelectedRows);
     }
+}
+
+namespace {
+// rules-aware row walk mirroring SWT_Abstraction::setAbstractions:
+// returns the y offset (in scrolled content) of the row showing
+// target, or -1 when the row is not present under these rules
+int rowYOfTarget(SWT_Abstraction * const abs,
+                 const SingleWidgetTarget * const target,
+                 const SWT_RulesCollection &rules,
+                 const int rowHeight,
+                 int &currY,
+                 const bool parentSatisfies,
+                 const bool parentMain)
+{
+    if(!abs || !abs->getTarget() || !abs->getTarget()->SWT_isVisible()) {
+        return -1;
+    }
+    const bool satisfies = abs->getTarget()->SWT_shouldBeVisible(
+                rules, parentSatisfies, parentMain);
+    const bool main = abs->isMainTarget();
+    if(satisfies && !main) {
+        if(abs->getTarget() == target) { return currY; }
+        currY += rowHeight;
+    }
+    const bool childrenVisible = (satisfies && abs->contentVisible()) || main;
+    for(const auto &child : abs->children()) {
+        const int y = rowYOfTarget(child.get(), target, rules, rowHeight,
+                                   currY, childrenVisible, main);
+        if(y >= 0) { return y; }
+    }
+    return -1;
+}
+}
+
+void TimelineWidget::revealAutoSelectedRows()
+{
+    if(!mDocument.fAutoSelectLayer || !mCurrentScene) { return; }
+    const auto boxes = mCurrentScene->getSelectedBoxesList();
+    if(boxes.isEmpty()) { return; }
+
+    const auto scroller = mBoxesListWidget->getBoxScroller();
+    if(!scroller) { return; }
+    const auto mainAbs = scroller->getMainAbstration();
+    if(!mainAbs) { return; }
+
+    const int widId = mBoxesListWidget->swtWidgetId();
+    const auto rules = scroller->getRulesCollection();
+    const int rowHeight = eSizesUI::widget;
+
+    int firstRowY = -1;
+    for(const auto &box : boxes) {
+        const auto abs = box->SWT_getAbstractionForWidget(widId);
+        if(!abs) { continue; }
+        // expand every collapsed ancestor (group rows)
+        for(auto p = abs->getParent(); p; p = p->getParent()) {
+            if(!p->contentVisible()) { p->setContentVisible(true); }
+        }
+        // same origin the scroller's own walk starts from
+        int currY = eSizesUI::widget/2;
+        const int y = rowYOfTarget(mainAbs, box, rules, rowHeight,
+                                   currY, true, false);
+        if(y >= 0 && (firstRowY < 0 || y < firstRowY)) { firstRowY = y; }
+    }
+    if(firstRowY < 0) { return; }
+
+    // only scroll when the row sits outside the visible band
+    const int top = scroller->visibleTop();
+    const int bottom = top + scroller->visibleHeight();
+    if(firstRowY >= top && firstRowY + rowHeight <= bottom) { return; }
+    const int targetTop = qMax(0, firstRowY - scroller->visibleHeight()/2);
+    mBoxesListWidget->scrollParentAreaBy(targetTop - top);
 }
 
 void TimelineWidget::setGraphEnabled(const bool enabled) {

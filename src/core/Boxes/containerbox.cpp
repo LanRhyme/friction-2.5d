@@ -1427,6 +1427,30 @@ BoundingBox *ContainerBox::getBoxAt(const QPointF &absPos) {
     return boxAtPos;
 }
 
+BoundingBox *ContainerBox::getBoxAtPixel(const QPointF &absPos) {
+    BoundingBox* boxAtPos = nullptr;
+    const auto minMax = getContainedMinMax();
+    const bool soloActive = childrenSoloActive();
+    for(int i = minMax.fMin; i <= minMax.fMax; i++) {
+        const auto& box = mContainedBoxes.at(i);
+        if(box->isVisibleAndUnlocked() &&
+           box->isVisibleAndInVisibleDurationRect() &&
+           (!soloActive || box->soloAffectsDraw())) {
+            // MSVC: keep the cast declaration out of the if condition
+            const auto cont = enve_cast<ContainerBox*>(box);
+            if(cont) {
+                // groups themselves have no pixels: the deepest child
+                // owning the clicked pixel wins (PS auto-select Layer)
+                boxAtPos = cont->getBoxAtPixel(absPos);
+            } else if(box->absPointInsideVisiblePixels(absPos)) {
+                boxAtPos = box;
+            }
+            if(boxAtPos) break;
+        }
+    }
+    return boxAtPos;
+}
+
 void ContainerBox::anim_setAbsFrame(const int frame) {
     BoundingBox::anim_setAbsFrame(frame);
 

@@ -1580,6 +1580,10 @@ bool BoundingBox::absPointInsidePath(const QPointF &absPoint) {
     return relPointInsidePath(mapAbsPosToRel(absPoint));
 }
 
+bool BoundingBox::absPointInsideVisiblePixels(const QPointF &absPos) {
+    return absPointInsidePath(absPos);
+}
+
 void BoundingBox::cancelTransform() {
     mTransformAnimator->prp_cancelTransform();
     //updateTotalTransform();

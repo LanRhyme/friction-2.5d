@@ -44,11 +44,13 @@ ToolBox::ToolBox(Actions &actions,
     , mGroupNodes(nullptr)
     , mGroupDraw(nullptr)
     , mGroupColorPicker(nullptr)
+    , mGroupAutoSelect(nullptr)
     , mDrawPathMaxError(nullptr)
     , mDrawPathSmooth(nullptr)
     , mLocalPivot(nullptr)
     , mColorPickerButton(nullptr)
     , mColorPickerLabel(nullptr)
+    , mAutoSelectLayer(nullptr)
 {
     setupToolBox(parent);
 }
@@ -105,12 +107,15 @@ void ToolBox::setupToolBox(QWidget *parent)
     mGroupNodes = new QActionGroup(this);
     mGroupDraw = new QActionGroup(this);
     mGroupColorPicker = new QActionGroup(this);
+    mGroupAutoSelect = new QActionGroup(this);
+    mGroupAutoSelect->setExclusive(false);
 
     setupDocument();
     setupMainActions();
     setupNodesActions();
     setupDrawActions();
     setupColorPickerActions();
+    setupAutoSelectActions();
 }
 
 void ToolBox::setupDocument()
@@ -688,6 +693,30 @@ void ToolBox::setupColorPickerActions()
     mGroupColorPicker->setVisible(false);
 }
 
+void ToolBox::setupAutoSelectActions()
+{
+    // PS-style move-tool option: clicking visible pixels on the canvas
+    // selects the layer that owns them (object mode only)
+    mAutoSelectLayer = new QCheckBox(
+                tr("\u81EA\u52A8\u9009\u62E9\u56FE\u5C42"),
+                mControls);
+    mAutoSelectLayer->setToolTip(
+                tr("\u5BF9\u8C61\u6A21\u5F0F\u4E0B\u70B9\u51FB\u753B\u5E03\u53EF\u89C1\u50CF\u7D20\uFF0C"
+                   "\u81EA\u52A8\u9009\u4E2D\u5E76\u8DF3\u8F6C\u5230\u6240\u5C5E\u56FE\u5C42\uFF08PS \u8BED\u4E49\uFF09"));
+    mAutoSelectLayer->setChecked(mDocument.fAutoSelectLayer);
+    connect(mAutoSelectLayer, &QCheckBox::toggled,
+            this, [this](const bool checked) {
+        mDocument.fAutoSelectLayer = checked;
+        AppSupport::setSettings("canvas", "AutoSelectLayer", checked);
+    });
+
+    mGroupAutoSelect->addAction(mControls->addSpacer(true, true));
+    mGroupAutoSelect->addAction(mControls->addWidget(mAutoSelectLayer));
+
+    mGroupAutoSelect->setEnabled(false);
+    mGroupAutoSelect->setVisible(false);
+}
+
 void ToolBox::setCurrentCanvas(Canvas * const target)
 {
     mControls->setCurrentCanvas(target);
@@ -707,6 +736,9 @@ void ToolBox::setCanvasMode(const CanvasMode &mode)
 
     mGroupDraw->setEnabled(drawMode);
     mGroupDraw->setVisible(drawMode);
+
+    mGroupAutoSelect->setEnabled(boxMode);
+    mGroupAutoSelect->setVisible(boxMode);
 
     mLocalPivot->setEnabled(boxMode || pointMode);
 

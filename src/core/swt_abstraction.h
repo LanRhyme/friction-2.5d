@@ -106,6 +106,11 @@ public:
 
     int childrenCount() const { return mChildren.count(); }
 
+    // read access for rules-aware row walks outside this class
+    // (timeline auto-select reveal needs to count visible rows)
+    const QList<stdsptr<SWT_Abstraction>>& children() const
+    { return mChildren; }
+
     void removeAlongWithAllChildren_k();
 protected:
     void setParent(SWT_Abstraction * const parent);

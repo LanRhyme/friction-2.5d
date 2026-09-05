@@ -29,6 +29,7 @@
 #include <QActionGroup>
 #include <QPushButton>
 #include <QLabel>
+#include <QCheckBox>
 
 #include "Private/document.h"
 
@@ -92,6 +93,7 @@ namespace Friction
             QActionGroup *mGroupNodes;
             QActionGroup *mGroupDraw;
             QActionGroup *mGroupColorPicker;
+            QActionGroup *mGroupAutoSelect;
 
             QDoubleSlider *mDrawPathMaxError;
             QDoubleSlider *mDrawPathSmooth;
@@ -101,6 +103,7 @@ namespace Friction
 
             QToolButton *mColorPickerButton;
             QLabel *mColorPickerLabel;
+            QCheckBox *mAutoSelectLayer;
 
             void setupToolBox(QWidget *parent);
             void setupDocument();
@@ -116,6 +119,7 @@ namespace Friction
             void setupNodesActions();
             void setupDrawActions();
             void setupColorPickerActions();
+            void setupAutoSelectActions();
 
             void setCurrentCanvas(Canvas * const target);
             void setCanvasMode(const CanvasMode &mode);

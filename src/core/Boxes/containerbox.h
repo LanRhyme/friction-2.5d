@@ -84,6 +84,11 @@ public:
 
     virtual BoundingBox *getBoxAt(const QPointF &absPos);
 
+    // PS-style auto-select pick: like getBoxAt but tests visible
+    // pixels instead of bounding rectangles and drills into groups to
+    // return the deepest layer owning the clicked pixel
+    BoundingBox *getBoxAtPixel(const QPointF &absPos);
+
     void anim_setAbsFrame(const int frame);
 
     Property* ca_findPropertyWithPath(

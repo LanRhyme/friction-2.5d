@@ -115,6 +115,29 @@ bool ImageBox::hasLoadedImage() const {
     return mFileHandler && mFileHandler->hasImage();
 }
 
+bool ImageBox::absPointInsideVisiblePixels(const QPointF &absPos) {
+    // map the scene position into the source bitmap (image rel space
+    // is pixel space, origin top-left, size = image dimensions) and
+    // require a non-transparent pixel; fall back to the bounding
+    // rectangle when the pixels are not in RAM (evicted)
+    if(!mFileHandler || !mFileHandler->hasImage()) {
+        return absPointInsidePath(absPos);
+    }
+    const sk_sp<SkImage> img = mFileHandler->getImage();
+    if(!img) { return absPointInsidePath(absPos); }
+    const QPointF rel = mapAbsPosToRel(absPos);
+    const int px = qRound(rel.x());
+    const int py = qRound(rel.y());
+    if(px < 0 || py < 0 || px >= img->width() || py >= img->height()) {
+        return false;
+    }
+    SkPixmap pixmap;
+    if(!img->peekPixels(&pixmap)) {
+        return absPointInsidePath(absPos);
+    }
+    return SkColorGetA(pixmap.getColor(px, py)) > 0;
+}
+
 void ImageBox::setupCanvasMenu(PropertyMenu * const menu)
 {
     if (menu->hasActionsForType<ImageBox>()) { return; }

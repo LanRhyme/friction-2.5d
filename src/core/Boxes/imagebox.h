@@ -80,6 +80,10 @@ public:
     // an async reload
     bool hasLoadedImage() const;
 
+    // PS-style auto-select: sample the source bitmap alpha at the
+    // mapped pixel; positions on transparent pixels are not a hit
+    bool absPointInsideVisiblePixels(const QPointF &absPos) override;
+
     void reload();
 
     // derived PSD box guards its pixel cache against disk cleanup

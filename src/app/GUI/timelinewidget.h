@@ -111,6 +111,10 @@ private:
     void setBoxRule(const SWT_BoxRule rule);
     void setTarget(const SWT_Target target);
 
+    // PS-style auto-select: expand collapsed ancestor groups of the
+    // canvas-picked layers and scroll their rows into view
+    void revealAutoSelectedRows();
+
     Canvas* mCurrentScene = nullptr;
 
     Document& mDocument;

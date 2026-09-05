@@ -69,11 +69,23 @@ using namespace Friction::Core;
 
 void Canvas::handleMovePathMousePressEvent(const eMouseEvent& e)
 {
-    mPressedBox = mCurrentContainer->getBoxAt(e.fPos);
-    if(!mPressedBox && sceneHasActiveCamera()) {
-        // 3D layers are hit-tested where they are SEEN (through the camera
-        // projection), 2D layers keep the raw canvas position first
-        mPressedBox = mCurrentContainer->getBoxAt(mapCameraScreenToWorld(e.fPos));
+    // PS-style auto-select: pixel-accurate deepest-layer picking;
+    // clicking a transparent region of the top-most image falls
+    // through to the image actually seen there (empty canvas
+    // deselects, same as without the switch)
+    if(mDocument.fAutoSelectLayer) {
+        mPressedBox = mCurrentContainer->getBoxAtPixel(e.fPos);
+        if(!mPressedBox && sceneHasActiveCamera()) {
+            mPressedBox = mCurrentContainer->getBoxAtPixel(
+                        mapCameraScreenToWorld(e.fPos));
+        }
+    } else {
+        mPressedBox = mCurrentContainer->getBoxAt(e.fPos);
+        if(!mPressedBox && sceneHasActiveCamera()) {
+            // 3D layers are hit-tested where they are SEEN (through the camera
+            // projection), 2D layers keep the raw canvas position first
+            mPressedBox = mCurrentContainer->getBoxAt(mapCameraScreenToWorld(e.fPos));
+        }
     }
     if (e.shiftMod()) { return; }
     if (mPressedBox ? !mPressedBox->isSelected() : true) {

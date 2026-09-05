@@ -430,6 +430,12 @@ public:
     QPointF getAbsolutePos() const;
     bool absPointInsidePath(const QPointF &absPos);
 
+    // PS-style auto-select hit test: does this scene position land on
+    // visible content of this box (not just inside its bounding
+    // rectangle)? raster boxes sample their source pixels, geometry
+    // boxes fall back to the path test
+    virtual bool absPointInsideVisiblePixels(const QPointF &absPos);
+
     void setPivotAbsPos(const QPointF &absPos);
     void setPivotRelPos(const QPointF &relPos);
 
