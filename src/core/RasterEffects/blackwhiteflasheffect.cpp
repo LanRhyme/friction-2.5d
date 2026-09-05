@@ -28,9 +28,10 @@
 
 #include "blackwhiteflasheffect.h"
 #include "Animators/qrealanimator.h"
-#include "Animators/qpointfanimator.h"
 #include "Animators/coloranimator.h"
 #include "Boxes/boundingbox.h"
+#include "MovablePoints/movablepoint.h"
+#include "MovablePoints/pointshandler.h"
 #include "skia/skqtconversions.h"
 #include "appsupport.h"
 #include <cmath>
@@ -448,6 +449,125 @@ void stage5RadialBlur(const std::vector<double>& src,
 
 } // namespace
 
+// Draggable canvas handle for the light/blur center. Writes the two
+// center QrealAnimators; their values are pixels relative to the host
+// box's bounding-rect top-left (the AE layer-space semantics), the
+// point works in box-local coordinates like the pivot point does.
+class BwfCenterPoint : public MovablePoint {
+    e_OBJECT
+protected:
+    BwfCenterPoint(BlackWhiteFlashEffect * const effect) :
+        MovablePoint(MovablePointType::TYPE_GRADIENT_POINT), mEffect(effect) {
+        setRadius(12);
+        setSelectionEnabled(false);
+    }
+public:
+    bool isVisible(const CanvasMode mode) const {
+        Q_UNUSED(mode)
+        return true;
+    }
+
+    QPointF getRelativePos() const {
+        const auto eff = mEffect.data();
+        if (!eff) return QPointF();
+        const auto box = eff->getFirstAncestor<BoundingBox>();
+        const QRectF bRect = box ? box->getRelBoundingRect() : QRectF();
+        return QPointF(bRect.left() + eff->mCenterX->getEffectiveValue(),
+                       bRect.top() + eff->mCenterY->getEffectiveValue());
+    }
+
+    void setRelativePos(const QPointF &relPos) {
+        const auto eff = mEffect.data();
+        if (!eff) return;
+        const auto box = eff->getFirstAncestor<BoundingBox>();
+        if (!box) return;
+        const QRectF bRect = box->getRelBoundingRect();
+        eff->mCenterX->setCurrentBaseValue(relPos.x() - bRect.left());
+        eff->mCenterY->setCurrentBaseValue(relPos.y() - bRect.top());
+    }
+
+    void startTransform() {
+        MovablePoint::startTransform();
+        const auto eff = mEffect.data();
+        if (!eff) return;
+        eff->mCenterX->prp_startTransform();
+        eff->mCenterY->prp_startTransform();
+    }
+
+    void finishTransform() {
+        const auto eff = mEffect.data();
+        if (!eff) return;
+        eff->mCenterX->prp_finishTransform();
+        eff->mCenterY->prp_finishTransform();
+    }
+
+    void cancelTransform() {
+        const auto eff = mEffect.data();
+        if (!eff) return;
+        eff->mCenterX->prp_cancelTransform();
+        eff->mCenterY->prp_cancelTransform();
+    }
+
+    void drawSk(SkCanvas * const canvas,
+                const CanvasMode mode,
+                const float invScale,
+                const bool keyOnCurrent,
+                const bool ctrlPressed) {
+        Q_UNUSED(mode)
+        Q_UNUSED(keyOnCurrent)
+        Q_UNUSED(ctrlPressed)
+
+        const auto eff = mEffect.data();
+        if (!eff) return;
+
+        // Lazy-sync the host box transform so hit-testing maps the
+        // same way as drawing (the effect is constructed before it
+        // knows its host box).
+        const auto box = eff->getFirstAncestor<BoundingBox>();
+        if (!box) return;
+        if (getTransform() != box->getTransformAnimator()) {
+            setTransform(box->getTransformAnimator());
+        }
+
+        const SkPoint absPos = toSkPoint(getAbsolutePos());
+        const float r = 10.f * invScale;
+        const float cross = 18.f * invScale;
+
+        SkPaint pShadow;
+        pShadow.setAntiAlias(true);
+        pShadow.setColor(SkColorSetARGB(180, 0, 0, 0));
+        pShadow.setStyle(SkPaint::kStroke_Style);
+        pShadow.setStrokeWidth(3.f * invScale);
+
+        SkPaint pLine;
+        pLine.setAntiAlias(true);
+        pLine.setColor(SkColorSetARGB(255, 0, 220, 255));
+        pLine.setStyle(SkPaint::kStroke_Style);
+        pLine.setStrokeWidth(1.5f * invScale);
+
+        canvas->drawCircle(absPos.x(), absPos.y(), r, pShadow);
+        canvas->drawCircle(absPos.x(), absPos.y(), r, pLine);
+
+        SkPaint pDot;
+        pDot.setAntiAlias(true);
+        pDot.setColor(SkColorSetARGB(255, 255, 255, 255));
+        pDot.setStyle(SkPaint::kFill_Style);
+        canvas->drawCircle(absPos.x(), absPos.y(), 2.5f * invScale, pDot);
+
+        canvas->drawLine(absPos.x() - cross, absPos.y(), absPos.x() - r * 0.5f, absPos.y(), pShadow);
+        canvas->drawLine(absPos.x() + r * 0.5f, absPos.y(), absPos.x() + cross, absPos.y(), pShadow);
+        canvas->drawLine(absPos.x(), absPos.y() - cross, absPos.x(), absPos.y() - r * 0.5f, pShadow);
+        canvas->drawLine(absPos.x(), absPos.y() + r * 0.5f, absPos.x(), absPos.y() + cross, pShadow);
+
+        canvas->drawLine(absPos.x() - cross, absPos.y(), absPos.x() - r * 0.5f, absPos.y(), pLine);
+        canvas->drawLine(absPos.x() + r * 0.5f, absPos.y(), absPos.x() + cross, absPos.y(), pLine);
+        canvas->drawLine(absPos.x(), absPos.y() - cross, absPos.x(), absPos.y() - r * 0.5f, pLine);
+        canvas->drawLine(absPos.x(), absPos.y() + r * 0.5f, absPos.x(), absPos.y() + cross, pLine);
+    }
+private:
+    const QPointer<BlackWhiteFlashEffect> mEffect;
+};
+
 BlackWhiteFlashEffect::BlackWhiteFlashEffect() :
     RasterEffect(QObject::tr("Black-White Flash"),
                  AppSupport::getRasterEffectHardwareSupport("BlackWhiteFlash",
@@ -464,10 +584,11 @@ BlackWhiteFlashEffect::BlackWhiteFlashEffect() :
     mEdgeIntensity = enve::make_shared<QrealAnimator>(50.0, 0.0, 100.0, 1.0, QStringLiteral("边缘强度"));
     ca_addChild(mEdgeIntensity);
 
-    mCenter = enve::make_shared<QPointFAnimator>(QStringLiteral("光线/模糊中心"));
-    mCenter->setValuesRange(-1000.0, 1000.0);
-    mCenter->setBaseValue(QPointF(0.0, 0.0));
-    ca_addChild(mCenter);
+    mCenterX = enve::make_shared<QrealAnimator>(0.0, -1000.0, 1000.0, 1.0, QStringLiteral("中心 X"));
+    ca_addChild(mCenterX);
+
+    mCenterY = enve::make_shared<QrealAnimator>(0.0, -1000.0, 1000.0, 1.0, QStringLiteral("中心 Y"));
+    ca_addChild(mCenterY);
 
     mLightIntensity = enve::make_shared<QrealAnimator>(80.0, 0.0, 100.0, 1.0, QStringLiteral("光线强度"));
     ca_addChild(mLightIntensity);
@@ -499,6 +620,12 @@ BlackWhiteFlashEffect::BlackWhiteFlashEffect() :
     ca_addChild(mBgColor);
 
     prp_enabledDrawingOnCanvas();
+
+    // Property::prp_drawCanvasControls (the default implementation)
+    // draws the handler's points, and the canvas dispatches dragging
+    // through the same handler - one object for both concerns.
+    setPointsHandler(enve::make_shared<PointsHandler>());
+    getPointsHandler()->appendPt(enve::make_shared<BwfCenterPoint>(this));
 }
 
 namespace {
@@ -553,9 +680,8 @@ stdsptr<RasterEffectCaller> BlackWhiteFlashEffect::getEffectCaller(
     effData.mThreshold01 = mThreshold->getEffectiveValue(relFrame) / 255.0;
     effData.mContrast = mContrast->getEffectiveValue(relFrame) / 100.0;
     effData.mEdgeIntensity = mEdgeIntensity->getEffectiveValue(relFrame) / 100.0;
-    const QPointF c = mCenter->getEffectiveValue(relFrame);
-    effData.mCenterX = c.x() * resolution;
-    effData.mCenterY = c.y() * resolution;
+    effData.mCenterX = mCenterX->getEffectiveValue(relFrame) * resolution;
+    effData.mCenterY = mCenterY->getEffectiveValue(relFrame) * resolution;
     effData.mLightIntensity = mLightIntensity->getEffectiveValue(relFrame) / 100.0 * influence;
     effData.mLightLength = mLightLength->getEffectiveValue(relFrame);
     effData.mContourSimplify = mContourSimplify->getEffectiveValue(relFrame);
@@ -651,55 +777,4 @@ void BlackWhiteFlashEffectCaller::processCpu(CpuRenderTools& renderTools,
             *dst++ = sa;
         }
     }
-}
-
-void BlackWhiteFlashEffect::prp_drawCanvasControls(
-        SkCanvas * const canvas, const CanvasMode mode,
-        const float invScale, const bool ctrlPressed)
-{
-    Q_UNUSED(mode)
-    Q_UNUSED(ctrlPressed)
-
-    const auto box = getFirstAncestor<BoundingBox>();
-    if (!box) return;
-
-    const QRectF bRect = box->getRelBoundingRect();
-    const QPointF c = mCenter->getEffectiveValue();
-    const qreal cx = bRect.left() + c.x();
-    const qreal cy = bRect.top() + c.y();
-    const SkPoint pt = toSkPoint(QPointF(cx, cy));
-
-    const float r = 10.0f * invScale;
-    const float cross = 18.0f * invScale;
-
-    SkPaint pShadow;
-    pShadow.setAntiAlias(true);
-    pShadow.setColor(SkColorSetARGB(180, 0, 0, 0));
-    pShadow.setStyle(SkPaint::kStroke_Style);
-    pShadow.setStrokeWidth(3.0f * invScale);
-
-    SkPaint pLine;
-    pLine.setAntiAlias(true);
-    pLine.setColor(SkColorSetARGB(255, 0, 220, 255));
-    pLine.setStyle(SkPaint::kStroke_Style);
-    pLine.setStrokeWidth(1.5f * invScale);
-
-    canvas->drawCircle(pt.fX, pt.fY, r, pShadow);
-    canvas->drawCircle(pt.fX, pt.fY, r, pLine);
-
-    SkPaint pDot;
-    pDot.setAntiAlias(true);
-    pDot.setColor(SkColorSetARGB(255, 255, 255, 255));
-    pDot.setStyle(SkPaint::kFill_Style);
-    canvas->drawCircle(pt.fX, pt.fY, 2.5f * invScale, pDot);
-
-    canvas->drawLine(pt.fX - cross, pt.fY, pt.fX - r * 0.5f, pt.fY, pShadow);
-    canvas->drawLine(pt.fX + r * 0.5f, pt.fY, pt.fX + cross, pt.fY, pShadow);
-    canvas->drawLine(pt.fX, pt.fY - cross, pt.fX, pt.fY - r * 0.5f, pShadow);
-    canvas->drawLine(pt.fX, pt.fY + r * 0.5f, pt.fX, pt.fY + cross, pShadow);
-
-    canvas->drawLine(pt.fX - cross, pt.fY, pt.fX - r * 0.5f, pt.fY, pLine);
-    canvas->drawLine(pt.fX + r * 0.5f, pt.fY, pt.fX + cross, pt.fY, pLine);
-    canvas->drawLine(pt.fX, pt.fY - cross, pt.fX, pt.fY - r * 0.5f, pLine);
-    canvas->drawLine(pt.fX, pt.fY + r * 0.5f, pt.fX, pt.fY + cross, pLine);
 }

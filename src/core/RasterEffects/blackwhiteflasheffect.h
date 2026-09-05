@@ -28,12 +28,15 @@
 #include "skia/skiaincludes.h"
 
 class QrealAnimator;
-class QPointFAnimator;
 class ColorAnimator;
+class BwfCenterPoint;
 
 // Faithful port of the BWF After Effects plugin (BWF.cpp):
 // Threshold > SDF > ContourDP > NormalEmission > RadialBlur,
 // single-threaded whole-image CPU pipeline, cpuOnly by design.
+// The light/blur center is a pair of QrealAnimator rows (a
+// QPointFAnimator/StaticComplexAnimator row never shows up in the
+// properties panel in this framework) plus a draggable canvas point.
 class CORE_EXPORT BlackWhiteFlashEffect : public RasterEffect {
     e_OBJECT
     Q_OBJECT
@@ -46,15 +49,14 @@ public:
             const qreal influence,
             BoxRenderData * const data) const override;
 
-    void prp_drawCanvasControls(
-            SkCanvas * const canvas, const CanvasMode mode,
-            const float invScale, const bool ctrlPressed) override;
-
 private:
+    friend class BwfCenterPoint;
+
     qsptr<QrealAnimator> mThreshold;       // 阈值 0..255, default 34
     qsptr<QrealAnimator> mContrast;        // 对比度 50..300, default 142
     qsptr<QrealAnimator> mEdgeIntensity;   // 边缘强度 0..100, default 50
-    qsptr<QPointFAnimator> mCenter;        // 光线/模糊中心, default (0,0)
+    qsptr<QrealAnimator> mCenterX;         // 光线/模糊中心 X, default 0
+    qsptr<QrealAnimator> mCenterY;         // 光线/模糊中心 Y, default 0
     qsptr<QrealAnimator> mLightIntensity;  // 光线强度 0..100, default 80
     qsptr<QrealAnimator> mLightLength;     // 光线长度 1..300, default 196
     qsptr<QrealAnimator> mContourSimplify; // 轮廓简化 0..50, default 1
