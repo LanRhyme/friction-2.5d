@@ -658,9 +658,12 @@ void Canvas::handleLeftButtonMousePress(const eMouseEvent& e)
         clearBoxesSelection();
         addBoxToSelection(newPath.get());
     } else if (mCurrentMode == CanvasMode::rectCreate) {
-        // bitmap auto-detect: drawing a rectangle over a bitmap layer
-        // (or an existing mask / mask group) creates a rect mask;
-        // everything else keeps drawing a plain rectangle shape
+        // bitmap auto-detect: a single selected bitmap/mask-host layer
+        // wins (masks stay on the selected layer no matter what the
+        // press point hits); without such a selection, a rectangle
+        // drawn over a bitmap layer (or an existing mask / mask group)
+        // creates a rect mask; everything else keeps drawing a plain
+        // rectangle shape
         const auto maskTarget = resolveMaskTarget(e);
         if (maskTarget && isMaskIntentTarget(maskTarget)) {
             if (!startMaskRectDrag(maskTarget, e)) { return; }

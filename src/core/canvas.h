@@ -1217,7 +1217,8 @@ protected:
     void handleAddSmartPointMouseRelease(const eMouseEvent &e);
 
     // AE-style masks (pen + rect tool): resolveMaskTarget is pure
-    // hit/selection resolution (no tree mutation); ensureMaskHost
+    // hit/selection resolution (no tree mutation), the single
+    // selected layer wins over the press-point hit test; ensureMaskHost
     // wraps the target layer on first use or joins the existing mask
     // group; nullptr + warning when the press resolves to no layer
     BoundingBox *resolveMaskTarget(const eMouseEvent &e);

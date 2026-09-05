@@ -95,28 +95,34 @@ bool Canvas::isMaskIntentTarget(BoundingBox * const target) {
 }
 
 BoundingBox *Canvas::resolveMaskTarget(const eMouseEvent &e) {
-    // pure resolution, no tree mutation: the layer under the press
-    // point; with no hit, a single selected layer (AE semantics -
-    // drawing commonly starts outside the layer bounds)
+    // pure resolution, no tree mutation. The single SELECTED layer
+    // wins over the press-point hit test (AE semantics): with many
+    // stacked bitmap layers the first press routinely lands on a
+    // different bitmap than the one being masked, so masks always go
+    // to the layer the user selected. The hit test only resolves the
+    // target when the selection is not maskable (multi-select, plain
+    // groups, vector shapes ...); such a weak selection still acts as
+    // the no-hit fallback for the forced mask pen
+    const auto selList = getSelectedBoxesList();
+    if(selList.count() == 1) {
+        const auto sel = selList.first();
+        if(isMaskPathBox(sel)) {
+            return sel->getParentGroup();
+        }
+        const auto selGroup = enve_cast<ContainerBox*>(sel);
+        if(selGroup && sel->isLayer() &&
+                !enve_cast<Canvas*>(selGroup)) {
+            return selGroup;
+        }
+        if(isBitmapBox(sel)) return sel;
+    }
     BoundingBox *target = getBoxAtFromAllDescendents(e.fPos);
     if(isMaskPathBox(target)) {
         // drawing over an existing mask stacks another mask onto the
         // same layer (multi-mask Add/Subtract composition)
         return target->getParentGroup();
     }
-    if(!target) {
-        const auto selList = getSelectedBoxesList();
-        if(selList.count() == 1) {
-            const auto sel = selList.first();
-            if(isMaskPathBox(sel)) return sel->getParentGroup();
-            const auto selGroup = enve_cast<ContainerBox*>(sel);
-            if(selGroup && sel->isLayer() &&
-                    !enve_cast<Canvas*>(selGroup)) {
-                return selGroup;
-            }
-            target = sel;
-        }
-    }
+    if(!target && selList.count() == 1) return selList.first();
     return target;
 }
 
@@ -209,6 +215,8 @@ void Canvas::handleAddSmartPointMousePress(const eMouseEvent &e) {
         // mask session: forced via the mask pen button, or
         // auto-detected - on a bitmap layer (or over an existing
         // mask / mask-hosting group) the plain pen draws a mask too;
+        // a single selected bitmap/mask-host layer always wins over
+        // the hit test so the mask stays on the selected layer;
         // an unresolved forced target must never fall through to a
         // raw DstIn path in the current container - once closed it
         // would erase every layer below it on the whole canvas
