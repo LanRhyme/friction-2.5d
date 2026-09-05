@@ -122,6 +122,7 @@ private:
     void buildBoxProperties(BoundingBox *box);
     void setupTransformControls(QGridLayout *grid, BoundingBox *box);
     void setupPathStyleControls(QGridLayout *grid, PathBox *pathBox);
+    void setupMaskControls(QGridLayout *grid, class SmartVectorPath *maskPath);
     void setupEffectsControls(QVBoxLayout *layout, BoundingBox *box);
     void setupEffectPropertyControl(QGridLayout *grid, int row, Property *prop, BoundingBox *box);
 

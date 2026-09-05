@@ -3,6 +3,8 @@
 
 #include "rastereffect.h"
 
+class QrealAnimator;
+
 class CORE_EXPORT BlurEffect : public RasterEffect {
     e_OBJECT
 protected:
@@ -20,6 +22,8 @@ public:
 
     // programmatic base-value setter (used by the mask pen feather)
     void setRadius(const qreal radius);
+    // animator access for UI binding (properties panel mask feather)
+    QrealAnimator* getRadiusAnimator() const { return mRadius.data(); }
 private:
     qsptr<QrealAnimator> mRadius;
 };

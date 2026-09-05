@@ -13,6 +13,7 @@
 #include "Boxes/boundingbox.h"
 #include "Boxes/pathbox.h"
 #include "Boxes/boxwithpatheffects.h"
+#include "Boxes/smartvectorpath.h"
 #include "Boxes/adjustmentlayer.h"
 #include "Boxes/nullobject.h"
 #include "Animators/transformanimator.h"
@@ -24,6 +25,7 @@
 #include "RasterEffects/rastereffectcollection.h"
 #include "RasterEffects/rastereffect.h"
 #include "RasterEffects/rastereffectmenucreator.h"
+#include "RasterEffects/blureffect.h"
 #include "GUI/BoxesList/boxsinglewidget.h"
 #include "themesupport.h"
 #include "Private/document.h"
@@ -33,6 +35,7 @@
 #include "widgets/colorsettingswidget.h"
 
 #include <QColorDialog>
+#include <QComboBox>
 #include <QMenu>
 #include <QWidgetAction>
 #include <QIcon>
@@ -510,6 +513,11 @@ void AEPropertiesInspector::buildBoxProperties(BoundingBox *box)
 {
     if (!box) { return; }
 
+    // mask row (mask-mode path): gets its own section below and a
+    // dedicated type badge
+    const auto maskSvp = enve_cast<SmartVectorPath*>(box);
+    const bool isMaskRow = maskSvp && maskSvp->getMaskMode();
+
     // Top Header Bar: Clean, flat, borderless
     auto headerWidget = new QWidget(mContainer);
     auto hLayout = new QHBoxLayout(headerWidget);
@@ -541,8 +549,9 @@ void AEPropertiesInspector::buildBoxProperties(BoundingBox *box)
 
     QString typeStr = tr("图层");
     if (box->getBoxType() == eBoxType::adjustmentLayer) { typeStr = tr("调整图层"); }
-    else if (enve_cast<PathBox*>(box)) { typeStr = tr("矢量路径"); }
     else if (enve_cast<NullObject*>(box)) { typeStr = tr("空对象"); }
+    else if (isMaskRow) { typeStr = tr("蒙版"); }
+    else if (enve_cast<PathBox*>(box)) { typeStr = tr("矢量路径"); }
 
     auto typeBadge = new QLabel(typeStr, headerWidget);
     typeBadge->setStyleSheet(QStringLiteral("color: #ffffff; font-size: 12px; padding: 0 4px;"));
@@ -600,6 +609,15 @@ void AEPropertiesInspector::buildBoxProperties(BoundingBox *box)
     }
 
     mMainLayout->addWidget(headerWidget);
+
+    // Section 0: Mask properties - first thing a mask row is edited
+    // for (AE-style: mode + feather at the top)
+    if (isMaskRow) {
+        QGridLayout *maskGrid = nullptr;
+        auto maskCard = createSectionCard(tr("蒙版"), QIcon::fromTheme(QStringLiteral("layer-visible")), maskGrid);
+        setupMaskControls(maskGrid, maskSvp);
+        mMainLayout->addWidget(maskCard);
+    }
 
     // Section 1: Transform Controls (Grid Aligned)
     QGridLayout *transGrid = nullptr;
@@ -920,6 +938,90 @@ void AEPropertiesInspector::setupPathStyleControls(QGridLayout *grid, PathBox *p
 
             rowIdx++;
         }
+    }
+}
+
+void AEPropertiesInspector::setupMaskControls(QGridLayout *grid,
+                                              SmartVectorPath *maskPath)
+{
+    if (!maskPath || !grid) { return; }
+
+    int rowIdx = 0;
+
+    // Mask mode: the blend mode IS the storage (kDstIn = Add,
+    // kDstOut = Subtract) - same semantics as the timeline mask row
+    // combo (activated + actionFinished for undo)
+    {
+        auto lbl = new QLabel(tr("模式"));
+        lbl->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+        lbl->setStyleSheet(QStringLiteral("color: #ffffff; font-size: 12px;"));
+        grid->addWidget(lbl, rowIdx, 1);
+
+        auto combo = new QComboBox();
+        combo->setPalette(ThemeSupport::getDefaultPalette());
+        combo->setToolTip(tr("相加=并入蒙版区域，相减=从已有蒙版中擦除"));
+        combo->addItem(tr("相加"));
+        combo->addItem(tr("相减"));
+        combo->setCurrentIndex(
+                    maskPath->getBlendMode() == SkBlendMode::kDstOut ? 1 : 0);
+        combo->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+        connect(combo, qOverload<int>(&QComboBox::activated),
+                this, [maskPath](const int index) {
+            const auto mode = index == 1 ? SkBlendMode::kDstOut
+                                         : SkBlendMode::kDstIn;
+            if (maskPath->getBlendMode() == mode) { return; }
+            maskPath->setBlendModeSk(mode);
+            Document::sInstance->actionFinished();
+        });
+        grid->addWidget(combo, rowIdx, 2);
+
+        rowIdx++;
+    }
+
+    // Feather: the mask factory attaches a 0-radius Blur as the
+    // feather slot - expose its radius here, keyframable like the
+    // AE mask feather; hide the row if the blur was deleted
+    QrealAnimator *radiusAnim = nullptr;
+    const auto coll = maskPath->rasterEffectsCollection();
+    if (coll) {
+        const int n = coll->ca_getNumberOfChildren();
+        for (int i = 0; i < n; ++i) {
+            const auto eff = coll->ca_getChildAt<RasterEffect>(i);
+            const auto blur = enve_cast<BlurEffect*>(eff);
+            if (blur) {
+                radiusAnim = blur->getRadiusAnimator();
+                break;
+            }
+        }
+    }
+    if (radiusAnim) {
+        grid->addWidget(createKeyframeNav(radiusAnim), rowIdx, 0, Qt::AlignCenter);
+
+        auto lbl = new QLabel(tr("模糊"));
+        lbl->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+        lbl->setStyleSheet(QStringLiteral("color: #ffffff; font-size: 12px;"));
+        grid->addWidget(lbl, rowIdx, 1);
+
+        auto slider = new QrealAnimatorValueSlider(radiusAnim, nullptr);
+        slider->setAutoAdjustWidth(false);
+        slider->setName(QStringLiteral("px"));
+        slider->setNameVisible(true);
+        slider->setToolTip(tr("蒙版边缘羽化强度（可打关键帧）"));
+        slider->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+        grid->addWidget(slider, rowIdx, 2);
+
+        auto resetBtn = new QToolButton();
+        resetBtn->setObjectName(QStringLiteral("FlatButton"));
+        resetBtn->setText(QStringLiteral("↺"));
+        resetBtn->setFixedSize(14, 16);
+        resetBtn->setStyleSheet(QStringLiteral("font-size: 9px; color: #c8c8d0; padding: 0; border: none; background: transparent;"));
+        resetBtn->setToolTip(tr("重置为硬边"));
+        connect(resetBtn, &QToolButton::clicked, [radiusAnim, this]() {
+            if (radiusAnim) { radiusAnim->setCurrentBaseValue(0.0); }
+            if (mScene) { mScene->requestUpdate(); }
+            refreshValues();
+        });
+        grid->addWidget(resetBtn, rowIdx, 3, Qt::AlignCenter);
     }
 }
 
