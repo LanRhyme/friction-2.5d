@@ -24,7 +24,6 @@ namespace {
 // grey objects, orange selection)
 constexpr SkColor kTopBg        = SkColorSetARGB(255, 41, 41, 41);
 constexpr SkColor kGridMinor    = SkColorSetARGB(255, 52, 52, 52);
-constexpr SkColor kGridMajor    = SkColorSetARGB(255, 64, 64, 64);
 constexpr SkColor kAxisZ        = SkColorSetARGB(255, 80, 118, 70);
 constexpr SkColor kDepthLine    = SkColorSetARGB(48, 255, 255, 255);
 constexpr SkColor kObjectFill   = SkColorSetARGB(255, 95, 95, 95);
@@ -468,7 +467,7 @@ void TopViewWindow::renderSk(SkCanvas* const canvas)
     const qreal cw = mScene->getCanvasWidth();
     const qreal ch = mScene->getCanvasHeight();
 
-    // ---- Blender-style grid: sparse adaptive two-level square grid
+    // ---- Blender-style grid: sparse adaptive uniform square grid
     // with the muted canvas-plane line (z = 0, green) ----
     const auto labelFont = hudFont(9);
     SkPaint labelP;
@@ -477,27 +476,21 @@ void TopViewWindow::renderSk(SkCanvas* const canvas)
     const qreal p10 = std::pow(10., std::floor(std::log10(step)));
     step = step / p10 < 1.5 ? p10 :
            step / p10 < 3.5 ? 2. * p10 : 5. * p10;
-    const qreal majorStep = step * 5.;
     SkPaint minor;
     minor.setColor(kGridMinor);
     minor.setStrokeWidth(SkScalar(pr));
-    SkPaint major;
-    major.setColor(kGridMajor);
-    major.setStrokeWidth(SkScalar(pr));
     {
         const int i0 = qFloor(visXMin / step);
         const int i1 = qCeil(visXMax / step);
         for (int i = i0; i <= i1; i++) {
             const SkScalar x = devX(i * step);
-            canvas->drawLine(x, 0, x, H,
-                             (i % 5 + 5) % 5 == 0 ? major : minor);
+            canvas->drawLine(x, 0, x, H, minor);
         }
         const int j0 = qFloor(visZMin / step);
         const int j1 = qCeil(visZMax / step);
         for (int j = j0; j <= j1; j++) {
             const SkScalar y = devY(j * step);
-            canvas->drawLine(0, y, W, y,
-                             (j % 5 + 5) % 5 == 0 ? major : minor);
+            canvas->drawLine(0, y, W, y, minor);
         }
     }
     // depth reference labels (one canvas height apart), the grid
