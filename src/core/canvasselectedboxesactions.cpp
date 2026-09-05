@@ -619,11 +619,19 @@ void Canvas::clearBoxesSelection() {
     //    }
 }
 
+void Canvas::setSelectionDirection(const bool bottomUp)
+{
+    mSelectionBottomUp = bottomUp;
+    mSelectionRangeDirected = true;
+}
+
 void Canvas::clearBoxesSelectionList() {
     //if(mCurrentMode == CanvasMode::paint)
         //mPaintTarget.setPaintBox(nullptr);
     mSelectedBoxes.clear();
     mSelectionOrderList.clear();
+    mSelectionBottomUp = false;
+    mSelectionRangeDirected = false;
     emit selectedPaintSettingsChanged();
     emit objectSelectionChanged();
 }

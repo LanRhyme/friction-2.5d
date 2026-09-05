@@ -303,6 +303,9 @@ public:
     BoundingBox* getCurrentBox() const { return mCurrentBox; }
     void setCurrentBox(BoundingBox* const box);
     void addBoxToSelection(BoundingBox* const box);
+    // timeline range selection reports its pick direction (anchor
+    // row below the clicked row = bottom-up) for the Ctrl+Alt stagger
+    void setSelectionDirection(const bool bottomUp);
     void removeBoxFromSelection(BoundingBox* const box);
     void clearBoxesSelection();
     void clearBoxesSelectionList();

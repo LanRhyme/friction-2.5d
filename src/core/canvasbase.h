@@ -129,6 +129,12 @@ protected:
     // decides the Ctrl+Alt stagger direction: top-down selection
     // anchors the top row, bottom-up anchors the bottom row
     QList<QPointer<BoundingBox>> mSelectionOrderList;
+    // stagger direction: range selection (shift-click) sets it
+    // directly from anchor-vs-clicked row positions, because the
+    // range always ADDS rows top-down regardless of pick direction;
+    // plain clicks reset it
+    bool mSelectionBottomUp = false;
+    bool mSelectionRangeDirected = false;
 
     ConnContextObjList<Property*> mSelectedProps;
 };

@@ -2272,6 +2272,9 @@ void BoxSingleWidget::selectRowRange(BoxSingleWidget* const rowA,
     const int iA = rows.indexOf(rowA);
     const int iB = rows.indexOf(rowB);
     if (iA < 0 || iB < 0) { return; }
+    // the pick direction decides the Ctrl+Alt stagger anchor end:
+    // anchor row below the clicked row = the user selected bottom-up
+    scene->setSelectionDirection(iA > iB);
     scene->clearBoxesSelection();
     if (const auto comp = scene->getSoundComposition()) {
         for (const auto& sound : comp->getSounds()) {

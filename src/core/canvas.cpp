@@ -1781,6 +1781,23 @@ bool selectedAncestorWillShift(eBoxOrSound* const item,
     }
     return false;
 }
+
+// timeline row rank: depth-first over the scene tree, a container's
+// row comes before its children (getZIndex() is parent-local and
+// compares as garbage across groups)
+void buildRowRanks(ContainerBox* const cont,
+                   QHash<BoundingBox*, int>& ranks,
+                   int& counter)
+{
+    for (const auto& c : cont->getContained()) {
+        const auto bb = enve_cast<BoundingBox*>(c.data());
+        if (!bb) continue;
+        ranks.insert(bb, counter++);
+        if (const auto group = enve_cast<ContainerBox*>(bb)) {
+            buildRowRanks(group, ranks, counter);
+        }
+    }
+}
 }
 
 void Canvas::startShiftAllForAllSelected()
@@ -1825,19 +1842,31 @@ void Canvas::staggerShiftAllForAllSelected(const int dFrame)
     for (const auto& box : mSelectedBoxes) {
         if (!selectedAncestorWillShift(box, mSelectedBoxes)) rows << box;
     }
-    // direction from the selection order (prune stale entries while
-    // walking; mSelectedBoxes is z-ascending = top row first)
-    bool bottomUp = false;
+    // k-index follows the timeline row order (scene-tree DFS rank);
+    // the direction comes from the range-select report when the last
+    // selection was a range, else from the ctrl-click pick order
+    QHash<BoundingBox*, int> ranks;
     {
+        int counter = 0;
+        buildRowRanks(this, ranks, counter);
+    }
+    std::sort(rows.begin(), rows.end(),
+              [&ranks](BoundingBox* const a, BoundingBox* const b) {
+        return ranks.value(a, -1) < ranks.value(b, -1);
+    });
+    bool bottomUp = mSelectionBottomUp;
+    if (!mSelectionRangeDirected) {
         QList<BoundingBox*> picked;
         for (const auto& wp : mSelectionOrderList) {
-            if (wp && mSelectedBoxes.contains(wp.data())) picked << wp.data();
+            if (wp && mSelectedBoxes.contains(wp.data())) {
+                picked << wp.data();
+            }
         }
         mSelectionOrderList.clear();
         for (const auto b : picked) mSelectionOrderList.append(b);
         if (picked.count() >= 2) {
-            bottomUp = picked.first()->getZIndex() >
-                       picked.last()->getZIndex();
+            bottomUp = ranks.value(picked.first(), -1) >
+                       ranks.value(picked.last(), -1);
         }
     }
     if (bottomUp) std::reverse(rows.begin(), rows.end());
