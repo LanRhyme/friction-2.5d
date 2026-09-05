@@ -37,6 +37,7 @@
 #include <functional>
 
 #include "Private/document.h"
+#include "themesupport.h"
 #include "canvas.h"
 #include "Boxes/containerbox.h"
 #include "Boxes/boundingbox.h"
@@ -145,7 +146,7 @@ void SwitchPreview::paintEvent(QPaintEvent*)
 SwitchRuler::SwitchRuler(QWidget* const parent)
     : QWidget(parent)
 {
-    setMinimumHeight(52);
+    setMinimumHeight(40);
     setMouseTracking(true);
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 }
@@ -194,11 +195,13 @@ void SwitchRuler::paintEvent(QPaintEvent*)
     QPainter p(this);
     p.setRenderHint(QPainter::Antialiasing);
     const int n = mNames.count();
-    const int grooveY = height() - 22;
+    const int grooveY = height() - 16;
     const QRectF groove(rulerMargin(), grooveY,
-                       width() - 2 * rulerMargin(), 6);
+                       width() - 2 * rulerMargin(), 4);
 
-    p.fillRect(rect(), QColor(37, 37, 40));
+    // blend into the panel background (theme-aware; was a fixed
+    // darker block that read as a separate base frame)
+    p.fillRect(rect(), ThemeSupport::getThemeBaseColor());
 
     if(n < 1) {
         p.setPen(QColor(120, 120, 124));
@@ -209,7 +212,7 @@ void SwitchRuler::paintEvent(QPaintEvent*)
     // groove
     p.setPen(Qt::NoPen);
     p.setBrush(QColor(62, 62, 67));
-    p.drawRoundedRect(groove, 3, 3);
+    p.drawRoundedRect(groove, 2, 2);
 
     const int shown = mDrag >= 0 ? mDrag : mActive;
 
@@ -217,25 +220,25 @@ void SwitchRuler::paintEvent(QPaintEvent*)
     for(int i = 0; i < n; i++) {
         const bool isActive = (i == shown);
         p.setPen(isActive ? QColor(72, 145, 220) : QColor(105, 105, 110));
-        p.drawLine(QLineF(tickX(i), grooveY - 9, tickX(i), grooveY - 2));
+        p.drawLine(QLineF(tickX(i), grooveY - 7, tickX(i), grooveY - 2));
     }
 
-    // the handle: a rounded block snapped onto the current tick
+    // the handle: a slim rounded block snapped onto the current tick
     if(shown >= 0 && shown < n) {
         const qreal spacing = (width() - 2 * rulerMargin()) / n;
-        const qreal hw = qMin(spacing * 0.6, 34.0);
-        const QRectF handle(tickX(shown) - hw / 2, grooveY - 11,
-                            hw, 18);
+        const qreal hw = qMin(spacing * 0.55, 26.0);
+        const QRectF handle(tickX(shown) - hw / 2, grooveY - 8,
+                            hw, 12);
         p.setPen(QPen(QColor(26, 26, 28), 1));
         p.setBrush(mDrag >= 0 ? QColor(47, 158, 68) :
                                 QColor(72, 145, 220));
-        p.drawRoundedRect(handle, 4, 4);
+        p.drawRoundedRect(handle, 3, 3);
         // grip lines
         p.setPen(QColor(26, 26, 28));
-        for(int g = -2; g <= 2; g++) {
+        for(int g = -1; g <= 1; g++) {
             const qreal gx = handle.center().x() + g * 3;
-            p.drawLine(QLineF(gx, handle.top() + 4,
-                              gx, handle.bottom() - 4));
+            p.drawLine(QLineF(gx, handle.top() + 3,
+                              gx, handle.bottom() - 3));
         }
     }
 }
