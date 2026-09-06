@@ -128,14 +128,14 @@ MainWindow *MainWindow::sInstance = nullptr;
 // cursor enters the middle 2/3 x 2/3 of that panel (QDockAreaLayoutInfo::
 // gapIndex -> dockPosHelper), and there is no API to tune that. This filter
 // shifts the cursor position Qt sees while a dock drag is in progress:
-// a merge is only offered inside the middle 1/3 x 1/3 of the target, and in
-// the zone between the two the seen position is pushed to the nearest edge
-// so Qt previews a split in the direction of the cursor instead. The
-// dragged floating window is moved back by the same offset afterwards, so
-// the drag preview stays exactly under the cursor, and since a programmatic
-// move never re-enters the hover path (QDockWidgetPrivate::moveEvent
-// requires a native-frame drag) the adjusted highlight is what the drop
-// commits to.
+// the only merge zone becomes the title/tab strip at the top of the target
+// (AE-style - drop on the tab to combine), and everywhere else inside Qt's
+// native merge box the seen position is pushed to the nearest edge so Qt
+// previews a split in the direction of the cursor instead. The dragged
+// floating window is moved back by the same offset afterwards, so the drag
+// preview stays exactly under the cursor, and since a programmatic move
+// never re-enters the hover path (QDockWidgetPrivate::moveEvent requires a
+// native-frame drag) the adjusted highlight is what the drop commits to.
 class DockDropTuner : public QObject {
 public:
     using QObject::QObject;
@@ -182,14 +182,23 @@ private:
             const qreal ry = qreal(globalMouse.y() - g.y()) / g.height();
             const qreal dx = qAbs(rx - 0.5);
             const qreal dy = qAbs(ry - 0.5);
+            // AE-style merge entry: the only merge zone is the title/tab
+            // strip along the top of the target panel - dropping on the
+            // tab is how merging is meant to work, and it stops the
+            // merge from triggering while just passing over the middle
+            // of a panel. The seen position is moved to the panel center
+            // so Qt's middle-box test offers the tabbed merge.
+            const int stripH = qRound(eSizesUI::widget * 1.5);
+            if (globalMouse.y() - g.top() < stripH) {
+                return g.center() - globalMouse;
+            }
             // Already outside Qt's merge zone (middle 2/3 x 2/3): keep the
             // native split preview untouched.
             if (dx >= 1.0 / 3.0 || dy >= 1.0 / 3.0) { return QPoint(); }
-            // Dead center (middle 1/3 x 1/3): allow the merge.
-            if (dx < 1.0 / 6.0 && dy < 1.0 / 6.0) { return QPoint(); }
-            // In between: report a point on the nearest edge instead. The
-            // other axis is clamped into its middle third so the layout
-            // orientation cannot reinterpret the direction.
+            // Inside the native merge zone but not on the tab strip:
+            // report a point on the nearest edge instead. The other axis
+            // is clamped into its middle third so the layout orientation
+            // cannot reinterpret the direction.
             QPointF local(globalMouse - g.topLeft());
             if (dx * g.width() >= dy * g.height()) {
                 local.setX(rx < 0.5 ? g.width() / 12.0
