@@ -26,6 +26,13 @@
 
 #include "rastereffect.h"
 
+class QrealAnimator;
+
+// Faithful port of the user's Pixelate After Effects plugin
+// (AE SDK Examples/Effect/Pixelate): 9 params with AE ranges and
+// defaults, whole-image median-cut palette pipeline, cpuOnly by
+// design (multi-pass, order-dependent stages cannot run as a
+// single-pass fragment shader).
 class PixelateEffect : public RasterEffect {
 public:
     PixelateEffect();
@@ -34,7 +41,15 @@ public:
             const qreal relFrame, const qreal resolution,
             const qreal influence, BoxRenderData * const data) const override;
 private:
-    qsptr<QrealAnimator> mBlockSize;
+    qsptr<QrealAnimator> mPixelSize;     // 像素大小 1..64, 默认 12
+    qsptr<QrealAnimator> mPaletteSize;   // 调色板大小 2..256, 默认 32
+    qsptr<QrealAnimator> mDither;        // 抖动强度 0..100, 默认 7
+    qsptr<QrealAnimator> mEdgeSharpness; // 边缘锐化 0..100, 默认 41
+    qsptr<QrealAnimator> mColorBanding;  // 色带 0..100, 默认 4
+    qsptr<QrealAnimator> mSaturation;    // 饱和度增强 0..200, 默认 16
+    qsptr<QrealAnimator> mHoneycomb;     // 蜂窝强度 0..100, 默认 3
+    qsptr<QrealAnimator> mScanline;      // 扫描线强度 0..100, 默认 27
+    qsptr<QrealAnimator> mChromatic;     // 色差 0..100, 默认 67
 };
 
 #endif // PIXELATEEFFECT_H
