@@ -392,8 +392,18 @@ void ScriptManager::createPanel(Friction::Core::JsHost * const host)
             applyColor(c.value);
             connect(pb, &QPushButton::clicked, this,
                     [this, host, &c, pb, applyColor]() {
-                const QColor chosen = QColorDialog::getColor(
-                            QColor(c.value), pb, tr("选择颜色"));
+                // non-native dialog + inherit the main window
+                // stylesheet so it follows the app's dark theme
+                // (the native one stays light and ignores QSS)
+                QColorDialog dlg(QColor(c.value), pb);
+                dlg.setWindowTitle(tr("选择颜色"));
+                dlg.setOptions(QColorDialog::DontUseNativeDialog);
+                if (mMainWindow) {
+                    dlg.setStyleSheet(mMainWindow->styleSheet());
+                }
+                dlg.exec();
+                if (dlg.result() != QDialog::Accepted) { return; }
+                const QColor chosen = dlg.selectedColor();
                 if (!chosen.isValid()) { return; }
                 const QString hex = chosen.name();
                 applyColor(hex);
