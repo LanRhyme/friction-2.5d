@@ -244,7 +244,10 @@
             for (var k = 0; k < n; k++) {
                 var layer = layers[k];
                 if (!isLinear) layer.set3DEnabled(true);
-                var uni = prepLayer(layer, isLinear);
+                // 统一尺寸对环形同样开启：3000px原图不缩放时每拖一步
+                // 的透视光栅化成本爆炸（卡顿+显存纹理churn闪烁）；
+                // 统一到画布短边25%后光栅约750px，成本降一个量级
+                var uni = prepLayer(layer, true);
                 if (!uni) { log("跳过 " + layer.name + "：无法获取边界"); continue; }
 
                 var err = isLinear

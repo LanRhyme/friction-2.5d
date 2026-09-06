@@ -159,7 +159,14 @@ void BoxRenderData::processGpu(QGL33 * const gl,
                 fGlobalRect.width(), fGlobalRect.height(),
                 kRGBA_8888_SkColorType, GrMipMapped::kNo,
                 GrRenderable::kYes);
-    if(!grTex.isValid()) return;
+    if(!grTex.isValid()) {
+        // allocation failed (rapid per-tick re-renders of many large
+        // perspective rasters churn textures): silently returning left
+        // this box without an image for the round - the composite then
+        // skips it and the canvas flickers. Fall back to the CPU
+        // rasterizer instead of dropping the frame
+        return process();
+    }
     const auto surf = SkSurface::MakeFromBackendTexture(
                 grContext, grTex, kTopLeft_GrSurfaceOrigin, 0,
                 kRGBA_8888_SkColorType, nullptr, nullptr);
