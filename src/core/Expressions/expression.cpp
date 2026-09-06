@@ -68,8 +68,10 @@ void Expression::sAddDefinitionsTo(const QString& definitionsStr,
                                    QJSEngine& e)
 {
     QString defs;
-    const auto expressions = eSettings::sInstance->fExpressions.getDefinitions();
-    for (const auto &expr : expressions) { defs.append(expr.definitions); }
+    if (eSettings::sInstance) {
+        const auto expressions = eSettings::sInstance->fExpressions.getDefinitions();
+        for (const auto &expr : expressions) { defs.append(expr.definitions); }
+    }
     defs.append(definitionsStr);
 
     const auto defRet = e.evaluate(defs);

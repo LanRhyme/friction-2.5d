@@ -34,8 +34,83 @@
 #include "Animators/transformanimator.h"
 #include "MovablePoints/animatedpoint.h"
 #include "Expressions/expression.h"
+#include "ReadWrite/evformat.h"
+#include "ReadWrite/ereadstream.h"
+#include "ReadWrite/ewritestream.h"
+#include "XML/xevimporter.h"
+#include <cmath>
 
 namespace {
+static constexpr qreal kPi = 3.14159265358979323846;
+
+static qreal evaluateEasing(const TextEasing easing, const qreal t)
+{
+    if (t <= 0.0) { return 0.0; }
+    if (t >= 1.0) { return 1.0; }
+
+    switch (easing) {
+    case TextEasing::smooth:
+        // Quintic smootherstep: zero 1st & 2nd derivatives at both ends
+        return t * t * t * (t * (t * 6.0 - 15.0) + 10.0);
+
+    case TextEasing::sharpSnap: {
+        // High-velocity exponential ease-out (85% traveled in first 20% of duration)
+        const qreal val = 1.0 - std::pow(2.0, -10.0 * t);
+        const qreal norm = 1.0 - std::pow(2.0, -10.0);
+        return val / norm;
+    }
+
+    case TextEasing::overshoot: {
+        // Back-out overshoot (~12% rebound past rest target before settling)
+        const qreal c1 = 1.70158;
+        const qreal c3 = c1 + 1.0;
+        const qreal tm1 = t - 1.0;
+        return 1.0 + c3 * tm1 * tm1 * tm1 + c1 * tm1 * tm1;
+    }
+
+    case TextEasing::elastic: {
+        // Damped harmonic oscillator with 2 vibrant spring jelly cycles
+        const qreal c4 = (2.0 * kPi) / 3.0;
+        return std::pow(2.0, -10.0 * t) * std::sin((t * 10.0 - 0.75) * c4) + 1.0;
+    }
+
+    case TextEasing::bounce: {
+        // Multi-rebound gravitational bounce (3 bounces against rest floor)
+        const qreal n1 = 7.5625;
+        const qreal d1 = 2.75;
+        if (t < 1.0 / d1) {
+            return n1 * t * t;
+        } else if (t < 2.0 / d1) {
+            const qreal curT = t - (1.5 / d1);
+            return n1 * curT * curT + 0.75;
+        } else if (t < 2.5 / d1) {
+            const qreal curT = t - (2.25 / d1);
+            return n1 * curT * curT + 0.9375;
+        } else {
+            const qreal curT = t - (2.625 / d1);
+            return n1 * curT * curT + 0.984375;
+        }
+    }
+
+    case TextEasing::anticipate: {
+        // Anticipate (Back-In-Out): recoils -9% before launching with high velocity
+        const qreal c1 = 1.70158;
+        const qreal c2 = c1 * 1.525;
+        if (t < 0.5) {
+            return (std::pow(2.0 * t, 2) * ((c2 + 1.0) * 2.0 * t - c2)) / 2.0;
+        } else {
+            const qreal tm = 2.0 * t - 2.0;
+            return (std::pow(tm, 2) * ((c2 + 1.0) * tm + c2) + 2.0) / 2.0;
+        }
+    }
+
+    case TextEasing::stepped:
+        // Discrete 5-step quantized digital typewriter clock
+        return std::floor(t * 5.0) / 5.0;
+    }
+    return t;
+}
+
 // shared JS helpers for the preset-generated expressions
 const char* const kPresetDefs =
         "function pSat(t){return t<0?0:(t>1?1:t);}\n"
@@ -200,6 +275,62 @@ TextEffect::TextEffect() : eEffect("text effect") {
     prp_enabledDrawingOnCanvas();
 }
 
+void TextEffect::prp_writeProperty_impl(eWriteStream& dst) const
+{
+    eEffect::prp_writeProperty_impl(dst);
+    dst << mCustomPhysics;
+    if (mCustomPhysics) {
+        dst << static_cast<int>(mEasing);
+        dst << mStartFrame;
+        dst << mDurFrames;
+        dst << static_cast<int>(mDirection);
+        dst << static_cast<int>(mKind);
+        dst << mStaggerPercent;
+    }
+}
+
+void TextEffect::prp_readProperty_impl(eReadStream& src)
+{
+    eEffect::prp_readProperty_impl(src);
+    if (src.evFileVersion() >= EvFormat::textPhysicsEasing) {
+        src >> mCustomPhysics;
+        if (mCustomPhysics) {
+            int easingVal = 0, dirVal = 0, kindVal = 0;
+            src >> easingVal >> mStartFrame >> mDurFrames >> dirVal >> kindVal >> mStaggerPercent;
+            mEasing = static_cast<TextEasing>(easingVal);
+            mDirection = static_cast<TextAnimDirection>(dirVal);
+            mKind = static_cast<TextAnim::Kind>(kindVal);
+        }
+    }
+}
+
+void TextEffect::writeIdentifierXEV(QDomElement& ele) const
+{
+    if (mCustomPhysics) {
+        ele.setAttribute(QStringLiteral("customPhysics"), 1);
+        ele.setAttribute(QStringLiteral("easing"), static_cast<int>(mEasing));
+        ele.setAttribute(QStringLiteral("startFrame"), mStartFrame);
+        ele.setAttribute(QStringLiteral("durFrames"), mDurFrames);
+        ele.setAttribute(QStringLiteral("direction"), static_cast<int>(mDirection));
+        ele.setAttribute(QStringLiteral("kind"), static_cast<int>(mKind));
+        ele.setAttribute(QStringLiteral("staggerPercent"), mStaggerPercent);
+    }
+}
+
+void TextEffect::prp_readPropertyXEV_impl(const QDomElement& ele, const XevImporter& imp)
+{
+    eEffect::prp_readPropertyXEV_impl(ele, imp);
+    if (ele.hasAttribute(QStringLiteral("customPhysics"))) {
+        mCustomPhysics = ele.attribute(QStringLiteral("customPhysics")).toInt() != 0;
+        mEasing = static_cast<TextEasing>(ele.attribute(QStringLiteral("easing")).toInt());
+        mStartFrame = ele.attribute(QStringLiteral("startFrame")).toInt();
+        mDurFrames = ele.attribute(QStringLiteral("durFrames")).toInt();
+        mDirection = static_cast<TextAnimDirection>(ele.attribute(QStringLiteral("direction")).toInt());
+        mKind = static_cast<TextAnim::Kind>(ele.attribute(QStringLiteral("kind")).toInt());
+        mStaggerPercent = ele.attribute(QStringLiteral("staggerPercent"), QStringLiteral("0.4")).toDouble();
+    }
+}
+
 bool ptXLess(const QPointF& p1, const QPointF& p2)
 { return p1.x() < p2.x(); }
 
@@ -350,8 +481,11 @@ QMatrix TextEffect::getTransform(const qreal relFrame,
     const auto posAnim = mTransform->getPosAnimator();
     const auto rotAnim = mTransform->getRotAnimator();
     const auto scaleAnim = mTransform->getScaleAnimator();
+    const auto shearAnim = mTransform->getShearAnimator();
     const qreal xScale = scaleAnim->getEffectiveXValue(relFrame);
     const qreal yScale = scaleAnim->getEffectiveYValue(relFrame);
+    const qreal shx = shearAnim ? shearAnim->getEffectiveXValue(relFrame) : 0.0;
+    const qreal shy = shearAnim ? shearAnim->getEffectiveYValue(relFrame) : 0.0;
     const qreal xPivot = pivotAnim->getEffectiveXValue(relFrame) + addPivot.x();
     const qreal yPivot = pivotAnim->getEffectiveYValue(relFrame) + addPivot.y();
     QMatrix transform;
@@ -360,6 +494,9 @@ QMatrix TextEffect::getTransform(const qreal relFrame,
     transform.rotate(rotAnim->getEffectiveValue(relFrame)*influence);
     transform.scale(1 - influence + xScale*influence,
                     1 - influence + yScale*influence);
+    if(!isZero4Dec(shx) || !isZero4Dec(shy)) {
+        transform.shear(shx * influence, shy * influence);
+    }
     transform.translate(-xPivot, -yPivot);
     return transform;
 }
@@ -369,7 +506,7 @@ void TextEffect::applyToLetter(LetterRenderData * const letterData,
     const qreal relFrame = letterData->fRelFrame;
     if(!isZero4Dec(influence)) {
         const qreal currOpacity = mTransform->getOpacity(relFrame)*0.01;
-        const qreal opacity = 1 + influence*(currOpacity - 1);
+        const qreal opacity = qBound(0.0, 1.0 + influence*(currOpacity - 1.0), 1.0);
 
         const auto transform = getTransform(relFrame, influence,
                                             letterData->fLetterPos);
@@ -390,7 +527,7 @@ void TextEffect::applyToWord(WordRenderData * const wordData,
     const qreal relFrame = wordData->fRelFrame;
     if(!isZero4Dec(influence)) {
         const qreal currOpacity = mTransform->getOpacity(relFrame)*0.01;
-        const qreal opacity = 1 + influence*(currOpacity - 1);
+        const qreal opacity = qBound(0.0, 1.0 + influence*(currOpacity - 1.0), 1.0);
 
         const auto transform = getTransform(relFrame, influence,
                                             wordData->fWordPos);
@@ -406,7 +543,7 @@ void TextEffect::applyToLine(LineRenderData * const lineData,
     const qreal relFrame = lineData->fRelFrame;
     if(!isZero4Dec(influence)) {
         const qreal currOpacity = mTransform->getOpacity(relFrame)*0.01;
-        const qreal opacity = 1 + influence*(currOpacity - 1);
+        const qreal opacity = qBound(0.0, 1.0 + influence*(currOpacity - 1.0), 1.0);
 
         const auto transform = getTransform(relFrame, influence,
                                             lineData->fLinePos);
@@ -472,6 +609,116 @@ void TextEffect::apply(TextBoxRenderData * const textData) const {
     const qreal relFrame = textData->fRelFrame;
     const qreal maxInfl = mInfluence->getEffectiveValue(relFrame);
     if(isZero4Dec(maxInfl)) return;
+
+    if (mCustomPhysics && (mKind == TextAnim::sweepIn || mKind == TextAnim::sweepOut)) {
+        const auto computePhysicsInfl = [this, relFrame, maxInfl](const qreal uRaw) -> qreal {
+            const qreal u = (mDirection == TextAnimDirection::rightToLeft) ? (1.0 - uRaw) : uRaw;
+            const qreal D = qMax(1.0, static_cast<qreal>(mDurFrames));
+            const qreal S = qBound(0.05, mStaggerPercent, 0.85);
+            const qreal tStagger = S * D;
+            const qreal tFrag = qMax(1.0, D - tStagger);
+            const qreal fStart = static_cast<qreal>(mStartFrame) + u * tStagger;
+            const qreal deltaF = relFrame - fStart;
+
+            qreal tau = 0.0;
+            if (deltaF <= 0.0) {
+                tau = 0.0;
+            } else if (deltaF >= tFrag) {
+                tau = 1.0;
+            } else {
+                tau = deltaF / tFrag;
+            }
+
+            const qreal e = evaluateEasing(mEasing, tau);
+            const qreal rawInfl = (mKind == TextAnim::sweepIn) ? (1.0 - e) : e;
+            return rawInfl * maxInfl;
+        };
+
+        const bool byIndex = mStaggerBy->getCurrentValue() == 1;
+
+        switch(target()) {
+        case TextFragmentType::letter: {
+            int nFragments = 0;
+            qreal minX = 1e9, maxX = -1e9;
+            for (const auto& line : textData->fLines) {
+                for (const auto& word : line->fWords) {
+                    for (const auto& letter : word->fLetters) {
+                        nFragments++;
+                        const qreal lx = letter->fOriginalPos.x();
+                        if (lx < minX) minX = lx;
+                        if (lx > maxX) maxX = lx;
+                    }
+                }
+            }
+            if (nFragments == 0) break;
+            const qreal spanX = (maxX > minX) ? (maxX - minX) : 1.0;
+
+            int iFragments = 0;
+            for (const auto& line : textData->fLines) {
+                for (const auto& word : line->fWords) {
+                    for (const auto& letter : word->fLetters) {
+                        const qreal u = byIndex ?
+                            (nFragments > 1 ? static_cast<qreal>(iFragments) / (nFragments - 1) : 0.0) :
+                            qBound(0.0, (letter->fOriginalPos.x() - minX) / spanX, 1.0);
+                        iFragments++;
+                        const qreal influence = computePhysicsInfl(u);
+                        applyToLetter(letter.get(), influence);
+                    }
+                }
+            }
+        } break;
+        case TextFragmentType::word: {
+            int nFragments = 0;
+            qreal minX = 1e9, maxX = -1e9;
+            for (const auto& line : textData->fLines) {
+                for (const auto& word : line->fWords) {
+                    nFragments++;
+                    const qreal wx = word->fOriginalPos.x();
+                    if (wx < minX) minX = wx;
+                    if (wx > maxX) maxX = wx;
+                }
+            }
+            if (nFragments == 0) break;
+            const qreal spanX = (maxX > minX) ? (maxX - minX) : 1.0;
+
+            int iFragments = 0;
+            for (const auto& line : textData->fLines) {
+                for (const auto& word : line->fWords) {
+                    const qreal u = byIndex ?
+                        (nFragments > 1 ? static_cast<qreal>(iFragments) / (nFragments - 1) : 0.0) :
+                        qBound(0.0, (word->fOriginalPos.x() - minX) / spanX, 1.0);
+                    iFragments++;
+                    const qreal influence = computePhysicsInfl(u);
+                    applyToWord(word.get(), influence);
+                }
+            }
+        } break;
+        case TextFragmentType::line: {
+            const int nFragments = textData->fLines.count();
+            if (nFragments == 0) break;
+            qreal minY = 1e9, maxY = -1e9;
+            for (const auto& line : textData->fLines) {
+                const qreal ly = line->fOriginalPos.y();
+                if (ly < minY) minY = ly;
+                if (ly > maxY) maxY = ly;
+            }
+            const qreal spanY = (maxY > minY) ? (maxY - minY) : 1.0;
+
+            int iFragments = 0;
+            for (const auto& line : textData->fLines) {
+                const qreal u = byIndex ?
+                    (nFragments > 1 ? static_cast<qreal>(iFragments) / (nFragments - 1) : 0.0) :
+                    qBound(0.0, (line->fOriginalPos.y() - minY) / spanY, 1.0);
+                iFragments++;
+                const qreal influence = computePhysicsInfl(u);
+                applyToLine(line.get(), influence);
+            }
+        } break;
+        default: break;
+        }
+        return;
+    }
+
     const qreal minInfl = mMinInfluence->getEffectiveValue(relFrame);
     const qreal ampl = mInfluence->getEffectiveValue(relFrame);
     const qreal period = mPeriod->getEffectiveValue(relFrame);
@@ -588,6 +835,7 @@ void TextEffect::setupFromPreset(const TextAnimPreset &preset,
     mTransform->setPosition(preset.posX, preset.posY);
     mTransform->setRotation(preset.rot);
     mTransform->setScale(preset.scaleX, preset.scaleY);
+    mTransform->setShear(preset.shearX, preset.shearY);
     mTransform->setOpacity(preset.opacity);
     if(preset.pivotCenter) {
         mTransform->setPivot(0.3*fontSize, -0.35*fontSize);
@@ -599,6 +847,15 @@ void TextEffect::setupFromPreset(const TextAnimPreset &preset,
     const int durF = qMax(1, qRound(preset.duration*durationScale*fps));
     const int F0 = startFrame;
     const int F1 = F0 + durF;
+
+    mCustomPhysics = (preset.kind == TextAnim::sweepIn || preset.kind == TextAnim::sweepOut);
+    mEasing = preset.easing;
+    mStartFrame = startFrame;
+    mDurFrames = durF;
+    mDirection = preset.direction;
+    mKind = preset.kind;
+    mStaggerPercent = preset.staggerPercent;
+
     const qreal soft = qBound(0.02*W, preset.softness*W, 0.9*W);
     const qreal left = -0.15*W;
     const qreal right = 1.15*W;

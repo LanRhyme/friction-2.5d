@@ -43,6 +43,9 @@ struct CORE_EXPORT LayerExprParams {
     qreal sx = 1, sy = 1;    // rest scale
     qreal rot = 0;           // rest rotation (deg)
     qreal op = 100;          // rest opacity (0..100)
+    qreal shx = 0, shy = 0;  // rest shear
+    qreal rx = 0, ry = 0;    // rest 3D rotX, rotY (deg)
+    qreal pz = 0;            // rest 3D z-position
     qreal winF0() const { return inF0 >= 0 ? inF0 : outF0; }
 };
 
@@ -50,6 +53,8 @@ struct CORE_EXPORT LayerExprParams {
 // frame); empty strings mean the preset does not touch that animator
 struct CORE_EXPORT LayerExprScripts {
     QString posX, posY, scaleX, scaleY, rot, op;
+    QString shearX, shearY;
+    QString rotX, rotY, posZ;
 };
 
 struct CORE_EXPORT LayerAnimPreset {
@@ -58,6 +63,7 @@ struct CORE_EXPORT LayerAnimPreset {
     QString desc;
     int category = 0;   // 0 = one-shot (in / out), 2 = loop
     qreal duration = 1.0;   // seconds (one cycle for loops)
+    QString tag;        // "inout", "loop", "3d"
 
     // generates the entrance / exit scripts for the animators the
     // preset touches; the active window comes from winF0()

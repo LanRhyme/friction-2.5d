@@ -37,11 +37,6 @@
 
 class TextBox;
 
-// how the sweep front travels across the text
-enum class TextAnimDirection : short {
-    leftToRight, rightToLeft
-};
-
 struct CORE_EXPORT TextAnimPreset {
     QString id;
     QString name;
@@ -51,6 +46,10 @@ struct CORE_EXPORT TextAnimPreset {
     bool byIndex = true;// stagger by fragment index (AE feel) instead of x position
     TextAnim::Kind kind = TextAnim::sweepIn;
 
+    // physical easing archetype (Back/Overshoot, Elastic, Bounce, Snap, Anticipate, Stepped, Smooth)
+    TextEasing easing = TextEasing::smooth;
+    qreal staggerPercent = 0.40; // fraction of total duration for staggering across fragments
+
     // transform "start state" applied at full influence
     // (influence animates from 1 -> 0 for entrances, so these describe
     // where the text comes FROM; loops oscillate around the rest state)
@@ -59,8 +58,11 @@ struct CORE_EXPORT TextAnimPreset {
     qreal rot = 0;      // degrees
     qreal scaleX = 1;
     qreal scaleY = 1;
+    qreal shearX = 0;
+    qreal shearY = 0;
     qreal opacity = 100;// %
     bool pivotCenter = false; // pivot near the fragment visual center
+    QString tag;        // e.g. "chars", "words", "lines", "stretch", "spin", "tech", "loop"
 
     // sweep timing / shape
     qreal duration = 1.0;     // seconds
