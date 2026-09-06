@@ -145,8 +145,7 @@ bool CameraLayer::isEffectivelyIdentity(const SkMatrix& m) {
 // separate comp-compensated layers: their view vectors stay parallel).
 SkMatrix CameraLayer::getCameraPerLayerTransformAtFrame(
         const qreal relFrame, const qreal canvasW, const qreal canvasH,
-        const qreal layerZ, const qreal layerFocal,
-        const QPointF& pivotW) const {
+        const qreal layerZ) const {
     const qreal panX = mPanX->getEffectiveValue(relFrame);
     const qreal panY = mPanY->getEffectiveValue(relFrame);
     const qreal zoom = mZoom->getEffectiveValue(relFrame);
@@ -195,21 +194,6 @@ SkMatrix CameraLayer::getCameraPerLayerTransformAtFrame(
         r.setRotate(toSkScalar(rotZ));
         result = SkMatrix::Concat(post, SkMatrix::Concat(r,
                 SkMatrix::Concat(pre, result)));
-    }
-
-    // undo the layer billboard shrink f/(f+z) around its world pivot
-    // so the depth is expressed purely through the camera (the input
-    // content has already been billboarded by the render pipeline)
-    const qreal fl = qMax(layerFocal, 1.);
-    const qreal kk = (fl + layerZ) / fl;
-    if(qAbs(kk - 1.) > 1e-6) {
-        SkMatrix toPivot;   toPivot.setTranslate(toSkScalar(pivotW.x()),
-                                                 toSkScalar(pivotW.y()));
-        SkMatrix scl;       scl.setScale(toSkScalar(kk), toSkScalar(kk));
-        SkMatrix fromPivot; fromPivot.setTranslate(toSkScalar(-pivotW.x()),
-                                                   toSkScalar(-pivotW.y()));
-        result = SkMatrix::Concat(result,
-                SkMatrix::Concat(toPivot, SkMatrix::Concat(scl, fromPivot)));
     }
     return result;
 }

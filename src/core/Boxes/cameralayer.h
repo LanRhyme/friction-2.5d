@@ -32,17 +32,15 @@ public:
     // compensation baked in - IDENTITY for every depth while the
     // camera sits at its default (pan 0, zoom 1, no rotation), so
     // the flat look only breaks apart when the camera actually
-    // moves/zooms/rotates, each layer by its own depth. layerFocal
-    // is the layer's own "3D perspective" value and pivotW its pivot
-    // in world coords: the billboard shrink f/(f+z) the layer renders
-    // with is un-done around pivotW so the depth is expressed purely
-    // through the camera (applied to already-billboarded content).
+    // moves/zooms/orbits, each layer by its own depth. The input
+    // content must be the layer's FLAT look: while a scene camera is
+    // present the render pipeline swaps the layer's billboard for the
+    // rotation-only flavour (get3DRotationTransformAtFrame), i.e. no
+    // depth shrink to un-do and no huge intermediate scales.
     SkMatrix getCameraPerLayerTransformAtFrame(const qreal relFrame,
                                                const qreal canvasW,
                                                const qreal canvasH,
-                                               const qreal layerZ,
-                                               const qreal layerFocal,
-                                               const QPointF& pivotW) const;
+                                               const qreal layerZ) const;
 
     // identity up to float noise (SkMatrix::isIdentity is exact);
     // a matrix that acts as the identity lets renderers keep their

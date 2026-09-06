@@ -623,6 +623,22 @@ void AdvancedTransformAnimator::rotYRelativeToSavedValue(
 
 SkMatrix AdvancedTransformAnimator::get3DTransformAtFrame(
         const qreal relFrame) const {
+    return get3DTransformAtFrameImpl(relFrame, false);
+}
+
+// zPos = 0 flavour: the billboard keeps its rotX/rotY self-tilt but
+// produces NO depth shrink - used when a scene camera is present so
+// the layer's depth is expressed purely through the camera (a camera
+// matrix that has to un-do the shrink around the pivot gets huge
+// intermediate scales for deep layers and the stale-bitmap preview
+// path jitters against the exact re-render)
+SkMatrix AdvancedTransformAnimator::get3DRotationTransformAtFrame(
+        const qreal relFrame) const {
+    return get3DTransformAtFrameImpl(relFrame, true);
+}
+
+SkMatrix AdvancedTransformAnimator::get3DTransformAtFrameImpl(
+        const qreal relFrame, const bool rotationOnly) const {
     SkMatrix result;
     if(!has3DTransformAtFrame(relFrame)) return result;
 
@@ -632,7 +648,8 @@ SkMatrix AdvancedTransformAnimator::get3DTransformAtFrame(
                 mRotXAnimator->getEffectiveValue(relFrame));
     const qreal ry = qDegreesToRadians(
                 mRotYAnimator->getEffectiveValue(relFrame));
-    const qreal zPos = mZPosAnimator->getEffectiveValue(relFrame);
+    const qreal zPos = rotationOnly ? 0. :
+                mZPosAnimator->getEffectiveValue(relFrame);
     const qreal pivotX = mPivotAnimator->getEffectiveXValue(relFrame);
     const qreal pivotY = mPivotAnimator->getEffectiveYValue(relFrame);
 

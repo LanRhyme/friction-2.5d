@@ -2427,12 +2427,11 @@ SkMatrix Canvas::getCameraTransformAtFrame(const qreal relFrame) const {
 }
 
 SkMatrix Canvas::getCameraPerLayerTransformAtFrame(
-        const qreal relFrame, const qreal layerZ,
-        const qreal layerFocal, const QPointF& pivotW) const {
+        const qreal relFrame, const qreal layerZ) const {
     const auto cam = getCameraLayer();
     if(!cam) return SkMatrix();
     return cam->getCameraPerLayerTransformAtFrame(relFrame, mWidth, mHeight,
-                                                  layerZ, layerFocal, pivotW);
+                                                  layerZ);
 }
 
 bool Canvas::cameraHasPerspectiveAtFrame(const qreal relFrame) const {

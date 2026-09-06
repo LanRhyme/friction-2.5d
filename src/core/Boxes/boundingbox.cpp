@@ -1507,12 +1507,20 @@ void BoundingBox::setupWithoutRasterEffects(const qreal relFrame,
     data->fInheritedTransform = parentM;
     data->fTotalTransform = thisRelM*parentM;
 
-    // 2.5D billboard perspective
+    // 2.5D billboard perspective. While a scene camera is present the
+    // depth part (zPos shrink) is handed over to the camera: the
+    // billboard keeps only its rotX/rotY self-tilt - a camera matrix
+    // that had to un-do the shrink around the pivot reaches huge
+    // intermediate scales for deep layers (z=2667 -> x4.3) and the
+    // stale-bitmap preview path jitters against the exact re-render
     data->fPerspectiveTransform.reset();
     data->fHasPerspective = false;
+    const bool cameraPresent = scene->getCameraLayer() &&
+            mType != eBoxType::canvas;
     if(mTransformAnimator->has3DTransformAtFrame(relFrame)) {
-        data->fPerspectiveTransform =
-                mTransformAnimator->get3DTransformAtFrame(relFrame);
+        data->fPerspectiveTransform = cameraPresent ?
+                    mTransformAnimator->get3DRotationTransformAtFrame(relFrame) :
+                    mTransformAnimator->get3DTransformAtFrame(relFrame);
         data->fHasPerspective = true;
     }
 
@@ -1523,30 +1531,21 @@ void BoundingBox::setupWithoutRasterEffects(const qreal relFrame,
     // per-layer 2.5D camera: the matrix is built for THIS layer's
     // depth (Parallaxer semantics - identity at the default camera,
     // each layer peels apart by its own z when the camera moves,
-    // zooms or orbits) and un-does the billboard shrink around the
-    // layer's world pivot so the depth is expressed purely through
-    // the camera
+    // zooms or orbits)
     data->fSceneCameraT.reset();
     data->fHasSceneCamera = false;
-    if(mType != eBoxType::canvas && mTransformAnimator->is3DEnabled()) {
-        if(scene->getCameraLayer()) {
-            const qreal camZ =
-                    mTransformAnimator->get3DZPosAtFrame(relFrame);
-            const qreal camF =
-                    mTransformAnimator->getPerspectiveAtFrame(relFrame);
-            const QPointF pivotW = (thisRelM*parentM).map(
-                        mTransformAnimator->getPivot());
-            const SkMatrix cam = scene->getCameraPerLayerTransformAtFrame(
-                        relFrame, camZ, camF, pivotW);
-            if(!CameraLayer::isEffectivelyIdentity(cam)) {
-                data->fSceneCameraT = cam;
-                data->fHasSceneCamera = true;
-                // a camera with tilt has perspective terms: reuse the
-                // fHasPerspective convention so direct-draw paths fall
-                // back to offscreen rasterization
-                if(scene->cameraHasPerspectiveAtFrame(relFrame)) {
-                    data->fHasPerspective = true;
-                }
+    if(cameraPresent && mTransformAnimator->is3DEnabled()) {
+        const qreal camZ = mTransformAnimator->get3DZPosAtFrame(relFrame);
+        const SkMatrix cam = scene->getCameraPerLayerTransformAtFrame(
+                    relFrame, camZ);
+        if(!CameraLayer::isEffectivelyIdentity(cam)) {
+            data->fSceneCameraT = cam;
+            data->fHasSceneCamera = true;
+            // a camera with tilt has perspective terms: reuse the
+            // fHasPerspective convention so direct-draw paths fall
+            // back to offscreen rasterization
+            if(scene->cameraHasPerspectiveAtFrame(relFrame)) {
+                data->fHasPerspective = true;
             }
         }
     }
@@ -1625,30 +1624,26 @@ void BoundingBox::updateDrawRenderContainerTransform() {
         const int relFrame = anim_getCurrentRelFrame();
         SkMatrix full = toSkMatrix(getTotalTransformAtFrame(relFrame));
         if(mType != eBoxType::canvas && mTransformAnimator->is3DEnabled()) {
-            // also prepend the billboard perspective homography (same
-            // family as the render data: perspective -> rel -> inherited
-            // -> camera) - the affine-only compensation ignored it, so
-            // expression-driven z/scale changes showed a wrongly sized
-            // stale bitmap until the exact render landed = the perceived
-            // flicker/judder while dragging carousel parameters
+            const auto scene = getParentScene();
+            const bool cameraPresent = scene && scene->getCameraLayer();
+            // same family as the render data: perspective -> rel ->
+            // inherited -> camera. While a scene camera is present the
+            // billboard keeps only its self-tilt (depth handed to the
+            // camera) - see setupWithoutRasterEffects
             if(mTransformAnimator->has3DTransformAtFrame(relFrame)) {
                 full = SkMatrix::Concat(
                             full,
-                            mTransformAnimator->get3DTransformAtFrame(relFrame));
+                            cameraPresent ?
+                    mTransformAnimator->get3DRotationTransformAtFrame(relFrame) :
+                    mTransformAnimator->get3DTransformAtFrame(relFrame));
             }
-            const auto scene = getParentScene();
-            if(scene && scene->getCameraLayer()) {
+            if(cameraPresent) {
                 // same per-layer camera family as the render data
-                // (depth-aware, billboard shrink undone)
+                // (depth-aware, Parallaxer compensation)
                 const qreal camZ =
                         mTransformAnimator->get3DZPosAtFrame(relFrame);
-                const qreal camF =
-                        mTransformAnimator->getPerspectiveAtFrame(relFrame);
-                SkPoint pivotPt = toSkPoint(mTransformAnimator->getPivot());
-                full.mapPoints(&pivotPt, &pivotPt, 1);
-                const QPointF pivotW = toQPointF(pivotPt);
                 const SkMatrix cam = scene->getCameraPerLayerTransformAtFrame(
-                            relFrame, camZ, camF, pivotW);
+                            relFrame, camZ);
                 if(!CameraLayer::isEffectivelyIdentity(cam)) {
                     full = SkMatrix::Concat(cam, full);
                 }

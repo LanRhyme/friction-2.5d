@@ -208,6 +208,9 @@ public:
     // 2.5D billboard transform
     // returns identity when all 3D values are at defaults
     SkMatrix get3DTransformAtFrame(const qreal relFrame) const;
+    // zPos=0 flavour: keeps the rotX/rotY self-tilt, drops the depth
+    // shrink (scene-camera mode renders the depth itself)
+    SkMatrix get3DRotationTransformAtFrame(const qreal relFrame) const;
     bool has3DTransformAtFrame(const qreal relFrame) const;
     qreal get3DZPosAtFrame(const qreal relFrame) const;
     // the billboard focal actually used by get3DTransformAtFrame
@@ -259,6 +262,8 @@ public:
 signals:
     void box3DChanged();
 private:
+    SkMatrix get3DTransformAtFrameImpl(const qreal relFrame,
+                                       const bool rotationOnly) const;
     qsptr<QPointFAnimator> mPivotAnimator;
     qsptr<QPointFAnimator> mShearAnimator;
     qsptr<QrealAnimator> mOpacityAnimator;

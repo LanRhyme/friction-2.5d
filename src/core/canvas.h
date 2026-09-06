@@ -908,9 +908,7 @@ public:
     // per-layer 2.5D camera matrix (Parallaxer semantics; see
     // CameraLayer::getCameraPerLayerTransformAtFrame)
     SkMatrix getCameraPerLayerTransformAtFrame(const qreal relFrame,
-                                               const qreal layerZ,
-                                               const qreal layerFocal,
-                                               const QPointF& pivotW) const;
+                                               const qreal layerZ) const;
     bool cameraHasPerspectiveAtFrame(const qreal relFrame) const;
     // invalidate every 3D layer's render data + the scene frame cache
     // (wired to the CameraLayer animators - without this the layers
