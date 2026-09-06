@@ -355,6 +355,14 @@ void RenderHandler::setPreviewing(const bool previewing) {
 void RenderHandler::interruptPreviewRendering() {
     TaskScheduler::sClearAllFinishedFuncs();
     stopPreview();
+    // in-flight render tasks finish with their callbacks cleared, so
+    // their results are dropped while the boxes still believe they are
+    // up to date (no property changed since) - the canvas stays black
+    // and scripts read empty bounds until something touches each box.
+    // Force a full re-render of the scene after the interrupt
+    if(mCurrentScene) {
+        mCurrentScene->updateAllBoxes(UpdateReason::userChange);
+    }
 }
 
 void RenderHandler::interruptOutputRendering() {
