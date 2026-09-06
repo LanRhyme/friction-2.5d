@@ -1109,7 +1109,7 @@ BoxSingleWidget::BoxSingleWidget(BoxScroller * const parent)
     });
     mTrkMatLayerCombo->setSizePolicy(QSizePolicy::Maximum,
                                      QSizePolicy::Minimum);
-    mTrkMatLayerCombo->setFixedWidth(eSizesUI::widget*5);
+    mTrkMatLayerCombo->setFixedWidth(eSizesUI::widget*6);
 
     // layer picker for combo-picker BoxTargetProperty rows (liquid
     // glass background layer): first item = auto, rest = scene layers
@@ -2659,8 +2659,15 @@ void BoxSingleWidget::rebuildTrkMatLayerCandidates() {
             // resolves it via sGetBoxByDocumentId (storing the raw
             // pointer here made every pick resolve to nullptr -
             // the matte silently reset to None)
+            // label shows the same natural-number index the timeline
+            // row shows (index in its own parent group, topmost = 1)
+            const auto group = b->getParentGroup();
+            const int boxId = group ? group->getContainedIndex(b) : -1;
             mTrkMatLayerCombo->addItem(
-                        b->prp_getName(),
+                        boxId >= 0
+                            ? QStringLiteral("%1. %2").arg(boxId + 1)
+                                              .arg(b->prp_getName())
+                            : b->prp_getName(),
                         QVariant::fromValue(b->getDocumentId()));
             if(b == cur) match = mTrkMatLayerCombo->count() - 1;
         }
