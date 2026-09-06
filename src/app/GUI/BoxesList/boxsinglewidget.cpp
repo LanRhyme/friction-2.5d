@@ -719,7 +719,7 @@ BoxSingleWidget::BoxSingleWidget(BoxScroller * const parent)
     });
 
     m3DButton = new PixmapActionButton(this);
-    m3DButton->setToolTip(tr("Toggle 3D layer (2.5D billboard: X/Y rotation, Z depth)"));
+    m3DButton->setToolTip(tr("3D图层开关：多选时作用于全部选中图层"));
     m3DButton->setPixmapChooser([this]() {
         if (!mTarget) { return static_cast<QPixmap*>(nullptr); }
         const auto target = mTarget->getTarget();
@@ -739,7 +739,31 @@ BoxSingleWidget::BoxSingleWidget(BoxScroller * const parent)
         if (!box) { return; }
         const auto trans = box->getBoxTransformAnimator();
         if (!trans) { return; }
-        trans->set3DEnabled(!trans->is3DEnabled());
+        const bool enable = !trans->is3DEnabled();
+        // multi-selection: AE-style switch semantics - when this row's
+        // layer belongs to the selection, every selected layer follows,
+        // unified to the new state instead of individually flipped
+        // (same pattern as switchBoxVisibleAction)
+        const auto scene = box->getParentScene();
+        if (scene) {
+            const auto sel = scene->getSelectedBoxesList();
+            bool inSel = false;
+            for (const auto& selBox : sel) {
+                if (selBox == box) { inSel = true; break; }
+            }
+            if (inSel) {
+                for (const auto& selBox : sel) {
+                    if (!selBox) { continue; }
+                    const auto selTrans = selBox->getBoxTransformAnimator();
+                    if (selTrans && selTrans->is3DEnabled() != enable) {
+                        selTrans->set3DEnabled(enable);
+                    }
+                }
+                Document::sInstance->actionFinished();
+                return;
+            }
+        }
+        trans->set3DEnabled(enable);
         Document::sInstance->actionFinished();
     });
 
@@ -2280,7 +2304,10 @@ bool BoxSingleWidget::selectRowRange(SWT_Abstraction* const absA,
     SetAbsFunc collectFunc = [&rows](SWT_Abstraction* abs, const int) {
         rows.append(abs);
     };
-    int currY = 0;
+    // start currY at the display's initial offset: the emit condition
+    // is currY > minY, so a 0 start would silently drop the first row
+    // (the classic "click top layer, shift-click bottom" case)
+    int currY = eSizesUI::widget/2;
     mainAbs->setAbstractions(0, INT_MAX, currY, 0, eSizesUI::widget,
                              collectFunc, mParent->getRulesCollection(),
                              true, false);
