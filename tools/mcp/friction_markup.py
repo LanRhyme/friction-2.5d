@@ -985,7 +985,11 @@ def send_request(req_obj: dict, port: int = DEFAULT_HTTP_PORT, socket_path: str 
 
     url = f"http://127.0.0.1:{port}/mcp"
     req_data = json.dumps(req_obj).encode("utf-8")
-    req = urllib.request.Request(url, data=req_data, headers={"Content-Type": "application/json"})
+    headers = {"Content-Type": "application/json"}
+    token = os.environ.get("FRICTION_MCP_TOKEN", "")
+    if token:
+        headers["X-Friction-Token"] = token
+    req = urllib.request.Request(url, data=req_data, headers=headers)
     with urllib.request.urlopen(req, timeout=10) as resp:
         return json.loads(resp.read().decode("utf-8"))
 

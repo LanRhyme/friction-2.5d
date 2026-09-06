@@ -49,6 +49,7 @@
 #include <QNetworkRequest>
 #include <QEventLoop>
 #include <QMessageBox>
+#include <QUuid>
 
 AIAgentSettingsWidget::AIAgentSettingsWidget(QWidget *parent)
     : SettingsWidget(parent)
@@ -108,6 +109,21 @@ AIAgentSettingsWidget::AIAgentSettingsWidget(QWidget *parent)
     configLayout->addRow(mAutoStart);
     configLayout->addRow(tr("TCP Port (HTTP & JSON-RPC):"), mPort);
     configLayout->addRow(tr("IPC Socket / Pipe Name:"), mSocketPath);
+
+    // access token row: required by every HTTP endpoint except the
+    // liveness probes; the named pipe stays open to local processes
+    mTokenEdit = new QLineEdit(configGroup);
+    mTokenEdit->setReadOnly(true);
+    mTokenEdit->setToolTip(tr("HTTP requests must carry this token (Authorization: Bearer <token>, X-Friction-Token header or ?token= query). The local named pipe does not require it."));
+    const auto regenTokenBtn = new QPushButton(QIcon::fromTheme("view_refresh"), tr("Regenerate"), configGroup);
+    regenTokenBtn->setToolTip(tr("Generate a new access token; clients configured with the old token will stop working"));
+    const auto tokenRow = new QHBoxLayout();
+    tokenRow->setSpacing(8);
+    tokenRow->addWidget(mTokenEdit, 1);
+    tokenRow->addWidget(regenTokenBtn);
+    configLayout->addRow(tr("Access Token (HTTP):"), tokenRow);
+    connect(regenTokenBtn, &QPushButton::clicked,
+            this, &AIAgentSettingsWidget::regenerateToken);
 
     const auto actionRow = new QHBoxLayout();
     actionRow->setSpacing(8);
@@ -211,6 +227,9 @@ void AIAgentSettingsWidget::updateSettings(bool restore)
 #endif
         mSocketPath->setText(AppSupport::getSettings(QStringLiteral("ai"), QStringLiteral("socketName"), defSock).toString());
     }
+    if (mTokenEdit) {
+        mTokenEdit->setText(Friction::AI::McpServer::ensureToken());
+    }
     updateStatusDisplay();
 }
 
@@ -262,6 +281,22 @@ void AIAgentSettingsWidget::testConnection()
     }
 }
 
+void AIAgentSettingsWidget::regenerateToken()
+{
+    const QString token = QUuid::createUuid().toString(QUuid::WithoutBraces);
+    AppSupport::setSettings(QStringLiteral("ai"), QStringLiteral("token"), token);
+    if (mTokenEdit) {
+        mTokenEdit->setText(token);
+    }
+    auto server = Friction::AI::McpServer::instance();
+    if (server) {
+        server->refreshToken();
+    }
+    if (mTestResultLabel) {
+        mTestResultLabel->setText(tr("Access token regenerated"));
+    }
+}
+
 void AIAgentSettingsWidget::copyClaudeConfig()
 {
     const QString appPath = QCoreApplication::applicationDirPath() + QStringLiteral("/../tools/mcp/friction_mcp_bridge.py");
@@ -270,7 +305,9 @@ void AIAgentSettingsWidget::copyClaudeConfig()
     serverObj[QStringLiteral("args")] = QJsonArray{
         appPath,
         QStringLiteral("--port"),
-        QString::number(mPort->value())
+        QString::number(mPort->value()),
+        QStringLiteral("--token"),
+        Friction::AI::McpServer::ensureToken()
     };
 
     QJsonObject mcpServers;
@@ -295,7 +332,9 @@ void AIAgentSettingsWidget::copyCursorConfig()
     serverObj[QStringLiteral("args")] = QJsonArray{
         appPath,
         QStringLiteral("--port"),
-        QString::number(mPort->value())
+        QString::number(mPort->value()),
+        QStringLiteral("--token"),
+        Friction::AI::McpServer::ensureToken()
     };
 
     QJsonObject mcpServers;
@@ -316,9 +355,11 @@ void AIAgentSettingsWidget::copyPythonSnippet()
 {
     const QString snippet = QStringLiteral(
         "import requests\n\n"
-        "FRICTION_URL = 'http://127.0.0.1:%1'\n\n"
+        "FRICTION_URL = 'http://127.0.0.1:%1'\n"
+        "FRICTION_TOKEN = '%2'\n"
+        "HEADERS = {'X-Friction-Token': FRICTION_TOKEN}\n\n"
         "# 1. Query scene metadata\n"
-        "scene = requests.get(f'{FRICTION_URL}/api/scene').json()\n"
+        "scene = requests.get(f'{FRICTION_URL}/api/scene', headers=HEADERS).json()\n"
         "print('Scene:', scene)\n\n"
         "# 2. Create layer and keyframe animation\n"
         "code = '''\n"
@@ -326,9 +367,9 @@ void AIAgentSettingsWidget::copyPythonSnippet()
         "layer.position().setValueAtFrame(0, [100, 100]);\n"
         "layer.position().setValueAtFrame(60, [800, 500]);\n"
         "'''\n"
-        "res = requests.post(f'{FRICTION_URL}/api/eval', json={'script': code}).json()\n"
+        "res = requests.post(f'{FRICTION_URL}/api/eval', headers=HEADERS, json={'script': code}).json()\n"
         "print('Result:', res)\n"
-    ).arg(mPort->value());
+    ).arg(QString::number(mPort->value()), Friction::AI::McpServer::ensureToken());
 
     QApplication::clipboard()->setText(snippet);
 
@@ -342,8 +383,9 @@ void AIAgentSettingsWidget::copyCurlExample()
     const QString curlCmd = QStringLiteral(
         "curl -X POST http://127.0.0.1:%1/api/eval \\\n"
         "  -H \"Content-Type: application/json\" \\\n"
+        "  -H \"Authorization: Bearer %2\" \\\n"
         "  -d '{\"script\": \"app.activeScene.addRect(\\\"Rect\\\", 0, 0, 200, 200);\"}'"
-    ).arg(mPort->value());
+    ).arg(QString::number(mPort->value()), Friction::AI::McpServer::ensureToken());
 
     QApplication::clipboard()->setText(curlCmd);
 

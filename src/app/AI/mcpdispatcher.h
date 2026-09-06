@@ -29,6 +29,7 @@
 #include <QJsonArray>
 #include <QJsonValue>
 #include <QString>
+#include <functional>
 #include <memory>
 
 class QMainWindow;
@@ -50,9 +51,21 @@ namespace Friction
             explicit McpDispatcher(QObject *parent = nullptr);
             ~McpDispatcher() override;
 
-            // Execute a tool by name with the given JSON arguments
+            // Execute a tool by name with the given JSON arguments.
+            // Re-entrant calls (arriving while another tool is still
+            // running, e.g. through processEvents) are rejected.
             QJsonObject dispatchTool(const QString &toolName,
                                      const QJsonObject &arguments);
+
+            // Asynchronous variant: every tool except
+            // friction_render_markup completes synchronously; the
+            // markup compiler runs an external python process and
+            // reports back through the callback without blocking the
+            // GUI event loop. The callback is always invoked exactly
+            // once, on the GUI thread.
+            void dispatchToolAsync(const QString &toolName,
+                                   const QJsonObject &arguments,
+                                   const std::function<void(const QJsonObject&)> &callback);
 
             // Get MCP tools list schema
             QJsonArray getToolsSchema() const;
@@ -102,18 +115,25 @@ namespace Friction
             QJsonObject toolListAvailableEffects(const QJsonObject &args);
             QJsonObject toolAddRasterEffect(const QJsonObject &args);
             QJsonObject toolRemoveRasterEffect(const QJsonObject &args);
-            QJsonObject toolRenderMarkup(const QJsonObject &args);
+            void toolRenderMarkupAsync(const QJsonObject &args,
+                                       const std::function<void(const QJsonObject&)> &callback);
             QJsonObject toolUpdateLayer(const QJsonObject &args);
             QJsonObject toolAnimateLayer(const QJsonObject &args);
             QJsonObject toolGetStoryboard(const QJsonObject &args);
+            QJsonObject toolGetKeyframes(const QJsonObject &args);
+            QJsonObject toolSetExpression(const QJsonObject &args);
             QJsonObject toolUndo(const QJsonObject &args);
             QJsonObject toolRedo(const QJsonObject &args);
+
+            QJsonObject dispatchToolImpl(const QString &toolName,
+                                         const QJsonObject &arguments);
 
             QMainWindow *mainWindow() const;
             Canvas *activeScene() const;
             Friction::Core::JsHost *getJsHost();
 
             std::unique_ptr<Friction::Core::JsHost> mJsHost;
+            bool mDispatching = false;
         };
     }
 }

@@ -36,19 +36,19 @@ def send_via_socket(socket_path: str, req_obj: dict) -> dict:
                     break
             return json.loads(res_data.decode("utf-8").strip())
 
-def send_via_http(port: int, req_obj: dict) -> dict:
+def send_via_http(port: int, req_obj: dict, token: str = "") -> dict:
     url = f"http://127.0.0.1:{port}/mcp"
     req_data = json.dumps(req_obj).encode("utf-8")
-    req = urllib.request.Request(
-        url,
-        data=req_data,
-        headers={"Content-Type": "application/json"}
-    )
+    headers = {"Content-Type": "application/json"}
+    if token:
+        headers["X-Friction-Token"] = token
+    req = urllib.request.Request(url, data=req_data, headers=headers)
     with urllib.request.urlopen(req, timeout=10) as resp:
         return json.loads(resp.read().decode("utf-8"))
 
-def forward_request(req_obj: dict, port: int, socket_path: str) -> dict:
-    # 1. Try local Unix socket / Windows pipe first
+def forward_request(req_obj: dict, port: int, socket_path: str, token: str = "") -> dict:
+    # 1. Try local Unix socket / Windows pipe first (token-exempt,
+    #    local-machine trust)
     if os.path.exists(socket_path) or sys.platform == "win32":
         try:
             return send_via_socket(socket_path, req_obj)
@@ -57,7 +57,7 @@ def forward_request(req_obj: dict, port: int, socket_path: str) -> dict:
 
     # 2. Try HTTP endpoint fallback
     try:
-        return send_via_http(port, req_obj)
+        return send_via_http(port, req_obj, token)
     except Exception as e:
         req_id = req_obj.get("id")
         return {
@@ -73,6 +73,8 @@ def main():
     parser = argparse.ArgumentParser(description="Friction 2.5D MCP Stdio Bridge")
     parser.add_argument("--port", type=int, default=DEFAULT_HTTP_PORT, help="Friction TCP HTTP port")
     parser.add_argument("--socket", type=str, default=DEFAULT_SOCKET_PATH, help="Friction IPC socket path")
+    parser.add_argument("--token", type=str, default=os.environ.get("FRICTION_MCP_TOKEN", ""),
+                        help="HTTP access token (also via FRICTION_MCP_TOKEN env; the pipe transport does not need it)")
     args = parser.parse_args()
 
     for line in sys.stdin:
@@ -84,7 +86,13 @@ def main():
         except Exception:
             continue
 
-        resp_obj = forward_request(req_obj, args.port, args.socket)
+        # JSON-RPC notifications (no "id") receive no response per
+        # spec; the server would never answer them, so waiting for a
+        # reply line would hang the pipe
+        if not isinstance(req_obj, dict) or "id" not in req_obj:
+            continue
+
+        resp_obj = forward_request(req_obj, args.port, args.socket, args.token)
         sys.stdout.write(json.dumps(resp_obj) + "\n")
         sys.stdout.flush()
 

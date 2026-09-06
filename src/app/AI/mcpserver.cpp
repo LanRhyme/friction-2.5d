@@ -2,7 +2,7 @@
 #
 # Friction - https://friction.graphics
 #
-# Copyright (c) Ole-André Rodlie and contributors
+# Copyright (c) Ole-André Rodlie and contributors.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -30,15 +30,25 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
-#include <QDir>
-#include <QFileInfo>
-#include <QDebug>
 #include <QUrlQuery>
+#include <QPointer>
+#include <QUuid>
+#include <QDebug>
 
 namespace Friction
 {
     namespace AI
     {
+        namespace
+        {
+            // request bodies larger than this are rejected (memory guard)
+            constexpr int kMaxHttpBody = 32 * 1024 * 1024;
+            // guard against unbounded header floods
+            constexpr int kMaxHttpHeader = 64 * 1024;
+            // single newline-delimited JSON message on the pipe
+            constexpr int kMaxPipeLine = 16 * 1024 * 1024;
+        }
+
         McpServer *McpServer::sInstance = nullptr;
 
         McpServer::McpServer(QObject *parent)
@@ -75,12 +85,30 @@ namespace Friction
             return QString();
         }
 
+        QString McpServer::ensureToken()
+        {
+            auto token = AppSupport::getSettings(QStringLiteral("ai"),
+                                                 QStringLiteral("token")).toString();
+            if (token.trimmed().isEmpty()) {
+                token = QUuid::createUuid().toString(QUuid::WithoutBraces);
+                AppSupport::setSettings(QStringLiteral("ai"),
+                                        QStringLiteral("token"), token);
+            }
+            return token;
+        }
+
+        void McpServer::refreshToken()
+        {
+            mToken = ensureToken();
+        }
+
         bool McpServer::start(const quint16 port,
                               const QString &socketName)
         {
             stop();
 
             mPort = port;
+            mToken = ensureToken();
             mSocketName = socketName.isEmpty() ?
 #ifdef Q_OS_WIN
                 QStringLiteral("friction_mcp")
@@ -144,6 +172,7 @@ namespace Friction
                 mTcpServer->deleteLater();
                 mTcpServer = nullptr;
             }
+            mHttpReqs.clear();
             emit serverStopped();
         }
 
@@ -169,24 +198,40 @@ namespace Friction
             while (socket->canReadLine()) {
                 const QByteArray line = socket->readLine().trimmed();
                 if (line.isEmpty()) { continue; }
-
-                QJsonParseError parseErr;
-                const auto doc = QJsonDocument::fromJson(line, &parseErr);
-                if (parseErr.error != QJsonParseError::NoError || !doc.isObject()) {
+                if (line.size() > kMaxPipeLine) {
                     QJsonObject errResp;
                     errResp[QStringLiteral("jsonrpc")] = QStringLiteral("2.0");
+                    errResp[QStringLiteral("id")] = QJsonValue();
                     errResp[QStringLiteral("error")] = QJsonObject{
-                        {QStringLiteral("code"), -32700},
-                        {QStringLiteral("message"), QStringLiteral("Parse error")}
+                        {QStringLiteral("code"), -32600},
+                        {QStringLiteral("message"), QStringLiteral("Message too large")}
                     };
                     socket->write(QJsonDocument(errResp).toJson(QJsonDocument::Compact) + "\n");
                     socket->flush();
                     continue;
                 }
 
-                const auto resp = processJsonRpc(doc.object());
-                socket->write(QJsonDocument(resp).toJson(QJsonDocument::Compact) + "\n");
-                socket->flush();
+                QJsonParseError parseErr;
+                const auto doc = QJsonDocument::fromJson(line, &parseErr);
+                if (parseErr.error != QJsonParseError::NoError ||
+                        (!doc.isObject() && !doc.isArray())) {
+                    QJsonObject errResp;
+                    errResp[QStringLiteral("jsonrpc")] = QStringLiteral("2.0");
+                    errResp[QStringLiteral("error")] = QJsonObject{
+                        {QStringLiteral("code"), -32700},
+                        {QStringLiteral("message"), QStringLiteral("Parse error (send compact single-line JSON)")}
+                    };
+                    socket->write(QJsonDocument(errResp).toJson(QJsonDocument::Compact) + "\n");
+                    socket->flush();
+                    continue;
+                }
+
+                QPointer<QLocalSocket> guard(socket);
+                processJsonRpcDoc(doc, [guard](const QJsonDocument &respDoc) {
+                    if (respDoc.isNull() || !guard) { return; }
+                    guard->write(QJsonDocument(respDoc).toJson(QJsonDocument::Compact) + "\n");
+                    guard->flush();
+                });
             }
         }
 
@@ -197,11 +242,35 @@ namespace Friction
                 auto socket = mTcpServer->nextPendingConnection();
                 if (!socket) { continue; }
                 emit clientConnected();
+                mHttpReqs.insert(socket, HttpReq());
                 connect(socket, &QTcpSocket::readyRead,
                         this, &McpServer::handleTcpSocketReadyRead);
                 connect(socket, &QTcpSocket::disconnected,
+                        this, &McpServer::handleTcpSocketDisconnected);
+                connect(socket, &QTcpSocket::disconnected,
                         socket, &QTcpSocket::deleteLater);
             }
+        }
+
+        void McpServer::handleTcpSocketDisconnected()
+        {
+            auto socket = qobject_cast<QTcpSocket*>(sender());
+            if (socket) { mHttpReqs.remove(socket); }
+        }
+
+        QString McpServer::headerValue(const QByteArray &head,
+                                       const char *name)
+        {
+            const auto lines = head.split('\n');
+            for (const auto &rawLine : lines) {
+                const QByteArray line = rawLine.trimmed();
+                const int colon = line.indexOf(':');
+                if (colon < 0) { continue; }
+                if (line.left(colon).trimmed().compare(name, Qt::CaseInsensitive) == 0) {
+                    return QString::fromLatin1(line.mid(colon + 1).trimmed());
+                }
+            }
+            return QString();
         }
 
         void McpServer::handleTcpSocketReadyRead()
@@ -209,22 +278,100 @@ namespace Friction
             auto socket = qobject_cast<QTcpSocket*>(sender());
             if (!socket) { return; }
 
-            const QByteArray data = socket->readAll();
-            handleHttpRequest(socket, data);
+            if (!mHttpReqs.contains(socket)) {
+                mHttpReqs.insert(socket, HttpReq());
+            }
+            auto &req = mHttpReqs[socket];
+            req.buffer += socket->readAll();
+
+            if (req.buffer.size() > kMaxHttpHeader + kMaxHttpBody) {
+                sendHttpResponse(socket, 413, QStringLiteral("Payload Too Large"),
+                                 "{\"error\":\"Request too large\"}");
+                socket->disconnectFromHost();
+                return;
+            }
+
+            if (req.headerLen < 0) {
+                const int headerEnd = req.buffer.indexOf("\r\n\r\n");
+                if (headerEnd < 0) {
+                    if (req.buffer.size() > kMaxHttpHeader) {
+                        sendHttpResponse(socket, 400, QStringLiteral("Bad Request"),
+                                         "{\"error\":\"Header section too large\"}");
+                        socket->disconnectFromHost();
+                    }
+                    return; // header not complete yet
+                }
+                req.headerLen = headerEnd + 4;
+                const QByteArray head = req.buffer.left(headerEnd);
+
+                const auto headLines = QString::fromLatin1(head).split(QStringLiteral("\r\n"));
+                const auto reqLineParts = headLines.isEmpty() ?
+                            QStringList() : headLines.first().split(' ');
+                if (reqLineParts.size() < 2) {
+                    sendHttpResponse(socket, 400, QStringLiteral("Bad Request"),
+                                     "{\"error\":\"Malformed request\"}");
+                    socket->disconnectFromHost();
+                    return;
+                }
+                const QString method = reqLineParts.at(0).toUpper();
+                const bool hasBody = (method == QStringLiteral("POST")) ||
+                                     (method == QStringLiteral("PUT"));
+                if (hasBody) {
+                    const QString cl = headerValue(head, "Content-Length");
+                    bool clOk = false;
+                    const int clVal = cl.toInt(&clOk);
+                    if (!clOk || clVal < 0) {
+                        sendHttpResponse(socket, 411, QStringLiteral("Length Required"),
+                                         "{\"error\":\"Content-Length required (chunked bodies not supported)\"}");
+                        socket->disconnectFromHost();
+                        return;
+                    }
+                    if (clVal > kMaxHttpBody) {
+                        sendHttpResponse(socket, 413, QStringLiteral("Payload Too Large"),
+                                         "{\"error\":\"Request body too large\"}");
+                        socket->disconnectFromHost();
+                        return;
+                    }
+                    req.contentLength = clVal;
+                    const QString expect = headerValue(head, "Expect");
+                    if (!expect.isEmpty() &&
+                            expect.compare(QStringLiteral("100-continue"), Qt::CaseInsensitive) == 0 &&
+                            !req.continueSent) {
+                        req.continueSent = true;
+                        socket->write("HTTP/1.1 100 Continue\r\n\r\n");
+                        socket->flush();
+                    }
+                } else {
+                    req.contentLength = 0;
+                }
+            }
+
+            if (req.contentLength < 0) { return; }
+            if (req.buffer.size() - req.headerLen < req.contentLength) {
+                return; // body not complete yet
+            }
+
+            const QByteArray head = req.buffer.left(req.headerLen - 4);
+            const QByteArray body = req.buffer.mid(req.headerLen, req.contentLength);
+            handleHttpRequest(socket, head, body);
         }
 
-        void McpServer::sendHttpResponse(QTcpSocket *socket, int statusCode, const QString &statusText,
-                                         const QByteArray &body, const QString &contentType)
+        void McpServer::sendHttpResponse(QTcpSocket *socket, int statusCode,
+                                         const QString &statusText,
+                                         const QByteArray &body,
+                                         const QString &contentType)
         {
             if (!socket) { return; }
 
             QByteArray header;
-            header += QStringLiteral("HTTP/1.1 %1 %2\r\n").arg(QString::number(statusCode), statusText).toUtf8();
+            header += QStringLiteral("HTTP/1.1 %1 %2\r\n").arg(
+                        QString::number(statusCode), statusText).toUtf8();
             header += "Content-Type: " + contentType.toUtf8() + "\r\n";
             header += "Content-Length: " + QByteArray::number(body.size()) + "\r\n";
-            header += "Access-Control-Allow-Origin: *\r\n";
-            header += "Access-Control-Allow-Methods: GET, POST, OPTIONS\r\n";
-            header += "Access-Control-Allow-Headers: Content-Type, Authorization\r\n";
+            // no CORS headers on purpose: browser pages must not be
+            // able to drive this local service; native clients are
+            // unaffected by CORS
+            header += "Cache-Control: no-store\r\n";
             header += "Connection: close\r\n";
             header += "\r\n";
 
@@ -234,32 +381,78 @@ namespace Friction
             socket->disconnectFromHost();
         }
 
-        void McpServer::handleHttpRequest(QTcpSocket *socket, const QByteArray &data)
+        bool McpServer::isAuthorized(const QString &method,
+                                      const QString &rawPath,
+                                      const QByteArray &head) const
         {
-            const int headerEnd = data.indexOf("\r\n\r\n");
-            if (headerEnd == -1) {
-                sendHttpResponse(socket, 400, QStringLiteral("Bad Request"), "{\"error\":\"Malformed request\"}");
-                return;
+            // liveness probe endpoints stay open (no project data)
+            if (method == QStringLiteral("GET") &&
+                    (rawPath == QStringLiteral("/") ||
+                     rawPath == QStringLiteral("/api/status"))) {
+                return true;
             }
+            // any browser-originated cross-origin call is rejected
+            if (!headerValue(head, "Origin").isEmpty()) {
+                return false;
+            }
+            // DNS-rebinding guard: the request must target our loopback
+            const QString host = headerValue(head, "Host");
+            if (!host.isEmpty()) {
+                const bool hostOk = host.startsWith(QStringLiteral("127.0.0.1")) ||
+                                    host.startsWith(QStringLiteral("localhost")) ||
+                                    host.startsWith(QStringLiteral("[::1]"));
+                if (!hostOk) { return false; }
+            }
+            // token: Authorization: Bearer <t> | X-Friction-Token: <t>
+            // | ?token=<t>
+            const QString auth = headerValue(head, "Authorization");
+            if (auth.startsWith(QStringLiteral("Bearer "), Qt::CaseInsensitive) &&
+                    auth.mid(7).trimmed() == mToken) {
+                return true;
+            }
+            if (headerValue(head, "X-Friction-Token") == mToken) {
+                return true;
+            }
+            const int queryStart = rawPath.indexOf(QLatin1Char('?'));
+            if (queryStart >= 0) {
+                const QUrlQuery query(rawPath.mid(queryStart + 1));
+                if (query.queryItemValue(QStringLiteral("token")) == mToken) {
+                    return true;
+                }
+            }
+            return false;
+        }
 
-            const QString headerStr = QString::fromUtf8(data.left(headerEnd));
-            const QStringList lines = headerStr.split(QStringLiteral("\r\n"));
+        void McpServer::handleHttpRequest(QTcpSocket *socket,
+                                          const QByteArray &head,
+                                          const QByteArray &body)
+        {
+            const QString headStr = QString::fromLatin1(head);
+            const QStringList lines = headStr.split(QStringLiteral("\r\n"));
             if (lines.isEmpty()) { return; }
 
-            const QStringList reqLineParts = lines.first().split(' ');
-            if (reqLineParts.size() < 2) { return; }
+            const QStringList reqLines = lines.first().split(' ');
+            if (reqLines.size() < 2) { return; }
 
-            const QString method = reqLineParts.at(0).toUpper();
-            const QString path = reqLineParts.at(1);
-            const QByteArray body = data.mid(headerEnd + 4);
+            const QString method = reqLines.at(0).toUpper();
+            const QString rawPath = reqLines.at(1);
 
-            // Handle CORS preflight
             if (method == QStringLiteral("OPTIONS")) {
-                sendHttpResponse(socket, 200, QStringLiteral("OK"), "");
+                // answered without CORS headers, so browsers cannot
+                // use the preflight; harmless for native clients
+                sendHttpResponse(socket, 204, QStringLiteral("No Content"), "");
                 return;
             }
 
-            // Endpoints
+            if (!isAuthorized(method, rawPath, head)) {
+                sendHttpResponse(socket, 401, QStringLiteral("Unauthorized"),
+                                 "{\"error\":\"Unauthorized: valid token required (Authorization: Bearer <token>, X-Friction-Token header or ?token= query; see AI settings for the token)\"}");
+                return;
+            }
+
+            const QString path = rawPath.contains(QLatin1Char('?')) ?
+                        rawPath.left(rawPath.indexOf(QLatin1Char('?'))) : rawPath;
+
             if (method == QStringLiteral("GET")) {
                 if (path == QStringLiteral("/") || path == QStringLiteral("/api/status")) {
                     QJsonObject status;
@@ -282,55 +475,159 @@ namespace Friction
                     const auto res = mDispatcher->dispatchTool(QStringLiteral("friction_get_api_schema"), QJsonObject());
                     sendHttpResponse(socket, 200, QStringLiteral("OK"), QJsonDocument(res).toJson());
                     return;
-                } else if (path.startsWith(QStringLiteral("/api/screenshot"))) {
+                } else if (path == QStringLiteral("/api/screenshot")) {
                     const auto res = mDispatcher->captureViewport(QStringLiteral("png"), 90);
-                    if (path.contains(QStringLiteral("raw=true")) || path.contains(QStringLiteral("format=binary"))) {
-                        const QByteArray rawBytes = QByteArray::fromBase64(res.value(QStringLiteral("data")).toString().toLatin1());
-                        sendHttpResponse(socket, 200, QStringLiteral("OK"), rawBytes, QStringLiteral("image/png"));
+                    if (rawPath.contains(QStringLiteral("raw=true")) ||
+                            rawPath.contains(QStringLiteral("format=binary"))) {
+                        const QByteArray rawBytes = QByteArray::fromBase64(
+                                    res.value(QStringLiteral("data")).toString().toLatin1());
+                        sendHttpResponse(socket, 200, QStringLiteral("OK"), rawBytes,
+                                         QStringLiteral("image/png"));
                     } else {
                         sendHttpResponse(socket, 200, QStringLiteral("OK"), QJsonDocument(res).toJson());
                     }
                     return;
                 }
             } else if (method == QStringLiteral("POST")) {
-                QJsonDocument bodyDoc = QJsonDocument::fromJson(body);
+                QJsonParseError parseErr;
+                const auto bodyDoc = QJsonDocument::fromJson(body, &parseErr);
+                if (parseErr.error != QJsonParseError::NoError) {
+                    sendHttpResponse(socket, 400, QStringLiteral("Bad Request"),
+                                     "{\"error\":\"Invalid JSON body\"}");
+                    return;
+                }
                 const QJsonObject bodyObj = bodyDoc.isObject() ? bodyDoc.object() : QJsonObject();
 
                 if (path == QStringLiteral("/api/eval")) {
                     const QString code = bodyObj.value(QStringLiteral("script")).toString();
-                    const QString grp = bodyObj.value(QStringLiteral("undoGroupName")).toString(QStringLiteral("AI HTTP Action"));
+                    const QString grp = bodyObj.value(QStringLiteral("undoGroupName"))
+                            .toString(QStringLiteral("AI HTTP Action"));
                     const auto res = mDispatcher->evalScript(code, grp);
                     sendHttpResponse(socket, 200, QStringLiteral("OK"), QJsonDocument(res).toJson());
                     return;
                 } else if (path.startsWith(QStringLiteral("/api/tool/"))) {
                     const QString toolName = path.mid(10);
-                    const auto res = mDispatcher->dispatchTool(toolName, bodyObj);
-                    sendHttpResponse(socket, 200, QStringLiteral("OK"), QJsonDocument(res).toJson());
+                    QPointer<QTcpSocket> guard(socket);
+                    mDispatcher->dispatchToolAsync(toolName, bodyObj,
+                        [this, guard](const QJsonObject &res) {
+                        if (!guard) { return; }
+                        sendHttpResponse(guard, 200, QStringLiteral("OK"),
+                                         QJsonDocument(res).toJson());
+                    });
                     return;
-                } else if (path == QStringLiteral("/jsonrpc") || path == QStringLiteral("/mcp") || path == QStringLiteral("/")) {
-                    const auto res = processJsonRpc(bodyObj);
-                    sendHttpResponse(socket, 200, QStringLiteral("OK"), QJsonDocument(res).toJson());
+                } else if (path == QStringLiteral("/jsonrpc") ||
+                           path == QStringLiteral("/mcp") ||
+                           path == QStringLiteral("/")) {
+                    if (!bodyDoc.isObject() && !bodyDoc.isArray()) {
+                        sendHttpResponse(socket, 400, QStringLiteral("Bad Request"),
+                                         "{\"error\":\"JSON-RPC object or batch array required\"}");
+                        return;
+                    }
+                    QPointer<QTcpSocket> guard(socket);
+                    processJsonRpcDoc(bodyDoc, [this, guard](const QJsonDocument &respDoc) {
+                        if (!guard) { return; }
+                        if (respDoc.isNull()) {
+                            // notification: accepted, nothing to report
+                            sendHttpResponse(guard, 202, QStringLiteral("Accepted"), "");
+                            return;
+                        }
+                        sendHttpResponse(guard, 200, QStringLiteral("OK"),
+                                         QJsonDocument(respDoc).toJson());
+                    });
                     return;
                 }
             }
 
-            sendHttpResponse(socket, 404, QStringLiteral("Not Found"), "{\"error\":\"Endpoint not found\"}");
+            sendHttpResponse(socket, 404, QStringLiteral("Not Found"),
+                             "{\"error\":\"Endpoint not found\"}");
         }
 
-        QJsonObject McpServer::processJsonRpc(const QJsonObject &request)
+        void McpServer::processJsonRpcDoc(const QJsonDocument &request,
+                                          const std::function<void(const QJsonDocument&)> &callback)
         {
+            if (request.isArray()) {
+                const auto batch = request.array();
+                if (batch.isEmpty()) {
+                    QJsonObject err;
+                    err[QStringLiteral("jsonrpc")] = QStringLiteral("2.0");
+                    err[QStringLiteral("id")] = QJsonValue();
+                    err[QStringLiteral("error")] = QJsonObject{
+                        {QStringLiteral("code"), -32600},
+                        {QStringLiteral("message"), QStringLiteral("Empty batch")}
+                    };
+                    callback(QJsonDocument(err));
+                    return;
+                }
+                const auto results = std::make_shared<QJsonArray>();
+                const auto remaining = std::make_shared<int>(batch.count());
+                for (const auto &item : batch) {
+                    processJsonRpcObj(item.toObject(),
+                        [results, remaining, callback](const QJsonObject &resp) {
+                        if (!resp.isEmpty()) { results->append(resp); }
+                        if (--(*remaining) == 0) {
+                            callback(QJsonDocument(*results));
+                        }
+                    });
+                }
+                return;
+            }
+            processJsonRpcObj(request.object(),
+                [callback](const QJsonObject &resp) {
+                callback(QJsonDocument(resp));
+            });
+        }
+
+        void McpServer::processJsonRpcObj(const QJsonObject &request,
+                                          const std::function<void(const QJsonObject&)> &callback)
+        {
+            const bool hasId = request.contains(QStringLiteral("id"));
             const QJsonValue idVal = request.value(QStringLiteral("id"));
             const QString method = request.value(QStringLiteral("method")).toString();
             const QJsonObject params = request.value(QStringLiteral("params")).toObject();
 
-            QJsonObject response;
-            response[QStringLiteral("jsonrpc")] = QStringLiteral("2.0");
-            if (!idVal.isUndefined()) {
+            // capture by value: the tools/call continuation below is
+            // invoked asynchronously, after this scope has returned
+            const auto finish = [callback, hasId, idVal](const QJsonObject &payload) {
+                if (!hasId) {
+                    // JSON-RPC notification: execute side effects but
+                    // never answer (spec section: notifications receive
+                    // no response)
+                    callback(QJsonObject());
+                    return;
+                }
+                QJsonObject response;
+                response[QStringLiteral("jsonrpc")] = QStringLiteral("2.0");
                 response[QStringLiteral("id")] = idVal;
+                if (payload.contains(QStringLiteral("__error"))) {
+                    QJsonObject err = payload.value(QStringLiteral("__error")).toObject();
+                    response[QStringLiteral("error")] = err;
+                } else {
+                    response[QStringLiteral("result")] = payload;
+                }
+                callback(response);
+            };
+
+            if (method.isEmpty()) {
+                QJsonObject err;
+                err[QStringLiteral("code")] = -32600;
+                err[QStringLiteral("message")] = QStringLiteral("Invalid request: missing method");
+                QJsonObject payload;
+                payload[QStringLiteral("__error")] = err;
+                finish(payload);
+                return;
             }
 
             // MCP Standard Methods
             if (method == QStringLiteral("initialize")) {
+                // protocol version negotiation: honor the client's
+                // version when we support it, otherwise fall back
+                const QString requested = params.value(QStringLiteral("protocolVersion")).toString();
+                QString negotiated = QStringLiteral("2024-11-05");
+                if (requested == QStringLiteral("2025-03-26") ||
+                        requested == QStringLiteral("2025-06-18")) {
+                    negotiated = requested;
+                }
+
                 QJsonObject serverInfo;
                 serverInfo[QStringLiteral("name")] = QStringLiteral("friction-2.5d");
                 serverInfo[QStringLiteral("version")] = AppSupport::getAppVersion();
@@ -340,26 +637,26 @@ namespace Friction
                 capabilities[QStringLiteral("resources")] = QJsonObject{};
 
                 QJsonObject result;
-                result[QStringLiteral("protocolVersion")] = QStringLiteral("2024-11-05");
+                result[QStringLiteral("protocolVersion")] = negotiated;
                 result[QStringLiteral("serverInfo")] = serverInfo;
                 result[QStringLiteral("capabilities")] = capabilities;
-
-                response[QStringLiteral("result")] = result;
-                return response;
+                finish(result);
+                return;
             } else if (method == QStringLiteral("notifications/initialized") ||
                        method == QStringLiteral("initialized")) {
-                // MCP post-init notification, return empty result or no-op
-                response[QStringLiteral("result")] = QJsonObject{};
-                return response;
+                // notification: no response (handled by finish)
+                finish(QJsonObject{});
+                return;
             } else if (method == QStringLiteral("ping")) {
-                response[QStringLiteral("result")] = QJsonObject{};
-                return response;
+                finish(QJsonObject{});
+                return;
             } else if (method == QStringLiteral("tools/list")) {
                 QJsonObject result;
                 result[QStringLiteral("tools")] = mDispatcher->getToolsSchema();
-                response[QStringLiteral("result")] = result;
-                return response;
-            } else if (method == QStringLiteral("tools/call") || method.startsWith(QStringLiteral("friction_"))) {
+                finish(result);
+                return;
+            } else if (method == QStringLiteral("tools/call") ||
+                       method.startsWith(QStringLiteral("friction_"))) {
                 QString toolName;
                 QJsonObject toolArgs;
                 if (method == QStringLiteral("tools/call")) {
@@ -369,51 +666,53 @@ namespace Friction
                     toolName = method;
                     toolArgs = params;
                 }
-                const QJsonObject toolResult = mDispatcher->dispatchTool(toolName, toolArgs);
 
-                const bool isSuccess = toolResult.value(QStringLiteral("success")).toBool(true);
-                QJsonArray contentArray;
+                mDispatcher->dispatchToolAsync(toolName, toolArgs,
+                    [finish](const QJsonObject &toolResult) {
+                    const bool isSuccess = toolResult.value(QStringLiteral("success")).toBool(true);
+                    QJsonArray contentArray;
 
-                // If tool returned an image (captureViewport)
-                if (toolResult.contains(QStringLiteral("data")) && toolResult.contains(QStringLiteral("format"))) {
-                    QJsonObject imgContent;
-                    imgContent[QStringLiteral("type")] = QStringLiteral("image");
-                    imgContent[QStringLiteral("data")] = toolResult.value(QStringLiteral("data")).toString();
-                    imgContent[QStringLiteral("mimeType")] = QStringLiteral("image/") + toolResult.value(QStringLiteral("format")).toString();
-                    contentArray.append(imgContent);
-                } else {
-                    QJsonObject textContent;
-                    textContent[QStringLiteral("type")] = QStringLiteral("text");
-                    textContent[QStringLiteral("text")] = QString::fromUtf8(QJsonDocument(toolResult).toJson(QJsonDocument::Indented));
-                    contentArray.append(textContent);
-                }
+                    // If tool returned an image (captureViewport)
+                    if (toolResult.contains(QStringLiteral("data")) &&
+                            toolResult.contains(QStringLiteral("format"))) {
+                        QJsonObject imgContent;
+                        imgContent[QStringLiteral("type")] = QStringLiteral("image");
+                        imgContent[QStringLiteral("data")] = toolResult.value(QStringLiteral("data")).toString();
+                        imgContent[QStringLiteral("mimeType")] = QStringLiteral("image/") +
+                                toolResult.value(QStringLiteral("format")).toString();
+                        contentArray.append(imgContent);
+                    } else {
+                        QJsonObject textContent;
+                        textContent[QStringLiteral("type")] = QStringLiteral("text");
+                        textContent[QStringLiteral("text")] = QString::fromUtf8(
+                                    QJsonDocument(toolResult).toJson(QJsonDocument::Indented));
+                        contentArray.append(textContent);
+                    }
 
-                QJsonObject result;
-                result[QStringLiteral("content")] = contentArray;
-                result[QStringLiteral("isError")] = !isSuccess;
-                for (auto it = toolResult.begin(); it != toolResult.end(); ++it) {
-                    result[it.key()] = it.value();
-                }
-                response[QStringLiteral("result")] = result;
-                return response;
+                    QJsonObject result;
+                    result[QStringLiteral("content")] = contentArray;
+                    result[QStringLiteral("isError")] = !isSuccess;
+                    result[QStringLiteral("structuredContent")] = toolResult;
+                    finish(result);
+                });
+                return;
             } else if (method == QStringLiteral("resources/list")) {
                 QJsonObject result;
                 result[QStringLiteral("resources")] = mDispatcher->getResourcesSchema();
-                response[QStringLiteral("result")] = result;
-                return response;
+                finish(result);
+                return;
             } else if (method == QStringLiteral("resources/read")) {
                 const QString uri = params.value(QStringLiteral("uri")).toString();
-                const QJsonObject res = mDispatcher->readResource(uri);
-                response[QStringLiteral("result")] = res;
-                return response;
+                finish(mDispatcher->readResource(uri));
+                return;
             }
 
-            // Unknown method error
             QJsonObject err;
             err[QStringLiteral("code")] = -32601;
             err[QStringLiteral("message")] = QStringLiteral("Method not found: %1").arg(method);
-            response[QStringLiteral("error")] = err;
-            return response;
+            QJsonObject payload;
+            payload[QStringLiteral("__error")] = err;
+            finish(payload);
         }
     }
 }

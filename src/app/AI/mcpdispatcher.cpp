@@ -26,6 +26,12 @@
 #include "Private/document.h"
 #include "canvas.h"
 #include "actions.h"
+#include "appsupport.h"
+#include "Boxes/boundingbox.h"
+#include "GUI/mainwindow.h"
+#include "GUI/canvaswindow.h"
+#include "GUI/timelinedockwidget.h"
+#include "renderhandler.h"
 
 #include <QBuffer>
 #include <QImage>
@@ -40,6 +46,9 @@
 #include <QProcess>
 #include <QFileInfo>
 #include <QDir>
+#include <QTimer>
+#include <QElapsedTimer>
+#include <QPointer>
 #include <QCoreApplication>
 #include <QStandardPaths>
 
@@ -47,20 +56,99 @@ namespace Friction
 {
     namespace AI
     {
+        namespace
+        {
+            // watchdog budget for a single AI-issued script; generous
+            // enough for large compiled markups, short enough that a
+            // runaway loop cannot wedge the app for good
+            constexpr int kEvalTimeoutMs = 30000;
+
+            // JSON-quote a string into a valid JS string literal.
+            // Used for EVERY string interpolated into generated JS so
+            // hostile or merely odd input (quotes, newlines, unicode)
+            // can never break out into code
+            QString jsStr(const QString &str)
+            {
+                return QString::fromUtf8(QJsonDocument(QJsonArray{str})
+                            .toJson(QJsonDocument::Compact).mid(1).chopped(1));
+            }
+
+            // engine opacity is 0..100 end-to-end (animator range,
+            // render multiplies by 2.55); accept AE-style percent and
+            // also fractions in (0,1] which agents commonly send
+            double normOpacity(const double v)
+            {
+                double x = v;
+                if (x > 0.0 && x <= 1.0) { x *= 100.0; }
+                return qBound(0.0, x, 100.0);
+            }
+
+            // let scheduled canvas renders settle before grabbing a
+            // frame, bounded so the loop cannot spin forever
+            void settleCanvas(const int ms = 60)
+            {
+                QElapsedTimer t;
+                t.start();
+                while (t.elapsed() < ms) {
+                    QApplication::processEvents(QEventLoop::AllEvents, 20);
+                }
+            }
+        }
+
+        // RAII: hides selection outlines/handles and rulers so widget
+        // grabs produce a clean frame; restores everything after
+        struct CleanCanvasGrab
+        {
+            Canvas *canvas = nullptr;
+            QList<BoundingBox *> selected;
+            bool rulersWere = true;
+            bool active = false;
+
+            void begin(Canvas * const c)
+            {
+                canvas = c;
+                if (canvas) {
+                    selected = canvas->getSelectedBoxesList();
+                    if (!selected.isEmpty()) { canvas->clearBoxesSelection(); }
+                }
+                rulersWere = AppSupport::getSettings(QStringLiteral("view"),
+                                                     QStringLiteral("rulers"),
+                                                     true).toBool();
+                if (rulersWere) { CanvasWindow::setRulersVisible(false); }
+                active = true;
+            }
+
+            void end()
+            {
+                if (!active) { return; }
+                if (canvas) {
+                    for (auto *box : selected) {
+                        if (box) { canvas->addBoxToSelection(box); }
+                    }
+                }
+                if (rulersWere) { CanvasWindow::setRulersVisible(true); }
+                active = false;
+            }
+
+            ~CleanCanvasGrab() { end(); }
+        };
+
         static QWidget *findCanvasWidget(QMainWindow *mw)
         {
             if (!mw) return nullptr;
-            QWidget *grabWidget = mw->findChild<QWidget*>(QStringLiteral("canvasWindow"));
-            if (!grabWidget) {
-                const auto allWidgets = mw->findChildren<QWidget*>();
-                for (auto w : allWidgets) {
-                    if (w && w->inherits("CanvasWindow")) {
-                        grabWidget = w;
-                        break;
-                    }
+            // prefer the visible canvas window (tabs may host several)
+            const auto named = mw->findChildren<QWidget*>(QStringLiteral("canvasWindow"));
+            for (auto w : named) {
+                if (w && w->isVisible()) { return w; }
+            }
+            if (!named.isEmpty()) { return named.first(); }
+            const auto allWidgets = mw->findChildren<QWidget*>();
+            for (auto w : allWidgets) {
+                if (w && w->inherits("CanvasWindow")) {
+                    return w;
                 }
             }
-            return grabWidget ? grabWidget : mw;
+            return mw;
         }
 
         static QString findMarkupScriptPath()
@@ -71,9 +159,13 @@ namespace Friction
             }
 
             const QStringList candidatePaths = {
+                // portable install: tools/ deployed next to the binary
+                QCoreApplication::applicationDirPath() + QStringLiteral("/tools/mcp/friction_markup.py"),
+                // build tree: binary in build/src/app/Release, sources at repo root
+                QCoreApplication::applicationDirPath() + QStringLiteral("/../../../../tools/mcp/friction_markup.py"),
                 QCoreApplication::applicationDirPath() + QStringLiteral("/../tools/mcp/friction_markup.py"),
                 QCoreApplication::applicationDirPath() + QStringLiteral("/../../tools/mcp/friction_markup.py"),
-                QCoreApplication::applicationDirPath() + QStringLiteral("/tools/mcp/friction_markup.py"),
+                QCoreApplication::applicationDirPath() + QStringLiteral("/../../../tools/mcp/friction_markup.py"),
                 QCoreApplication::applicationDirPath() + QStringLiteral("/../share/friction/tools/mcp/friction_markup.py"),
                 QDir::homePath() + QStringLiteral("/.local/share/friction/tools/mcp/friction_markup.py"),
                 QStringLiteral("/usr/share/friction/tools/mcp/friction_markup.py"),
@@ -89,16 +181,8 @@ namespace Friction
             return QString();
         }
 
-        static QString escapeJsString(const QString &str)
-        {
-            QString res = str;
-            res.replace(QLatin1Char('\\'), QStringLiteral("\\\\"));
-            res.replace(QLatin1Char('\''), QStringLiteral("\\'"));
-            res.replace(QLatin1Char('\n'), QStringLiteral("\\n"));
-            res.replace(QLatin1Char('\r'), QStringLiteral("\\r"));
-            return res;
-        }
-
+        // builds a JS argument for __findLayer(): plain number for an
+        // index, JSON-quoted literal for a name
         static QString parseLayerRef(const QJsonObject &args, const QString &prefix = QString(), bool *ok = nullptr)
         {
             if (ok) *ok = true;
@@ -111,7 +195,7 @@ namespace Friction
                 return QString::number(args.value(idxKey).toInt());
             }
             if (args.contains(nameKey)) {
-                return QStringLiteral("'%1'").arg(escapeJsString(args.value(nameKey).toString()));
+                return jsStr(args.value(nameKey).toString());
             }
             if (args.contains(layerKey)) {
                 const auto val = args.value(layerKey);
@@ -119,7 +203,7 @@ namespace Friction
                     return QString::number(val.toInt());
                 }
                 if (val.isString() && !val.toString().isEmpty()) {
-                    return QStringLiteral("'%1'").arg(escapeJsString(val.toString()));
+                    return jsStr(val.toString());
                 }
             }
             if (args.contains(layerNameKey)) {
@@ -128,11 +212,11 @@ namespace Friction
                     return QString::number(val.toInt());
                 }
                 if (val.isString() && !val.toString().isEmpty()) {
-                    return QStringLiteral("'%1'").arg(escapeJsString(val.toString()));
+                    return jsStr(val.toString());
                 }
             }
             if (ok) *ok = false;
-            return QStringLiteral("''");
+            return jsStr(QString());
         }
 
         McpDispatcher::McpDispatcher(QObject *parent)
@@ -155,6 +239,8 @@ namespace Friction
 
         Canvas *McpDispatcher::activeScene() const
         {
+            // strictly a getter: never creates a scene as a side
+            // effect of a read-only tool call
             if (!Document::sInstance) { return nullptr; }
             if (Document::sInstance->fActiveScene) {
                 return Document::sInstance->fActiveScene;
@@ -162,7 +248,7 @@ namespace Friction
             if (!Document::sInstance->fScenes.isEmpty()) {
                 return Document::sInstance->fScenes.first().get();
             }
-            return Document::sInstance->createNewScene(true);
+            return nullptr;
         }
 
         Friction::Core::JsHost *McpDispatcher::getJsHost()
@@ -180,6 +266,37 @@ namespace Friction
 
         QJsonObject McpDispatcher::dispatchTool(const QString &toolName,
                                                 const QJsonObject &arguments)
+        {
+            // re-entrancy guard: tools that pump the event loop
+            // (storyboard sampling) or long-running scripts must not
+            // be interleaved with a second tool mutating the same
+            // document mid-flight
+            if (mDispatching) {
+                QJsonObject busy;
+                busy[QStringLiteral("success")] = false;
+                busy[QStringLiteral("error")] = QStringLiteral(
+                            "Server busy: another tool call is still executing; retry when it completes");
+                return busy;
+            }
+            mDispatching = true;
+            const QJsonObject result = dispatchToolImpl(toolName, arguments);
+            mDispatching = false;
+            return result;
+        }
+
+        void McpDispatcher::dispatchToolAsync(const QString &toolName,
+                                              const QJsonObject &arguments,
+                                              const std::function<void(const QJsonObject&)> &callback)
+        {
+            if (toolName == QStringLiteral("friction_render_markup")) {
+                toolRenderMarkupAsync(arguments, callback);
+                return;
+            }
+            callback(dispatchTool(toolName, arguments));
+        }
+
+        QJsonObject McpDispatcher::dispatchToolImpl(const QString &toolName,
+                                                    const QJsonObject &arguments)
         {
             if (toolName == QStringLiteral("friction_get_scene_info")) {
                 return toolGetSceneInfo(arguments);
@@ -245,13 +362,24 @@ namespace Friction
                 const QString groupName = arguments.value(QStringLiteral("undoGroupName")).toString(QStringLiteral("AI Action"));
                 return evalScript(script, groupName);
             } else if (toolName == QStringLiteral("friction_render_markup")) {
-                return toolRenderMarkup(arguments);
+                // served exclusively through dispatchToolAsync: the
+                // python compiler runs out-of-line so neither the GUI
+                // nor the calling connection may block on it
+                QJsonObject resp;
+                resp[QStringLiteral("success")] = false;
+                resp[QStringLiteral("error")] = QStringLiteral(
+                            "friction_render_markup is asynchronous and must be called through the async dispatcher");
+                return resp;
             } else if (toolName == QStringLiteral("friction_update_layer")) {
                 return toolUpdateLayer(arguments);
             } else if (toolName == QStringLiteral("friction_animate_layer")) {
                 return toolAnimateLayer(arguments);
             } else if (toolName == QStringLiteral("friction_get_storyboard")) {
                 return toolGetStoryboard(arguments);
+            } else if (toolName == QStringLiteral("friction_get_keyframes")) {
+                return toolGetKeyframes(arguments);
+            } else if (toolName == QStringLiteral("friction_set_expression")) {
+                return toolSetExpression(arguments);
             } else if (toolName == QStringLiteral("friction_capture_viewport")) {
                 const QString fmt = arguments.value(QStringLiteral("format")).toString(QStringLiteral("png"));
                 const int quality = arguments.value(QStringLiteral("quality")).toInt(90);
@@ -327,7 +455,7 @@ namespace Friction
                 "})();"
             ).arg(quotedGroup, code);
 
-            const QString result = host->evaluate(wrapped);
+            const QString result = host->evaluate(wrapped, kEvalTimeoutMs);
             if (result.startsWith(QStringLiteral("Uncaught"))) {
                 resp[QStringLiteral("error")] = result;
                 resp[QStringLiteral("success")] = false;
@@ -363,7 +491,16 @@ namespace Friction
             }
 
             QWidget *grabWidget = findCanvasWidget(mw);
+
+            // clean grab: selection outlines, transform handles and
+            // rulers are hidden while the pixels are taken so the
+            // image reflects the scene, not the editing chrome
+            CleanCanvasGrab clean;
+            if (auto *cw = qobject_cast<CanvasWindow*>(grabWidget)) {
+                clean.begin(cw->getCurrentCanvas());
+            }
             QPixmap pix = grabWidget ? grabWidget->grab() : mw->grab();
+            clean.end();
             if (pix.isNull()) {
                 pix = mw->grab();
             }
@@ -637,9 +774,7 @@ namespace Friction
                 "  zPosition: l.zPosition().value,\n"
                 "  perspective: l.perspective().value,\n"
                 "  anchorPoint: l.anchorPoint(),\n"
-                "  bounds: l.bounds(),\n"
-                "  worldBounds: l.worldBounds(),\n"
-                "  worldPosition: l.worldPosition()\n"
+                "  bounds: l.bounds()\n"
                 "};"
             ).arg(layerRef);
 
@@ -649,8 +784,7 @@ namespace Friction
         QJsonObject McpDispatcher::toolCreateLayer(const QJsonObject &args)
         {
             const QString type = args.value(QStringLiteral("type")).toString(QStringLiteral("rect")).toLower().trimmed();
-            const QString rawName = args.value(QStringLiteral("name")).toString();
-            const QString name = escapeJsString(rawName);
+            const QString name = jsStr(args.value(QStringLiteral("name")).toString());
 
             QString script;
             if (type == QStringLiteral("rect") || type == QStringLiteral("rectangle") || type == QStringLiteral("box") || type == QStringLiteral("solid")) {
@@ -658,24 +792,24 @@ namespace Friction
                 const qreal y = args.value(QStringLiteral("y")).toDouble(0);
                 const qreal w = args.value(QStringLiteral("width")).toDouble(args.value(QStringLiteral("w")).toDouble(200));
                 const qreal h = args.value(QStringLiteral("height")).toDouble(args.value(QStringLiteral("h")).toDouble(200));
-                script = QStringLiteral("var l = app.activeScene.addRect('%1', %2, %3, %4, %5);\n")
+                script = QStringLiteral("var l = app.activeScene.addRect(%1, %2, %3, %4, %5);\n")
                          .arg(name, QString::number(x), QString::number(y), QString::number(w), QString::number(h));
             } else if (type == QStringLiteral("ellipse") || type == QStringLiteral("circle") || type == QStringLiteral("ball")) {
                 const qreal cx = args.value(QStringLiteral("cx")).toDouble(args.value(QStringLiteral("x")).toDouble(0));
                 const qreal cy = args.value(QStringLiteral("cy")).toDouble(args.value(QStringLiteral("y")).toDouble(0));
                 const qreal r = args.value(QStringLiteral("radius")).toDouble(args.value(QStringLiteral("r")).toDouble(100));
-                script = QStringLiteral("var l = app.activeScene.addEllipse('%1', %2, %3, %4);\n")
+                script = QStringLiteral("var l = app.activeScene.addEllipse(%1, %2, %3, %4);\n")
                          .arg(name, QString::number(cx), QString::number(cy), QString::number(r));
             } else if (type == QStringLiteral("text")) {
-                const QString text = escapeJsString(args.value(QStringLiteral("text")).toString(QStringLiteral("Text")));
-                script = QStringLiteral("var l = app.activeScene.addText('%1', '%2');\n")
+                const QString text = jsStr(args.value(QStringLiteral("text")).toString(QStringLiteral("Text")));
+                script = QStringLiteral("var l = app.activeScene.addText(%1, %2);\n")
                          .arg(name, text);
             } else if (type == QStringLiteral("null")) {
-                script = QStringLiteral("var l = app.activeScene.addNull('%1');\n").arg(name);
+                script = QStringLiteral("var l = app.activeScene.addNull(%1);\n").arg(name);
             } else if (type == QStringLiteral("group")) {
-                script = QStringLiteral("var l = app.activeScene.addGroup('%1');\n").arg(name);
+                script = QStringLiteral("var l = app.activeScene.addGroup(%1);\n").arg(name);
             } else if (type == QStringLiteral("layer") || type == QStringLiteral("container") || type == QStringLiteral("panel")) {
-                script = QStringLiteral("var l = app.activeScene.addLayer('%1');\n").arg(name);
+                script = QStringLiteral("var l = app.activeScene.addLayer(%1);\n").arg(name);
             } else {
                 QJsonObject resp;
                 resp[QStringLiteral("error")] = QStringLiteral("Unknown layer type: %1. Valid: rect/rectangle, ellipse/circle, text, null, group, layer/container").arg(type);
@@ -685,12 +819,12 @@ namespace Friction
 
             // Optional styling & initial properties
             if (args.contains(QStringLiteral("fillColor")) || args.contains(QStringLiteral("fill")) || args.contains(QStringLiteral("color"))) {
-                const QString col = escapeJsString(args.contains(QStringLiteral("fillColor")) ? args.value(QStringLiteral("fillColor")).toString() : (args.contains(QStringLiteral("fill")) ? args.value(QStringLiteral("fill")).toString() : args.value(QStringLiteral("color")).toString()));
-                script += QStringLiteral("l.setFillColor('%1');\n").arg(col);
+                const QString col = jsStr(args.contains(QStringLiteral("fillColor")) ? args.value(QStringLiteral("fillColor")).toString() : (args.contains(QStringLiteral("fill")) ? args.value(QStringLiteral("fill")).toString() : args.value(QStringLiteral("color")).toString()));
+                script += QStringLiteral("l.setFillColor(%1);\n").arg(col);
             }
             if (args.contains(QStringLiteral("strokeColor")) || args.contains(QStringLiteral("stroke"))) {
-                const QString col = escapeJsString(args.contains(QStringLiteral("strokeColor")) ? args.value(QStringLiteral("strokeColor")).toString() : args.value(QStringLiteral("stroke")).toString());
-                script += QStringLiteral("l.setStrokeColor('%1');\n").arg(col);
+                const QString col = jsStr(args.contains(QStringLiteral("strokeColor")) ? args.value(QStringLiteral("strokeColor")).toString() : args.value(QStringLiteral("stroke")).toString());
+                script += QStringLiteral("l.setStrokeColor(%1);\n").arg(col);
             }
             if (args.contains(QStringLiteral("strokeWidth"))) {
                 script += QStringLiteral("l.setStrokeWidth(%1);\n").arg(args.value(QStringLiteral("strokeWidth")).toDouble());
@@ -699,11 +833,11 @@ namespace Friction
                 script += QStringLiteral("l.setFontSize(%1);\n").arg(args.value(QStringLiteral("fontSize")).toDouble());
             }
             if (args.contains(QStringLiteral("fontFamily")) || args.contains(QStringLiteral("font"))) {
-                const QString f = escapeJsString(args.contains(QStringLiteral("fontFamily")) ? args.value(QStringLiteral("fontFamily")).toString() : args.value(QStringLiteral("font")).toString());
-                script += QStringLiteral("l.setFontFamily('%1');\n").arg(f);
+                const QString f = jsStr(args.contains(QStringLiteral("fontFamily")) ? args.value(QStringLiteral("fontFamily")).toString() : args.value(QStringLiteral("font")).toString());
+                script += QStringLiteral("l.setFontFamily(%1);\n").arg(f);
             }
             if (args.contains(QStringLiteral("opacity"))) {
-                script += QStringLiteral("l.opacity = %1;\n").arg(args.value(QStringLiteral("opacity")).toDouble());
+                script += QStringLiteral("l.opacity = %1;\n").arg(normOpacity(args.value(QStringLiteral("opacity")).toDouble()));
             }
             if (args.contains(QStringLiteral("is3D")) || args.contains(QStringLiteral("3d"))) {
                 const bool is3d = args.contains(QStringLiteral("is3D")) ? args.value(QStringLiteral("is3D")).toBool() : args.value(QStringLiteral("3d")).toBool();
@@ -713,7 +847,9 @@ namespace Friction
                 bool pOk = false;
                 const QString pRef = parseLayerRef(args, QStringLiteral("parent"), &pOk);
                 if (pOk) {
-                    script += QStringLiteral("var p = __findLayer(%1); if (p) app.activeScene.setParent(l, p);\n").arg(pRef);
+                    // JsLayerProxy::setParentLayer is the real API;
+                    // the scene proxy has no setParent method
+                    script += QStringLiteral("var p = __findLayer(%1); if (p) l.setParentLayer(p);\n").arg(pRef);
                 }
             }
 
@@ -819,9 +955,9 @@ namespace Friction
 
             const QString script = QStringLiteral(
                 "var lay = __findLayer(%1);\n"
-                "var p = __findProp(lay, '%2');\n"
+                "var p = __findProp(lay, %2);\n"
                 "p.setValue(%3); return 'OK';"
-            ).arg(layerRef, prop, valStr);
+            ).arg(layerRef, jsStr(prop), valStr);
 
             return evalScript(script, QStringLiteral("AI Set Property"));
         }
@@ -846,14 +982,14 @@ namespace Friction
             if (args.contains(QStringLiteral("frame"))) {
                 const int frame = args.value(QStringLiteral("frame")).toInt();
                 if (!easing.isEmpty()) {
-                    setCall = QStringLiteral("p.setValueAtFrameWithEasing(%1, %2, '%3');").arg(QString::number(frame), valStr, easing);
+                    setCall = QStringLiteral("p.setValueAtFrameWithEasing(%1, %2, %3);").arg(QString::number(frame), valStr, jsStr(easing));
                 } else {
                     setCall = QStringLiteral("p.setValueAtFrame(%1, %2);").arg(QString::number(frame), valStr);
                 }
             } else {
                 const qreal time = args.value(QStringLiteral("time")).toDouble(0);
                 if (!easing.isEmpty()) {
-                    setCall = QStringLiteral("p.setValueAtTimeWithEasing(%1, %2, '%3');").arg(QString::number(time), valStr, easing);
+                    setCall = QStringLiteral("p.setValueAtTimeWithEasing(%1, %2, %3);").arg(QString::number(time), valStr, jsStr(easing));
                 } else {
                     setCall = QStringLiteral("p.setValueAtTime(%1, %2);").arg(QString::number(time), valStr);
                 }
@@ -861,9 +997,9 @@ namespace Friction
 
             const QString script = QStringLiteral(
                 "var lay = __findLayer(%1);\n"
-                "var p = __findProp(lay, '%2');\n"
+                "var p = __findProp(lay, %2);\n"
                 "%3 return 'OK';"
-            ).arg(layerRef, prop, setCall);
+            ).arg(layerRef, jsStr(prop), setCall);
 
             return evalScript(script, QStringLiteral("AI Set Keyframe"));
         }
@@ -880,15 +1016,21 @@ namespace Friction
             }
 
             const QString prop = args.value(QStringLiteral("property")).toString();
-            const int frame = args.contains(QStringLiteral("frame"))
-                ? args.value(QStringLiteral("frame")).toInt()
-                : qRound(args.value(QStringLiteral("time")).toDouble() * 60.);
+            // frame from time uses the scene's real fps (a hardcoded
+            // 60 corrupted 24/25/30 fps projects before)
+            QString frameExpr;
+            if (args.contains(QStringLiteral("frame"))) {
+                frameExpr = QString::number(args.value(QStringLiteral("frame")).toInt());
+            } else {
+                frameExpr = QStringLiteral("Math.round(%1 * app.activeScene.fps)")
+                        .arg(args.value(QStringLiteral("time")).toDouble());
+            }
 
             const QString script = QStringLiteral(
                 "var lay = __findLayer(%1);\n"
-                "var p = __findProp(lay, '%2');\n"
+                "var p = __findProp(lay, %2);\n"
                 "p.removeKeyAtFrame(%3); return 'OK';"
-            ).arg(layerRef, prop, QString::number(frame));
+            ).arg(layerRef, jsStr(prop), frameExpr);
 
             return evalScript(script, QStringLiteral("AI Remove Keyframe"));
         }
@@ -907,12 +1049,12 @@ namespace Friction
             const QString prop = args.value(QStringLiteral("property")).toString();
             const QString script = QStringLiteral(
                 "var lay = __findLayer(%1);\n"
-                "var p = __findProp(lay, '%2');\n"
+                "var p = __findProp(lay, %2);\n"
                 "while (p.numKeys > 0) {\n"
                 "  p.removeKeyAtFrame(p.keyFrame(1));\n"
                 "}\n"
                 "return 'OK';"
-            ).arg(layerRef, prop);
+            ).arg(layerRef, jsStr(prop));
 
             return evalScript(script, QStringLiteral("AI Clear Keyframes"));
         }
@@ -946,9 +1088,24 @@ namespace Friction
                 return resp;
             }
 
-            QKeyEvent pressEvent(QEvent::KeyPress, Qt::Key_Space, Qt::NoModifier);
-            QApplication::sendEvent(mw, &pressEvent);
+            // call the same toggle the Space key uses; synthesizing a
+            // raw key event made playback depend on widget focus (a
+            // focused text field would just receive a space)
+            auto *mainWin = qobject_cast<MainWindow*>(mw);
+            auto timeline = mainWin ? mainWin->getTimeLineWidget() : nullptr;
+            if (!timeline) {
+                resp[QStringLiteral("error")] = QStringLiteral("Timeline widget unavailable");
+                resp[QStringLiteral("success")] = false;
+                return resp;
+            }
+            timeline->spaceToggle();
+
+            bool playing = false;
+            if (RenderHandler::sInstance) {
+                playing = RenderHandler::sInstance->currentPreviewState() == PreviewState::playing;
+            }
             resp[QStringLiteral("success")] = true;
+            resp[QStringLiteral("playing")] = playing;
             return resp;
         }
 
@@ -1002,14 +1159,14 @@ namespace Friction
 
             QString script = QStringLiteral("var lay = __findLayer(%1);\n").arg(layerRef);
             if (args.contains(QStringLiteral("text"))) {
-                script += QStringLiteral("lay.setText('%1');\n").arg(escapeJsString(args.value(QStringLiteral("text")).toString()));
+                script += QStringLiteral("lay.setText(%1);\n").arg(jsStr(args.value(QStringLiteral("text")).toString()));
             }
             if (args.contains(QStringLiteral("fontSize"))) {
                 script += QStringLiteral("lay.setFontSize(%1);\n").arg(args.value(QStringLiteral("fontSize")).toDouble());
             }
             if (args.contains(QStringLiteral("fontFamily")) || args.contains(QStringLiteral("font"))) {
                 QString fn = args.contains(QStringLiteral("fontFamily")) ? args.value(QStringLiteral("fontFamily")).toString() : args.value(QStringLiteral("font")).toString();
-                script += QStringLiteral("lay.setFontFamily('%1');\n").arg(escapeJsString(fn));
+                script += QStringLiteral("lay.setFontFamily(%1);\n").arg(jsStr(fn));
             }
             if (args.contains(QStringLiteral("letterSpacing"))) {
                 script += QStringLiteral("lay.setLetterSpacing(%1);\n").arg(args.value(QStringLiteral("letterSpacing")).toDouble());
@@ -1018,10 +1175,10 @@ namespace Friction
                 script += QStringLiteral("lay.setLineSpacing(%1);\n").arg(args.value(QStringLiteral("lineSpacing")).toDouble());
             }
             if (args.contains(QStringLiteral("alignment"))) {
-                script += QStringLiteral("lay.setTextAlignment('%1');\n").arg(args.value(QStringLiteral("alignment")).toString());
+                script += QStringLiteral("lay.setTextAlignment(%1);\n").arg(jsStr(args.value(QStringLiteral("alignment")).toString()));
             }
             if (args.contains(QStringLiteral("color"))) {
-                script += QStringLiteral("lay.setFillColor('%1');\n").arg(args.value(QStringLiteral("color")).toString());
+                script += QStringLiteral("lay.setFillColor(%1);\n").arg(jsStr(args.value(QStringLiteral("color")).toString()));
             }
             script += QStringLiteral("return { success: true, name: lay.name, index: lay.index };\n");
 
@@ -1041,17 +1198,17 @@ namespace Friction
 
             QString script = QStringLiteral("var lay = __findLayer(%1);\n").arg(layerRef);
             if (args.contains(QStringLiteral("fillColor"))) {
-                script += QStringLiteral("lay.setFillColor('%1');\n").arg(args.value(QStringLiteral("fillColor")).toString());
+                script += QStringLiteral("lay.setFillColor(%1);\n").arg(jsStr(args.value(QStringLiteral("fillColor")).toString()));
             }
             if (args.contains(QStringLiteral("strokeColor"))) {
-                script += QStringLiteral("lay.setStrokeColor('%1');\n").arg(args.value(QStringLiteral("strokeColor")).toString());
+                script += QStringLiteral("lay.setStrokeColor(%1);\n").arg(jsStr(args.value(QStringLiteral("strokeColor")).toString()));
             }
             if (args.contains(QStringLiteral("strokeWidth"))) {
                 script += QStringLiteral("lay.setStrokeWidth(%1);\n").arg(args.value(QStringLiteral("strokeWidth")).toDouble());
             }
             if (args.contains(QStringLiteral("blendMode")) || args.contains(QStringLiteral("blend"))) {
                 const QString bm = args.contains(QStringLiteral("blendMode")) ? args.value(QStringLiteral("blendMode")).toString() : args.value(QStringLiteral("blend")).toString();
-                script += QStringLiteral("lay.setBlendMode('%1');\n").arg(bm);
+                script += QStringLiteral("lay.setBlendMode(%1);\n").arg(jsStr(bm));
             }
             if (args.contains(QStringLiteral("cornerRadius")) || args.contains(QStringLiteral("radius"))) {
                 const double r = args.contains(QStringLiteral("cornerRadius")) ? args.value(QStringLiteral("cornerRadius")).toDouble() : args.value(QStringLiteral("radius")).toDouble();
@@ -1164,10 +1321,10 @@ namespace Friction
 
             const QString script = QStringLiteral(
                 "var lay = __findLayer(%1);\n"
-                "var p = __findProp(lay, '%2');\n"
-                "var ok = p.setEasing('%3', %4, %5);\n"
-                "return { name: lay.name, property: '%2', easing: '%3', success: ok };"
-            ).arg(layerRef, prop, easing, startF, endF);
+                "var p = __findProp(lay, %2);\n"
+                "var ok = p.setEasing(%3, %4, %5);\n"
+                "return { name: lay.name, property: %2, easing: %3, success: ok };"
+            ).arg(layerRef, jsStr(prop), jsStr(easing), startF, endF);
 
             return evalScript(script, QStringLiteral("AI Set Keyframe Easing"));
         }
@@ -1175,29 +1332,12 @@ namespace Friction
         QJsonObject McpDispatcher::toolListAvailableEffects(const QJsonObject &)
         {
             QJsonObject resp;
-            QJsonArray effects;
-            const QStringList effectNames = {
-                QStringLiteral("glow"), QStringLiteral("liquid_glass"), QStringLiteral("blur"),
-                QStringLiteral("gaussian_blur"), QStringLiteral("directional_blur"), QStringLiteral("radial_blur"),
-                QStringLiteral("zoom_blur"), QStringLiteral("motion_blur"), QStringLiteral("channel_blur"),
-                QStringLiteral("vignette"), QStringLiteral("chromatic_aberration"), QStringLiteral("scanlines"),
-                QStringLiteral("glitch"), QStringLiteral("drop_shadow"), QStringLiteral("shadow"),
-                QStringLiteral("wave_warp"), QStringLiteral("tint"), QStringLiteral("invert"),
-                QStringLiteral("pixelate"), QStringLiteral("pixel_art"), QStringLiteral("noise"),
-                QStringLiteral("film_grain"), QStringLiteral("half_tone"), QStringLiteral("posterize"),
-                QStringLiteral("twirl"), QStringLiteral("shake"), QStringLiteral("stripe"),
-                QStringLiteral("color_grading"), QStringLiteral("brightness_contrast"), QStringLiteral("colorize"),
-                QStringLiteral("light_sweep"), QStringLiteral("fractal_noise"), QStringLiteral("motion_tile"),
-                QStringLiteral("edge_detect"), QStringLiteral("rain"), QStringLiteral("mirror"),
-                QStringLiteral("chroma_key"), QStringLiteral("displacement_warp"),
-                QStringLiteral("black_white_flash"), QStringLiteral("letterbox"),
-                QStringLiteral("noise_fade"), QStringLiteral("wipe")
-            };
-            for (const auto &name : effectNames) {
-                effects.append(name);
-            }
+            // enumerated from the shared name/type table consumed by
+            // addEffect() (jsapi), so the list can never go stale
+            // relative to what the engine actually accepts
+            const auto effectNames = Friction::Core::knownEffectNames();
             resp[QStringLiteral("success")] = true;
-            resp[QStringLiteral("effects")] = effects;
+            resp[QStringLiteral("effects")] = QJsonArray::fromStringList(effectNames);
             return resp;
         }
 
@@ -1213,7 +1353,7 @@ namespace Friction
             }
 
             const QString effectType = args.value(QStringLiteral("effectType")).toString(QStringLiteral("glow"));
-            const QString script = QStringLiteral("var lay = __findLayer(%1);\nvar ok = lay.addEffect('%2');\nreturn { name: lay.name, effect: '%2', success: ok };\n").arg(layerRef).arg(effectType);
+            const QString script = QStringLiteral("var lay = __findLayer(%1);\nvar ok = lay.addEffect(%2);\nreturn { name: lay.name, effect: %2, success: ok };\n").arg(layerRef, jsStr(effectType));
             return evalScript(script, QStringLiteral("Add Raster Effect"));
         }
 
@@ -1259,14 +1399,16 @@ namespace Friction
             return resp;
         }
 
-        QJsonObject McpDispatcher::toolRenderMarkup(const QJsonObject &args)
+        void McpDispatcher::toolRenderMarkupAsync(const QJsonObject &args,
+                                                  const std::function<void(const QJsonObject&)> &callback)
         {
-            QJsonObject resp;
             const QString markup = args.value(QStringLiteral("markup")).toString().trimmed();
             if (markup.isEmpty()) {
+                QJsonObject resp;
                 resp[QStringLiteral("error")] = QStringLiteral("Markup is empty");
                 resp[QStringLiteral("success")] = false;
-                return resp;
+                callback(resp);
+                return;
             }
 
             const QString mode = args.value(QStringLiteral("mode")).toString(QStringLiteral("replace")).toLower();
@@ -1274,61 +1416,123 @@ namespace Friction
 
             const QString scriptPath = findMarkupScriptPath();
             if (scriptPath.isEmpty()) {
+                QJsonObject resp;
                 resp[QStringLiteral("error")] = QStringLiteral("friction_markup.py compiler script not found");
                 resp[QStringLiteral("success")] = false;
-                return resp;
+                callback(resp);
+                return;
             }
 
-            QProcess proc;
-            QStringList procArgs;
-            procArgs << scriptPath << QStringLiteral("--compile-only")
-                     << QStringLiteral("--mode") << mode
-                     << QStringLiteral("--time-offset") << QString::number(timeOffset)
-                     << QStringLiteral("-");
+            // interpreter candidates in order of preference; the
+            // Windows "py" launcher needs an explicit -3
+            QStringList pyCandidates;
+            const auto foundP3 = QStandardPaths::findExecutable(QStringLiteral("python3"));
+            const auto foundPy = QStandardPaths::findExecutable(QStringLiteral("python"));
+            const auto foundLauncher = QStandardPaths::findExecutable(QStringLiteral("py"));
+            if (!foundP3.isEmpty()) { pyCandidates << foundP3; }
+            if (!foundPy.isEmpty()) { pyCandidates << foundPy; }
+            if (!foundLauncher.isEmpty()) { pyCandidates << foundLauncher; }
+            pyCandidates << QStringLiteral("python3") << QStringLiteral("python") << QStringLiteral("py");
+            pyCandidates.removeDuplicates();
 
-            QString pythonExe = QStandardPaths::findExecutable(QStringLiteral("python3"));
-            if (pythonExe.isEmpty()) {
-                pythonExe = QStandardPaths::findExecutable(QStringLiteral("python"));
-            }
-            if (pythonExe.isEmpty()) {
-                pythonExe = QStringLiteral("python3");
-            }
+            const auto candIdx = std::make_shared<int>(0);
+            const auto timedOut = std::make_shared<bool>(false);
+            const auto responded = std::make_shared<bool>(false);
 
-            proc.start(pythonExe, procArgs);
-            if (!proc.waitForStarted(3000)) {
-                resp[QStringLiteral("error")] = QStringLiteral("Failed to execute python: %1").arg(proc.errorString());
-                resp[QStringLiteral("success")] = false;
-                return resp;
-            }
-
-            proc.write(markup.toUtf8());
-            proc.closeWriteChannel();
-
-            if (!proc.waitForFinished(10000)) {
-                proc.kill();
-                resp[QStringLiteral("error")] = QStringLiteral("friction_markup.py compilation timed out");
-                resp[QStringLiteral("success")] = false;
-                return resp;
-            }
-
-            const int exitCode = proc.exitCode();
-            const QString stdErr = QString::fromUtf8(proc.readAllStandardError()).trimmed();
-            const QString compiledJs = QString::fromUtf8(proc.readAllStandardOutput()).trimmed();
-
-            if (exitCode != 0 || compiledJs.isEmpty()) {
-                resp[QStringLiteral("error")] = stdErr.isEmpty() ? QStringLiteral("Markup compilation failed (empty output)") : stdErr;
-                resp[QStringLiteral("success")] = false;
-                return resp;
-            }
+            auto *proc = new QProcess(this);
+            auto *timeout = new QTimer(proc); // child of proc: cleaned up together
+            timeout->setSingleShot(true);
 
             const QString groupName = (mode == QStringLiteral("append"))
-                ? QStringLiteral("AI Append Markup")
-                : QStringLiteral("AI Render Markup");
+                    ? QStringLiteral("AI Append Markup")
+                    : QStringLiteral("AI Render Markup");
 
-            auto evalResult = evalScript(compiledJs, groupName);
-            evalResult[QStringLiteral("mode")] = mode;
-            evalResult[QStringLiteral("timeOffset")] = timeOffset;
-            return evalResult;
+            // single-response guard: several signal paths (error,
+            // finished, timeout) can race after a kill
+            const auto finishWith = [callback, responded, proc, timeout](QJsonObject resp) {
+                if (*responded) { return; }
+                *responded = true;
+                timeout->stop();
+                proc->deleteLater();
+                callback(resp);
+            };
+
+            // feeds the markup via stdin once the process is alive
+            connect(proc, &QProcess::started, this, [proc, markup, timeout]() {
+                proc->write(markup.toUtf8());
+                proc->closeWriteChannel();
+                timeout->start(15000);
+            });
+
+            connect(timeout, &QTimer::timeout, this, [proc, timedOut]() {
+                *timedOut = true;
+                proc->kill();
+            });
+
+            // tries the next interpreter; returns false when the
+            // candidate list is exhausted
+            const auto startAttempt = [proc, pyCandidates, candIdx, scriptPath, mode, timeOffset]() -> bool {
+                while (*candIdx < pyCandidates.size()) {
+                    const QString exe = pyCandidates.at((*candIdx)++);
+                    QStringList procArgs;
+                    if (QFileInfo(exe).completeBaseName().compare(
+                                QStringLiteral("py"), Qt::CaseInsensitive) == 0) {
+                        procArgs << QStringLiteral("-3");
+                    }
+                    procArgs << scriptPath << QStringLiteral("--compile-only")
+                             << QStringLiteral("--mode") << mode
+                             << QStringLiteral("--time-offset") << QString::number(timeOffset)
+                             << QStringLiteral("-");
+                    proc->start(exe, procArgs);
+                    return true;
+                }
+                return false;
+            };
+
+            connect(proc, &QProcess::errorOccurred,
+                    this, [startAttempt, finishWith](const QProcess::ProcessError err) {
+                if (err != QProcess::FailedToStart) { return; }
+                if (startAttempt()) { return; }
+                QJsonObject resp;
+                resp[QStringLiteral("error")] = QStringLiteral(
+                            "Failed to start python (tried python3, python, py); install Python 3 "
+                            "or compile the markup externally and submit it via friction_eval_script");
+                resp[QStringLiteral("success")] = false;
+                finishWith(resp);
+            });
+
+            connect(proc, static_cast<void(QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished),
+                    this, [this, proc, timedOut, finishWith, mode, timeOffset, groupName]
+                    (const int exitCode, const QProcess::ExitStatus) {
+                if (*timedOut) {
+                    QJsonObject resp;
+                    resp[QStringLiteral("error")] = QStringLiteral("friction_markup.py compilation timed out");
+                    resp[QStringLiteral("success")] = false;
+                    finishWith(resp);
+                    return;
+                }
+                const QString stdErr = QString::fromUtf8(proc->readAllStandardError()).trimmed();
+                const QString compiledJs = QString::fromUtf8(proc->readAllStandardOutput()).trimmed();
+                if (exitCode != 0 || compiledJs.isEmpty()) {
+                    QJsonObject resp;
+                    resp[QStringLiteral("error")] = stdErr.isEmpty() ?
+                                QStringLiteral("Markup compilation failed (empty output)") : stdErr;
+                    resp[QStringLiteral("success")] = false;
+                    finishWith(resp);
+                    return;
+                }
+                QJsonObject evalResult = evalScript(compiledJs, groupName);
+                evalResult[QStringLiteral("mode")] = mode;
+                evalResult[QStringLiteral("timeOffset")] = timeOffset;
+                finishWith(evalResult);
+            });
+
+            if (!startAttempt()) {
+                QJsonObject resp;
+                resp[QStringLiteral("error")] = QStringLiteral("No python interpreter available");
+                resp[QStringLiteral("success")] = false;
+                callback(resp);
+            }
         }
 
         QJsonObject McpDispatcher::toolUpdateLayer(const QJsonObject &args)
@@ -1344,40 +1548,40 @@ namespace Friction
 
             QStringList ops;
             if (args.contains(QStringLiteral("newName"))) {
-                ops << QStringLiteral("lay.name = '%1';").arg(escapeJsString(args.value(QStringLiteral("newName")).toString()));
+                ops << QStringLiteral("lay.name = %1;").arg(jsStr(args.value(QStringLiteral("newName")).toString()));
             }
             if (args.contains(QStringLiteral("text"))) {
-                ops << QStringLiteral("lay.setText('%1');").arg(escapeJsString(args.value(QStringLiteral("text")).toString()));
+                ops << QStringLiteral("lay.setText(%1);").arg(jsStr(args.value(QStringLiteral("text")).toString()));
             }
             if (args.contains(QStringLiteral("fontSize"))) {
                 ops << QStringLiteral("lay.setFontSize(%1);").arg(args.value(QStringLiteral("fontSize")).toDouble());
             }
             if (args.contains(QStringLiteral("fontFamily")) || args.contains(QStringLiteral("font"))) {
                 QString f = args.contains(QStringLiteral("fontFamily")) ? args.value(QStringLiteral("fontFamily")).toString() : args.value(QStringLiteral("font")).toString();
-                ops << QStringLiteral("lay.setFontFamily('%1');").arg(escapeJsString(f));
+                ops << QStringLiteral("lay.setFontFamily(%1);").arg(jsStr(f));
             }
             if (args.contains(QStringLiteral("alignment"))) {
-                ops << QStringLiteral("lay.setTextAlignment('%1');").arg(args.value(QStringLiteral("alignment")).toString());
+                ops << QStringLiteral("lay.setTextAlignment(%1);").arg(jsStr(args.value(QStringLiteral("alignment")).toString()));
             }
             if (args.contains(QStringLiteral("fillColor")) || args.contains(QStringLiteral("color"))) {
                 const QString c = args.contains(QStringLiteral("fillColor")) ? args.value(QStringLiteral("fillColor")).toString() : args.value(QStringLiteral("color")).toString();
-                ops << QStringLiteral("lay.setFillColor('%1');").arg(c);
+                ops << QStringLiteral("lay.setFillColor(%1);").arg(jsStr(c));
             }
             if (args.contains(QStringLiteral("strokeColor"))) {
-                ops << QStringLiteral("lay.setStrokeColor('%1');").arg(args.value(QStringLiteral("strokeColor")).toString());
+                ops << QStringLiteral("lay.setStrokeColor(%1);").arg(jsStr(args.value(QStringLiteral("strokeColor")).toString()));
             }
             if (args.contains(QStringLiteral("strokeWidth"))) {
                 ops << QStringLiteral("lay.setStrokeWidth(%1);").arg(args.value(QStringLiteral("strokeWidth")).toDouble());
             }
             if (args.contains(QStringLiteral("blendMode"))) {
-                ops << QStringLiteral("lay.setBlendMode('%1');").arg(args.value(QStringLiteral("blendMode")).toString());
+                ops << QStringLiteral("lay.setBlendMode(%1);").arg(jsStr(args.value(QStringLiteral("blendMode")).toString()));
             }
             if (args.contains(QStringLiteral("cornerRadius")) || args.contains(QStringLiteral("radius"))) {
                 const double r = args.contains(QStringLiteral("cornerRadius")) ? args.value(QStringLiteral("cornerRadius")).toDouble() : args.value(QStringLiteral("radius")).toDouble();
                 ops << QStringLiteral("lay.setCornerRadius(%1);").arg(r);
             }
             if (args.contains(QStringLiteral("opacity"))) {
-                ops << QStringLiteral("lay.opacity = %1;").arg(args.value(QStringLiteral("opacity")).toDouble());
+                ops << QStringLiteral("lay.opacity = %1;").arg(normOpacity(args.value(QStringLiteral("opacity")).toDouble()));
             }
             if (args.contains(QStringLiteral("visible"))) {
                 ops << QStringLiteral("lay.visible = %1;").arg(args.value(QStringLiteral("visible")).toBool() ? QStringLiteral("true") : QStringLiteral("false"));
@@ -1392,10 +1596,13 @@ namespace Friction
             if (args.contains(QStringLiteral("parent"))) {
                 bool pOk = false;
                 const QString pRef = parseLayerRef(args, QStringLiteral("parent"), &pOk);
-                if (pOk && pRef != QStringLiteral("''") && pRef != QStringLiteral("'null'") && pRef != QStringLiteral("'none'")) {
-                    ops << QStringLiteral("var p = __findLayer(%1); if (p) app.activeScene.setParent(lay, p);").arg(pRef);
+                const QString refName = args.value(QStringLiteral("parentName")).toString().trimmed().toLower();
+                const bool wantsUnparent = !pOk || refName == QStringLiteral("null") ||
+                        refName == QStringLiteral("none") || refName.isEmpty();
+                if (!wantsUnparent) {
+                    ops << QStringLiteral("lay.setParentLayer(__findLayer(%1));").arg(pRef);
                 } else {
-                    ops << QStringLiteral("app.activeScene.setParent(lay, null);");
+                    ops << QStringLiteral("lay.setParentLayer(null);");
                 }
             }
             if (args.contains(QStringLiteral("order"))) {
@@ -1530,9 +1737,9 @@ namespace Friction
                 "var dur = (%4 > 0) ? %4 : ((%5 > 0) ? Math.round(%5 * fps) : 25);\n"
                 "var endF = startF + dur;\n"
                 "var isOut = %6;\n"
-                "var userEasing = '%7';\n"
+                "var userEasing = %7;\n"
                 "var dist = %8;\n"
-                "var preset = '%9';\n"
+                "var preset = %9;\n"
                 "\n"
                 "if (preset.indexOf('fade') !== -1 || preset === 'fade') {\n"
                 "  var curOp = (lay.opacity !== undefined && lay.opacity > 0) ? lay.opacity : 100;\n"
@@ -1653,7 +1860,7 @@ namespace Friction
                  QString::number(durationFrames),
                  QString::number(durationSec),
                  isOut ? QStringLiteral("true") : QStringLiteral("false"),
-                 userEasing, QString::number(distance), preset);
+                 jsStr(userEasing), QString::number(distance), jsStr(preset));
 
             return evalScript(script, QStringLiteral("AI Animate Layer"));
         }
@@ -1723,9 +1930,17 @@ namespace Friction
 
             for (int f : sampleFrames) {
                 Document::sInstance->setActiveSceneFrame(f);
-                QApplication::processEvents();
+                // bounded settle loop lets scheduled preview renders
+                // flush; re-entrant tool calls arriving here are
+                // rejected by the dispatcher guard
+                settleCanvas();
 
+                CleanCanvasGrab clean;
+                if (auto *cw = qobject_cast<CanvasWindow*>(grabWidget)) {
+                    clean.begin(cw->getCurrentCanvas());
+                }
                 QPixmap pix = grabWidget->grab();
+                clean.end();
                 if (pix.isNull()) {
                     pix = mw->grab();
                 }
@@ -1750,12 +1965,78 @@ namespace Friction
 
             // Restore original frame
             Document::sInstance->setActiveSceneFrame(origFrame);
-            QApplication::processEvents();
+            settleCanvas();
 
             resp[QStringLiteral("success")] = true;
             resp[QStringLiteral("format")] = format;
             resp[QStringLiteral("storyboard")] = storyboard;
             return resp;
+        }
+
+        QJsonObject McpDispatcher::toolGetKeyframes(const QJsonObject &args)
+        {
+            bool ok = false;
+            const QString layerRef = parseLayerRef(args, QString(), &ok);
+            if (!ok) {
+                QJsonObject err;
+                err[QStringLiteral("error")] = QStringLiteral("Must specify layer (e.g. name, index, layer)");
+                err[QStringLiteral("success")] = false;
+                return err;
+            }
+
+            const QString prop = args.value(QStringLiteral("property")).toString().trimmed();
+            if (prop.isEmpty()) {
+                QJsonObject err;
+                err[QStringLiteral("error")] = QStringLiteral("Must specify property (e.g. position, scale, rotation, opacity)");
+                err[QStringLiteral("success")] = false;
+                return err;
+            }
+
+            const QString script = QStringLiteral(
+                "var lay = __findLayer(%1);\n"
+                "var p = __findProp(lay, %2);\n"
+                "var n = p.numKeys;\n"
+                "var keys = [];\n"
+                "for (var i = 1; i <= n; i++) {\n"
+                "  var f = p.keyFrame(i);\n"
+                "  keys.push({ index: i, frame: f, time: p.keyTime(i), value: p.valueAtFrame(f) });\n"
+                "}\n"
+                "return { name: lay.name, property: %2, numKeys: n, keys: keys };"
+            ).arg(layerRef, jsStr(prop));
+
+            return evalScript(script, QStringLiteral("AI Get Keyframes"));
+        }
+
+        QJsonObject McpDispatcher::toolSetExpression(const QJsonObject &args)
+        {
+            bool ok = false;
+            const QString layerRef = parseLayerRef(args, QString(), &ok);
+            if (!ok) {
+                QJsonObject err;
+                err[QStringLiteral("error")] = QStringLiteral("Must specify layer (e.g. name, index, layer)");
+                err[QStringLiteral("success")] = false;
+                return err;
+            }
+
+            const QString prop = args.value(QStringLiteral("property")).toString().trimmed();
+            const QString bindings = args.value(QStringLiteral("bindings")).toString();
+            const QString body = args.value(QStringLiteral("script")).toString();
+            if (prop.isEmpty() || body.trimmed().isEmpty()) {
+                QJsonObject err;
+                err[QStringLiteral("error")] = QStringLiteral("Must specify property and script (JS function body that returns a number); bindings optional (e.g. \"x = $frame;\")");
+                err[QStringLiteral("success")] = false;
+                return err;
+            }
+
+            const QString script = QStringLiteral(
+                "var lay = __findLayer(%1);\n"
+                "var p = __findProp(lay, %2);\n"
+                "var err = p.setExpression(%3, %4);\n"
+                "if (err && err.length) { throw new Error('setExpression failed: ' + err); }\n"
+                "return 'OK';"
+            ).arg(layerRef, jsStr(prop), jsStr(bindings), jsStr(body));
+
+            return evalScript(script, QStringLiteral("AI Set Expression"));
         }
 
         QJsonArray McpDispatcher::getToolsSchema() const
@@ -1850,7 +2131,7 @@ namespace Friction
             // 5. create_layer
             {
                 QJsonObject props;
-                props[QStringLiteral("type")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("string")}, {QStringLiteral("enum"), QJsonArray{QStringLiteral("rect"), QStringLiteral("ellipse"), QStringLiteral("text"), QStringLiteral("null"), QStringLiteral("group"), QStringLiteral("container")}}, {QStringLiteral("description"), QStringLiteral("Type of layer to create")}};
+                props[QStringLiteral("type")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("string")}, {QStringLiteral("enum"), QJsonArray{QStringLiteral("rect"), QStringLiteral("ellipse"), QStringLiteral("text"), QStringLiteral("null"), QStringLiteral("group"), QStringLiteral("container")}}, {QStringLiteral("description"), QStringLiteral("Type of layer to create (aliases: solid/box=rect, circle/ball=ellipse, layer/panel=container)")}};
                 props[QStringLiteral("name")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("string")}, {QStringLiteral("description"), QStringLiteral("Layer name")}};
                 props[QStringLiteral("x")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("number")}, {QStringLiteral("description"), QStringLiteral("X position for rect")}};
                 props[QStringLiteral("y")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("number")}, {QStringLiteral("description"), QStringLiteral("Y position for rect")}};
@@ -1858,6 +2139,7 @@ namespace Friction
                 props[QStringLiteral("height")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("number")}, {QStringLiteral("description"), QStringLiteral("Height for rect")}};
                 props[QStringLiteral("radius")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("number")}, {QStringLiteral("description"), QStringLiteral("Radius for ellipse")}};
                 props[QStringLiteral("text")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("string")}, {QStringLiteral("description"), QStringLiteral("Text content for text layer")}};
+                props[QStringLiteral("opacity")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("number")}, {QStringLiteral("description"), QStringLiteral("Opacity 0-100 (values in (0,1] are treated as fractions and scaled x100)")}};
                 tools.append(makeTool(QStringLiteral("friction_create_layer"),
                                       QStringLiteral("Create a new layer in the active scene (rect, ellipse, text, null, group, container)"),
                                       props, QJsonArray{QStringLiteral("type"), QStringLiteral("name")}));
@@ -1911,7 +2193,7 @@ namespace Friction
                 QJsonObject props;
                 props[QStringLiteral("index")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("integer")}};
                 props[QStringLiteral("name")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("string")}};
-                props[QStringLiteral("property")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("string")}, {QStringLiteral("description"), QStringLiteral("Property name: position, scale, rotation, rotationX, rotationY, zPosition, opacity, anchorPoint")}};
+                props[QStringLiteral("property")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("string")}, {QStringLiteral("description"), QStringLiteral("Property name: position, scale, rotation, rotationX, rotationY, zPosition, opacity (0-100), anchorPoint")}};
                 props[QStringLiteral("value")] = QJsonObject{{QStringLiteral("description"), QStringLiteral("Target value (number or [x, y] array)")}};
                 tools.append(makeTool(QStringLiteral("friction_set_property_value"),
                                       QStringLiteral("Set static property value on a layer"),
@@ -1940,8 +2222,8 @@ namespace Friction
                 props[QStringLiteral("name")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("string")}};
                 props[QStringLiteral("property")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("string")}, {QStringLiteral("description"), QStringLiteral("Property name to ease (position, scale, rotation, opacity, etc.)")}};
                 props[QStringLiteral("easing")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("string")}, {QStringLiteral("description"), QStringLiteral("Easing preset ID (easeOutCubic, easeInOutQuad, easeOutBack, easeOutBounce, easeOutElastic, etc.)")}};
-                props[QStringLiteral("startFrame")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("integer")}, {QStringLiteral("description"), QStringLiteral("Start keyframe index (optional, defaults to first key)")}};
-                props[QStringLiteral("endFrame")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("integer")}, {QStringLiteral("description"), QStringLiteral("End keyframe index (optional, defaults to last key)")}};
+                props[QStringLiteral("startFrame")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("integer")}, {QStringLiteral("description"), QStringLiteral("Range start frame number (not a key index; omit or -1 to apply to all keys)")}};
+                props[QStringLiteral("endFrame")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("integer")}, {QStringLiteral("description"), QStringLiteral("Range end frame number (not a key index; omit or -1 to apply to all keys)")}};
                 props[QStringLiteral("startTime")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("number")}, {QStringLiteral("description"), QStringLiteral("Start time in seconds")}};
                 props[QStringLiteral("endTime")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("number")}, {QStringLiteral("description"), QStringLiteral("End time in seconds")}};
                 tools.append(makeTool(QStringLiteral("friction_set_keyframe_easing"),
@@ -2064,7 +2346,7 @@ namespace Friction
 
             // 20. list_available_effects
             tools.append(makeTool(QStringLiteral("friction_list_available_effects"),
-                                  QStringLiteral("List all available GPU & CPU raster effects in Friction 2.5D (glow, liquid_glass, blur, glitch, vignette, etc.)"),
+                                  QStringLiteral("List all raster effects accepted by add_raster_effect (enumerated live from the engine's effect registry: glow, liquid_glass, blur, glitch, vignette, etc.)"),
                                   QJsonObject()));
 
             // 21. add_raster_effect
@@ -2105,7 +2387,7 @@ namespace Friction
                 props[QStringLiteral("format")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("string")}, {QStringLiteral("enum"), QJsonArray{QStringLiteral("png"), QStringLiteral("jpeg")}}};
                 props[QStringLiteral("quality")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("integer")}};
                 tools.append(makeTool(QStringLiteral("friction_capture_viewport"),
-                                      QStringLiteral("Capture current viewport as Base64-encoded image for multimodal AI vision analysis"),
+                                      QStringLiteral("Capture current viewport as Base64-encoded image for multimodal AI vision analysis (selection outlines and rulers are hidden during capture for a clean frame)"),
                                       props));
             }
 
@@ -2139,7 +2421,7 @@ namespace Friction
                 props[QStringLiteral("strokeWidth")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("number")}, {QStringLiteral("description"), QStringLiteral("Stroke width")}};
                 props[QStringLiteral("blendMode")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("string")}, {QStringLiteral("description"), QStringLiteral("Blend mode")}};
                 props[QStringLiteral("cornerRadius")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("number")}, {QStringLiteral("description"), QStringLiteral("Corner radius")}};
-                props[QStringLiteral("opacity")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("number")}, {QStringLiteral("description"), QStringLiteral("Opacity (0-100)")}};
+                props[QStringLiteral("opacity")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("number")}, {QStringLiteral("description"), QStringLiteral("Opacity 0-100 (values in (0,1] are treated as fractions and scaled x100)")}};
                 props[QStringLiteral("visible")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("boolean")}, {QStringLiteral("description"), QStringLiteral("Layer visibility")}};
                 props[QStringLiteral("locked")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("boolean")}, {QStringLiteral("description"), QStringLiteral("Layer lock state")}};
                 props[QStringLiteral("is3D")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("boolean")}, {QStringLiteral("description"), QStringLiteral("Enable 2.5D spatial mode")}};
@@ -2170,9 +2452,11 @@ namespace Friction
                     {QStringLiteral("enum"), QJsonArray{
                         QStringLiteral("pop"), QStringLiteral("slide_up"), QStringLiteral("slide_down"),
                         QStringLiteral("slide_left"), QStringLiteral("slide_right"), QStringLiteral("zoom"),
-                        QStringLiteral("fade"), QStringLiteral("flip_y"), QStringLiteral("flip_x")
+                        QStringLiteral("fade"), QStringLiteral("flip_y"), QStringLiteral("flip_x"),
+                        QStringLiteral("rotate"), QStringLiteral("spin"), QStringLiteral("pop_fade"),
+                        QStringLiteral("slide_up_fade")
                     }},
-                    {QStringLiteral("description"), QStringLiteral("High-level animation macro preset")}
+                    {QStringLiteral("description"), QStringLiteral("High-level animation macro preset (combos like pop_fade / slide_up_fade apply both effects)")}
                 };
                 props[QStringLiteral("startFrame")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("integer")}, {QStringLiteral("description"), QStringLiteral("Start frame index (default: 0)")}};
                 props[QStringLiteral("durationFrames")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("integer")}, {QStringLiteral("description"), QStringLiteral("Duration in frames (default: 25)")}};
@@ -2197,9 +2481,38 @@ namespace Friction
                 props[QStringLiteral("format")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("string")}, {QStringLiteral("enum"), QJsonArray{QStringLiteral("jpeg"), QStringLiteral("png")}}};
                 props[QStringLiteral("quality")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("integer")}, {QStringLiteral("description"), QStringLiteral("Compression quality (default: 80)")}};
                 tools.append(makeTool(QStringLiteral("friction_get_storyboard"),
-                                      QStringLiteral("Sample multiple visual frames across the timeline and return Base64 storyboard strips for AI vision review"),
+                                      QStringLiteral("Sample multiple visual frames across the timeline and return Base64 storyboard strips for AI vision review (selection outlines and rulers hidden)"),
                                       props));
             }
+
+            // 26.1 get_keyframes
+            {
+                QJsonObject props;
+                props[QStringLiteral("index")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("integer")}};
+                props[QStringLiteral("name")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("string")}};
+                props[QStringLiteral("property")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("string")}, {QStringLiteral("description"), QStringLiteral("Property name to inspect (position, scale, rotation, opacity, ...)")}};
+                tools.append(makeTool(QStringLiteral("friction_get_keyframes"),
+                                      QStringLiteral("List every keyframe on a layer property with frame, time and stored value"),
+                                      props, QJsonArray{QStringLiteral("property")}));
+            }
+
+            // 26.2 set_expression
+            {
+                QJsonObject props;
+                props[QStringLiteral("index")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("integer")}};
+                props[QStringLiteral("name")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("string")}};
+                props[QStringLiteral("property")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("string")}, {QStringLiteral("description"), QStringLiteral("Scalar property or sub-axis (e.g. rotation, positionx) - point properties must target sub-animators")}};
+                props[QStringLiteral("bindings")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("string")}, {QStringLiteral("description"), QStringLiteral("One binding per line, e.g. 'f = $frame;' or 'src = ctrl.transform.rotation;' (omit for pure math on $value)")}};
+                props[QStringLiteral("script")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("string")}, {QStringLiteral("description"), QStringLiteral("JS function body that returns a number, e.g. 'return Math.sin(f/10)*45;'")}};
+                tools.append(makeTool(QStringLiteral("friction_set_expression"),
+                                      QStringLiteral("Attach a JS expression to a property (AE expression equivalent); bindings bind $frame/$value/other properties, script computes the number"),
+                                      props, QJsonArray{QStringLiteral("property"), QStringLiteral("script")}));
+            }
+
+            // 26.3 get_api_schema (introspection)
+            tools.append(makeTool(QStringLiteral("friction_get_api_schema"),
+                                  QStringLiteral("Return the full tools and resources schema of this MCP server (self-introspection)"),
+                                  QJsonObject()));
 
             return tools;
         }

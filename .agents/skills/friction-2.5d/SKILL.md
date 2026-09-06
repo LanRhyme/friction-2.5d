@@ -22,6 +22,21 @@ Friction 2.5D runs an embedded high-performance MCP / JSON-RPC server
 - **Stdio MCP Bridge**: `python3 tools/mcp/friction_mcp_bridge.py --port 9527`
 - **Local Unix IPC Socket**: `/tmp/friction_mcp.sock` (Linux/macOS)
 
+### Authentication (HTTP only)
+
+Every HTTP request except the liveness probes (`GET /` and `GET /api/status`)
+must carry the access token from Friction's AI settings
+(*Settings -> AI Agent -> Access Token*), via any of:
+
+- `Authorization: Bearer <token>` header
+- `X-Friction-Token: <token>` header
+- `?token=<token>` query parameter
+
+The named-pipe / Unix-socket transport is token-exempt (local machine trust),
+so the stdio bridge keeps working without a token; pass `--token` (or set the
+`FRICTION_MCP_TOKEN` env var) only for its HTTP fallback. Browser pages are
+rejected outright (no CORS), so the token never leaks through a web origin.
+
 ### Quick Status Check
 ```bash
 curl -s http://127.0.0.1:9527/api/status
@@ -38,6 +53,10 @@ curl -s http://127.0.0.1:9527/api/status
     }
 }
 ```
+
+> Opacity note: layer opacity is 0-100 engine-wide (AE style); values in
+> (0,1] sent through MCP tools are auto-scaled x100, but inside raw
+> `friction_eval_script` code you must use the 0-100 scale yourself.
 
 --------------------------------------------------------------------------------
 

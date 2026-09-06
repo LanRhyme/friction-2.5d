@@ -43,6 +43,7 @@ public:
 private slots:
     void restartServer();
     void testConnection();
+    void regenerateToken();
     void copyClaudeConfig();
     void copyCursorConfig();
     void copyPythonSnippet();
@@ -55,6 +56,7 @@ private:
     QCheckBox *mAutoStart = nullptr;
     QSpinBox *mPort = nullptr;
     QLineEdit *mSocketPath = nullptr;
+    QLineEdit *mTokenEdit = nullptr;
     QLabel *mStatusLabel = nullptr;
     QLabel *mHttpUrlLabel = nullptr;
     QLabel *mSocketUrlLabel = nullptr;

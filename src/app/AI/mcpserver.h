@@ -28,7 +28,10 @@
 #include <QLocalServer>
 #include <QTcpServer>
 #include <QJsonObject>
+#include <QJsonDocument>
+#include <QHash>
 #include <QByteArray>
+#include <functional>
 #include <memory>
 
 namespace Friction
@@ -55,10 +58,23 @@ namespace Friction
             QString socketPath() const { return mSocketName; }
             QString httpUrl() const;
 
+            // persistent access token for the HTTP transport
+            // ("ai/token" setting, generated on demand). The local
+            // named-pipe transport is exempt: it is only reachable by
+            // local processes which already have full machine trust.
+            static QString ensureToken();
+            void refreshToken();
+
             McpDispatcher *dispatcher() const { return mDispatcher.get(); }
 
-            // Process a raw JSON-RPC 2.0 / MCP message
-            QJsonObject processJsonRpc(const QJsonObject &request);
+            // Process a raw JSON-RPC 2.0 / MCP message (single object
+            // or batch array). The callback receives a null document
+            // for notifications (no response must be written), and
+            // the response document once it is ready otherwise.
+            // Slow tools (e.g. render_markup) complete asynchronously;
+            // the event loop keeps running in the meantime.
+            void processJsonRpcDoc(const QJsonDocument &request,
+                                   const std::function<void(const QJsonDocument&)> &callback);
 
         signals:
             void serverStarted();
@@ -71,17 +87,40 @@ namespace Friction
             void handleLocalSocketReadyRead();
             void handleNewTcpConnection();
             void handleTcpSocketReadyRead();
+            void handleTcpSocketDisconnected();
 
         private:
-            void handleHttpRequest(class QTcpSocket *socket, const QByteArray &data);
-            void sendHttpResponse(class QTcpSocket *socket, int statusCode, const QString &statusText,
-                                  const QByteArray &body, const QString &contentType = QStringLiteral("application/json"));
+            // per-connection HTTP receive state: the body is only
+            // dispatched once Content-Length bytes have arrived
+            struct HttpReq {
+                QByteArray buffer;
+                int headerLen = -1;      // offset past the CRLFCRLF terminator
+                int contentLength = -1;
+                bool continueSent = false;
+            };
+
+            void handleHttpRequest(class QTcpSocket *socket,
+                                   const QByteArray &head,
+                                   const QByteArray &body);
+            void sendHttpResponse(class QTcpSocket *socket, int statusCode,
+                                  const QString &statusText,
+                                  const QByteArray &body,
+                                  const QString &contentType = QStringLiteral("application/json"));
+            // rejects browser cross-origin calls (Origin header),
+            // DNS-rebinding (foreign Host) and missing/invalid tokens
+            bool isAuthorized(const QString &method, const QString &rawPath,
+                              const QByteArray &head) const;
+            static QString headerValue(const QByteArray &head, const char *name);
+            void processJsonRpcObj(const QJsonObject &request,
+                                   const std::function<void(const QJsonObject&)> &callback);
 
             static McpServer *sInstance;
             QLocalServer *mLocalServer = nullptr;
             QTcpServer *mTcpServer = nullptr;
             quint16 mPort = 9527;
             QString mSocketName;
+            QString mToken;
+            QHash<class QTcpSocket*, HttpReq> mHttpReqs;
             std::unique_ptr<McpDispatcher> mDispatcher;
         };
     }

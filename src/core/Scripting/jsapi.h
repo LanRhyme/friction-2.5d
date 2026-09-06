@@ -34,6 +34,7 @@
 #include <memory>
 
 class Canvas;
+class ContainerBox;
 class BoundingBox;
 class Property;
 class QPointFAnimator;
@@ -146,6 +147,7 @@ namespace Friction
             Q_OBJECT
             Q_PROPERTY(QString name READ name WRITE setName)
             Q_PROPERTY(int index READ index)
+            Q_PROPERTY(int numLayers READ numLayers)
             Q_PROPERTY(bool visible READ visible WRITE setVisible)
             Q_PROPERTY(bool selected READ selected WRITE setSelected)
             Q_PROPERTY(qreal opacity READ opacity WRITE setOpacity)
@@ -164,6 +166,9 @@ namespace Friction
             Q_INVOKABLE QJSValue position();
             Q_INVOKABLE QJSValue scale();
             Q_INVOKABLE QJSValue rotation();
+            // 2.5D billboard rotations (require set3DEnabled(true))
+            Q_INVOKABLE QJSValue rotationX();
+            Q_INVOKABLE QJSValue rotationY();
             // 3D depth proxies (used by the parallax generator)
             Q_INVOKABLE QJSValue zPosition();
             Q_INVOKABLE QJSValue perspective();
@@ -258,6 +263,15 @@ namespace Friction
             Q_INVOKABLE void bringToEnd();
             Q_INVOKABLE void moveUp();
             Q_INVOKABLE void moveDown();
+
+            // child layers of this container group (empty for leaf
+            // layers); index 1 = topmost child, matching the row
+            // numbers shown in the timeline
+            Q_INVOKABLE QJSValue layers();
+            // child lookup by 1-based row index (from top) or by
+            // name (direct children first, then recursive)
+            Q_INVOKABLE QJSValue layer(const QJSValue &indexOrName);
+            int numLayers() const;
 
             QString name() const;
             void setName(const QString &name);
@@ -477,8 +491,12 @@ namespace Friction
             QString loadScript(const QString &path);
 
             // evaluates an expression (console REPL); returns the
-            // result string, prefixed with "Uncaught" on error
-            QString evaluate(const QString &source);
+            // result string, prefixed with "Uncaught" on error.
+            // timeoutMs > 0 arms a watchdog thread that interrupts
+            // the engine (QJSEngine::setInterrupted) so runaway
+            // scripts cannot hang the host forever
+            QString evaluate(const QString &source,
+                             const int timeoutMs = 0);
 
             // run a registered command by label; returns error or empty
             QString callCommand(const QString &label);
@@ -618,6 +636,12 @@ namespace Friction
         private:
             PanelDesc mPanelDesc;
         };
+
+        // canonical raster-effect names accepted by
+        // JsLayerProxy::addEffect() (first alias of each entry of
+        // the shared name/type table); single source of truth for
+        // script engines and the MCP tools surface
+        CORE_EXPORT QStringList knownEffectNames();
     }
 }
 

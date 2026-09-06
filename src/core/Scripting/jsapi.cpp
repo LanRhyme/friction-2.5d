@@ -23,6 +23,10 @@
 
 #include "jsapi.h"
 
+#include <atomic>
+#include <thread>
+#include <chrono>
+
 #include "Private/document.h"
 #include "canvas.h"
 #include "clipboardcontainer.h"
@@ -70,12 +74,13 @@ namespace Friction
 
         namespace
         {
-            // collect BoundingBox layers of a container (top = index 0)
-            QList<BoundingBox*> boxLayers(Canvas * const scene)
+            // collect BoundingBox layers of a container (top = index 0);
+            // works for the scene canvas and for nested groups alike
+            QList<BoundingBox*> boxLayers(ContainerBox * const container)
             {
                 QList<BoundingBox*> result;
-                if (!scene) { return result; }
-                const auto &contained = scene->getContained();
+                if (!container) { return result; }
+                const auto &contained = container->getContained();
                 for (const auto &child : contained) {
                     const auto box = enve_cast<BoundingBox*>(child.get());
                     if (box) { result.append(box); }
@@ -687,14 +692,97 @@ namespace Friction
             if (mBox) { mBox->prp_setName(name); }
         }
 
+        // defined below (before JsSceneProxy::layer); needed early
+        // by JsLayerProxy::layer for recursive name lookup
+        static BoundingBox *findBoxRecursive(ContainerBox * const parent,
+                                             const QString &name);
+
         int JsLayerProxy::index() const
         {
             if (!mBox) { return -1; }
+            // nested layers: index within the owning group (the row
+            // number the timeline shows); root layers: index within
+            // the scene. AE convention: 1-based from top
+            const auto parent = mBox->getParentGroup();
+            if (parent) {
+                const int pIdx = boxLayers(parent).indexOf(mBox.data());
+                if (pIdx >= 0) { return pIdx + 1; }
+            }
             const auto scene = activeSceneOrNull();
             const auto layers = boxLayers(scene);
             const int idx = layers.indexOf(mBox.data());
-            // AE convention: 1-based from top
             return idx < 0 ? -1 : idx + 1;
+        }
+
+        int JsLayerProxy::numLayers() const
+        {
+            if (!mBox) { return 0; }
+            const auto cont = enve_cast<ContainerBox*>(mBox.data());
+            if (!cont) { return 0; }
+            return boxLayers(cont).count();
+        }
+
+        QJSValue JsLayerProxy::layers()
+        {
+            if (!mBox || !mEngine) { return QJSValue(QJSValue::NullValue); }
+            const auto cont = enve_cast<ContainerBox*>(mBox.data());
+            if (!cont) { return mEngine->newArray(0); }
+            const auto list = boxLayers(cont);
+            auto arr = mEngine->newArray(list.count());
+            for (int i = 0; i < list.count(); i++) {
+                const auto proxy = new JsLayerProxy(
+                            QPointer<BoundingBox>(list.at(i)),
+                            mEngine.data(), nullptr);
+                arr.setProperty(i, wrapOwnedQObject(mEngine.data(), proxy));
+            }
+            return arr;
+        }
+
+        QJSValue JsLayerProxy::layer(const QJSValue &indexOrName)
+        {
+            if (!mBox || !mEngine) { return QJSValue(QJSValue::NullValue); }
+            const auto cont = enve_cast<ContainerBox*>(mBox.data());
+            if (!cont) { return QJSValue(QJSValue::NullValue); }
+            const auto list = boxLayers(cont);
+            if (indexOrName.isNumber()) {
+                const int idx = indexOrName.toInt(); // 1-based from top
+                if (idx < 1 || idx > list.count()) {
+                    return QJSValue(QJSValue::NullValue);
+                }
+                const auto proxy = new JsLayerProxy(
+                            QPointer<BoundingBox>(list.at(idx - 1)),
+                            mEngine.data(), nullptr);
+                return wrapOwnedQObject(mEngine.data(), proxy);
+            }
+            if (indexOrName.isString()) {
+                const QString name = indexOrName.toString();
+                // 1. Direct child match
+                for (const auto box : list) {
+                    if (box->prp_getName() == name) {
+                        const auto proxy = new JsLayerProxy(
+                                    QPointer<BoundingBox>(box),
+                                    mEngine.data(), nullptr);
+                        return wrapOwnedQObject(mEngine.data(), proxy);
+                    }
+                }
+                // 2. Search recursively in child containers
+                if (auto recursiveBox = findBoxRecursive(cont, name)) {
+                    const auto proxy = new JsLayerProxy(
+                                QPointer<BoundingBox>(recursiveBox),
+                                mEngine.data(), nullptr);
+                    return wrapOwnedQObject(mEngine.data(), proxy);
+                }
+                // 3. Fallback: integer string (e.g. "1")
+                bool isNumeric = false;
+                const int numIdx = name.toInt(&isNumeric);
+                if (isNumeric && numIdx >= 1 && numIdx <= list.count()) {
+                    const auto proxy = new JsLayerProxy(
+                                QPointer<BoundingBox>(list.at(numIdx - 1)),
+                                mEngine.data(), nullptr);
+                    return wrapOwnedQObject(mEngine.data(), proxy);
+                }
+            }
+            return QJSValue(QJSValue::NullValue);
         }
 
         bool JsLayerProxy::visible() const
@@ -812,6 +900,16 @@ namespace Friction
         QJSValue JsLayerProxy::rotation()
         {
             return makeProperty(QStringLiteral("rotation"));
+        }
+
+        QJSValue JsLayerProxy::rotationX()
+        {
+            return makeProperty(QStringLiteral("rotationx"));
+        }
+
+        QJSValue JsLayerProxy::rotationY()
+        {
+            return makeProperty(QStringLiteral("rotationy"));
         }
 
         QJSValue JsLayerProxy::zPosition()
@@ -1021,53 +1119,102 @@ namespace Friction
             return false;
         }
 
+        // shared raster-effect name/type table: "canonical|alias|..."
+        // per entry (canonical first, reported by knownEffectNames()).
+        // addEffect() and the MCP tools/list surface both consume it
+        // so they can never drift apart
+        namespace {
+        struct EffectNameEntry {
+            RasterEffectType type;
+            const char *names;
+        };
+
+        const EffectNameEntry sEffectNames[] = {
+            { RasterEffectType::GLOW, "glow" },
+            { RasterEffectType::LIQUID_GLASS, "liquid_glass" },
+            { RasterEffectType::VIGNETTE, "vignette" },
+            { RasterEffectType::CHROMATIC_ABERRATION, "chromatic_aberration" },
+            { RasterEffectType::SCANLINES, "scanlines" },
+            { RasterEffectType::GLITCH, "glitch" },
+            { RasterEffectType::DROP_SHADOW, "drop_shadow|shadow" },
+            { RasterEffectType::BLUR, "blur|gaussian_blur" },
+            { RasterEffectType::MOTION_BLUR, "motion_blur" },
+            { RasterEffectType::DIRECTIONAL_BLUR, "directional_blur" },
+            { RasterEffectType::RADIAL_BLUR, "radial_blur" },
+            { RasterEffectType::ZOOM_BLUR, "zoom_blur" },
+            { RasterEffectType::CHANNEL_BLUR, "channel_blur" },
+            { RasterEffectType::WAVE_WARP, "wave_warp|wave" },
+            { RasterEffectType::TINT, "tint" },
+            { RasterEffectType::INVERT, "invert" },
+            { RasterEffectType::PIXELATE, "pixelate" },
+            { RasterEffectType::PIXEL_ART, "pixel_art" },
+            { RasterEffectType::NOISE, "noise" },
+            { RasterEffectType::FILM_GRAIN, "film_grain" },
+            { RasterEffectType::HALFTONE, "half_tone" },
+            { RasterEffectType::POSTERIZE, "posterize" },
+            { RasterEffectType::TWIRL, "twirl" },
+            { RasterEffectType::SHAKE, "shake" },
+            { RasterEffectType::STRIPE, "stripe" },
+            { RasterEffectType::COLOR_GRADING, "color_grading" },
+            { RasterEffectType::BRIGHTNESS_CONTRAST, "brightness_contrast" },
+            { RasterEffectType::COLORIZE, "colorize" },
+            { RasterEffectType::LIGHT_SWEEP, "light_sweep" },
+            { RasterEffectType::FRACTAL_NOISE, "fractal_noise" },
+            { RasterEffectType::MOTION_TILE, "motion_tile" },
+            { RasterEffectType::EDGE_DETECT, "edge_detect" },
+            { RasterEffectType::RAIN, "rain" },
+            { RasterEffectType::MIRROR, "mirror" },
+            { RasterEffectType::CHROMA_KEY, "chroma_key" },
+            { RasterEffectType::DISPLACEMENT_WARP, "displacement_warp|displacement" },
+            { RasterEffectType::BLACK_WHITE_FLASH, "black_white_flash|bw_flash|flash" },
+            { RasterEffectType::LETTERBOX, "letterbox" },
+            { RasterEffectType::NOISE_FADE, "noise_fade" },
+            { RasterEffectType::WIPE, "wipe" }
+        };
+
+        QString normalizeEffectName(const QString &name)
+        {
+            QString n = name.toLower();
+            n.remove(QLatin1Char('_')).remove(QLatin1Char('-')).remove(QLatin1Char(' '));
+            return n;
+        }
+
+        bool lookupRasterEffectType(const QString &name,
+                                    RasterEffectType &outType)
+        {
+            const QString n = normalizeEffectName(name);
+            if (n.isEmpty()) { return false; }
+            for (const auto &e : sEffectNames) {
+                const auto aliases = QString::fromLatin1(e.names).split(QLatin1Char('|'));
+                for (const auto &alias : aliases) {
+                    if (normalizeEffectName(alias) == n) {
+                        outType = e.type;
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+        }
+
+        QStringList knownEffectNames()
+        {
+            QStringList out;
+            for (const auto &e : sEffectNames) {
+                out << QString::fromLatin1(e.names).section(QLatin1Char('|'), 0, 0);
+            }
+            return out;
+        }
+
         bool JsLayerProxy::addEffect(const QString &effectType)
         {
             if (!mBox) { return false; }
             const auto coll = mBox->rasterEffectsCollection();
             if (!coll) { return false; }
-            const QString n = effectType.toLower().remove(QLatin1Char('_')).remove(QLatin1Char('-'));
+            // unknown names fail instead of silently falling back to
+            // blur, so callers (scripts / AI agents) get feedback
             RasterEffectType type = RasterEffectType::BLUR;
-            if (n == QStringLiteral("glow")) type = RasterEffectType::GLOW;
-            else if (n == QStringLiteral("liquidglass")) type = RasterEffectType::LIQUID_GLASS;
-            else if (n == QStringLiteral("vignette")) type = RasterEffectType::VIGNETTE;
-            else if (n == QStringLiteral("chromaticaberration")) type = RasterEffectType::CHROMATIC_ABERRATION;
-            else if (n == QStringLiteral("scanlines")) type = RasterEffectType::SCANLINES;
-            else if (n == QStringLiteral("glitch")) type = RasterEffectType::GLITCH;
-            else if (n == QStringLiteral("dropshadow") || n == QStringLiteral("shadow")) type = RasterEffectType::DROP_SHADOW;
-            else if (n == QStringLiteral("blur") || n == QStringLiteral("gaussianblur")) type = RasterEffectType::BLUR;
-            else if (n == QStringLiteral("motionblur")) type = RasterEffectType::MOTION_BLUR;
-            else if (n == QStringLiteral("directionalblur")) type = RasterEffectType::DIRECTIONAL_BLUR;
-            else if (n == QStringLiteral("radialblur")) type = RasterEffectType::RADIAL_BLUR;
-            else if (n == QStringLiteral("zoomblur")) type = RasterEffectType::ZOOM_BLUR;
-            else if (n == QStringLiteral("wavewarp") || n == QStringLiteral("wave")) type = RasterEffectType::WAVE_WARP;
-            else if (n == QStringLiteral("tint")) type = RasterEffectType::TINT;
-            else if (n == QStringLiteral("invert")) type = RasterEffectType::INVERT;
-            else if (n == QStringLiteral("pixelate")) type = RasterEffectType::PIXELATE;
-            else if (n == QStringLiteral("pixelart")) type = RasterEffectType::PIXEL_ART;
-            else if (n == QStringLiteral("noise")) type = RasterEffectType::NOISE;
-            else if (n == QStringLiteral("filmgrain")) type = RasterEffectType::FILM_GRAIN;
-            else if (n == QStringLiteral("halftone")) type = RasterEffectType::HALFTONE;
-            else if (n == QStringLiteral("posterize")) type = RasterEffectType::POSTERIZE;
-            else if (n == QStringLiteral("twirl")) type = RasterEffectType::TWIRL;
-            else if (n == QStringLiteral("shake")) type = RasterEffectType::SHAKE;
-            else if (n == QStringLiteral("stripe")) type = RasterEffectType::STRIPE;
-            else if (n == QStringLiteral("colorgrading")) type = RasterEffectType::COLOR_GRADING;
-            else if (n == QStringLiteral("brightnesscontrast")) type = RasterEffectType::BRIGHTNESS_CONTRAST;
-            else if (n == QStringLiteral("colorize")) type = RasterEffectType::COLORIZE;
-            else if (n == QStringLiteral("lightsweep")) type = RasterEffectType::LIGHT_SWEEP;
-            else if (n == QStringLiteral("fractalnoise")) type = RasterEffectType::FRACTAL_NOISE;
-            else if (n == QStringLiteral("motiontile")) type = RasterEffectType::MOTION_TILE;
-            else if (n == QStringLiteral("edgedetect")) type = RasterEffectType::EDGE_DETECT;
-            else if (n == QStringLiteral("rain")) type = RasterEffectType::RAIN;
-            else if (n == QStringLiteral("mirror")) type = RasterEffectType::MIRROR;
-            else if (n == QStringLiteral("chromakey")) type = RasterEffectType::CHROMA_KEY;
-            else if (n == QStringLiteral("displacementwarp") || n == QStringLiteral("displacement")) type = RasterEffectType::DISPLACEMENT_WARP;
-            else if (n == QStringLiteral("blackwhiteflash") || n == QStringLiteral("bwflash") || n == QStringLiteral("flash")) type = RasterEffectType::BLACK_WHITE_FLASH;
-            else if (n == QStringLiteral("channelblur")) type = RasterEffectType::CHANNEL_BLUR;
-            else if (n == QStringLiteral("letterbox")) type = RasterEffectType::LETTERBOX;
-            else if (n == QStringLiteral("noisefade")) type = RasterEffectType::NOISE_FADE;
-            else if (n == QStringLiteral("wipe")) type = RasterEffectType::WIPE;
+            if (!lookupRasterEffectType(effectType, type)) { return false; }
 
             auto eff = createRasterEffectForNonCustomType(type);
             if (eff) {
@@ -2722,12 +2869,48 @@ namespace Friction
             return QString();
         }
 
-        QString JsHost::evaluate(const QString &source)
+        QString JsHost::evaluate(const QString &source,
+                                 const int timeoutMs)
         {
+            // watchdog thread: interrupts the engine once the budget
+            // is exhausted so an infinite loop in a script cannot
+            // hang the host application; setInterrupted is documented
+            // thread-safe, and the thread is joined before returning
+            std::atomic_bool cancelWatch{false};
+            std::unique_ptr<std::thread> watchdog;
+            if (timeoutMs > 0 && mEngine) {
+                QJSEngine * const eng = mEngine.get();
+                watchdog = std::make_unique<std::thread>(
+                            [eng, timeoutMs, &cancelWatch]() {
+                    const auto slice = std::chrono::milliseconds(25);
+                    const auto budget = std::chrono::milliseconds(timeoutMs);
+                    auto waited = std::chrono::milliseconds(0);
+                    while (waited < budget) {
+                        if (cancelWatch.load(std::memory_order_relaxed)) { return; }
+                        std::this_thread::sleep_for(slice);
+                        waited += slice;
+                    }
+                    if (!cancelWatch.load(std::memory_order_relaxed)) {
+                        eng->setInterrupted(true);
+                    }
+                });
+            }
+
             const auto result = mEngine->evaluate(source);
+
+            if (watchdog) {
+                cancelWatch.store(true, std::memory_order_relaxed);
+                watchdog->join();
+                mEngine->setInterrupted(false);
+            }
+
             if (result.isError()) {
+                QString message = result.toString();
+                if (message.isEmpty()) {
+                    message = QStringLiteral("Script evaluation interrupted (timeout)");
+                }
                 return QStringLiteral("Uncaught exception: %1")
-                        .arg(result.toString());
+                        .arg(message);
             }
             if (result.isUndefined()) { return QStringLiteral("undefined"); }
             if (result.isString()) { return result.toString(); }
