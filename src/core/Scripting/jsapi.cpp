@@ -709,6 +709,18 @@ namespace Friction
             return true;
         }
 
+        QJSValue JsLayerProxy::numberProperty(const QString &name,
+                                              const qreal value)
+        {
+            if (!mBox || !mEngine) { return QJSValue(QJSValue::NullValue); }
+            const auto prop = mBox->getOrCreateNumberProperty(name, value);
+            if (!prop) { return QJSValue(QJSValue::NullValue); }
+            const auto proxy = new JsPropertyProxy(
+                        QPointer<Property>(prop),
+                        JsPropertyProxy::Kind::Scalar, nullptr);
+            return mEngine->newQObject(proxy);
+        }
+
         QJSValue JsLayerProxy::paths()
         {
             if (!mBox || !mEngine) {
@@ -780,6 +792,9 @@ namespace Friction
             } else if (join == QLatin1String("bevel")) {
                 stroke->setJoinStyle(SkPaint::kBevel_Join);
             }
+            // stroke changes must invalidate the outline caches
+            pathBox->setOutlinePathOutdated(UpdateReason::userChange);
+            pathBox->setFillPathOutdated(UpdateReason::userChange);
         }
 
         void JsLayerProxy::setFill(const QJSValue &settings)
@@ -807,6 +822,7 @@ namespace Friction
                     colorAnim->prp_finishTransform();
                 }
             }
+            pathBox->setFillPathOutdated(UpdateReason::userChange);
         }
 
         bool JsLayerProxy::addPathEffect(const QString &type,
@@ -820,6 +836,10 @@ namespace Friction
 
             if (type == QLatin1String("dash")) {
                 const auto effect = enve::make_shared<DashPathEffect>();
+                // insert first, then set values: the effect must be
+                // parented so value changes propagate to the scene
+                collection->addChild(effect);
+
                 qreal dash = 5.;
                 qreal gap = 5.;
                 qreal offset = 0.;
@@ -838,7 +858,6 @@ namespace Friction
                     }
                 }
                 effect->setDashValues(dash, gap, offset);
-                collection->addChild(effect);
                 // dash flow: keyframe pairs [[frame, offset], ...]
                 const auto keys = settings.property(
                             QStringLiteral("offsetKeys"));
@@ -853,7 +872,16 @@ namespace Friction
                                     pair.property(0).toInt(),
                                     pair.property(1).toNumber());
                     }
+                    // make the new keys' influence range known to
+                    // the render cache (no signal fires on its own)
+                    offsetAnim->prp_afterWholeInfluenceRangeChanged();
                 }
+                // the path caches (edit/path/outline/fill) must be
+                // invalidated explicitly, otherwise the render data
+                // keeps serving the pre-effect path
+                pathBox->setPathsOutdated(UpdateReason::userChange);
+                pathBox->setOutlinePathOutdated(UpdateReason::userChange);
+                pathBox->setFillPathOutdated(UpdateReason::userChange);
                 finishAction();
                 return true;
             }

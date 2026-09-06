@@ -181,6 +181,14 @@ namespace Friction
             // without changing its world position
             Q_INVOKABLE bool setParentLayer(const QJSValue &parent);
 
+            // get-or-create a named custom number property on this
+            // layer (AE "Slider Control" equivalent): keyable,
+            // timeline-editable, expression-bindable via
+            // "<layerName>.properties.<name>"; value used only when
+            // creating. Returns the property proxy or null.
+            Q_INVOKABLE QJSValue numberProperty(const QString &name,
+                                                const qreal value);
+
             QString name() const;
             void setName(const QString &name);
             int index() const;

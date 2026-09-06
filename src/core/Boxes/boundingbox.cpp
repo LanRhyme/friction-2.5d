@@ -1729,6 +1729,27 @@ void BoundingBox::setCustomPropertiesVisible(const bool visible)
     mCustomProperties->SWT_setVisible(visible);
 }
 
+QrealAnimator *BoundingBox::getOrCreateNumberProperty(
+        const QString &name, const qreal value)
+{
+    const auto cProps = mCustomProperties.get();
+    if (!cProps) { return nullptr; }
+    const int n = cProps->ca_getNumberOfChildren();
+    for (int i = 0; i < n; i++) {
+        const auto child = cProps->ca_getChildAt(i);
+        if (child && child->prp_getName() == name) {
+            return enve_cast<QrealAnimator*>(child);
+        }
+    }
+    if (!cProps->SWT_isVisible()) { setCustomPropertiesVisible(true); }
+    const auto prop = cProps->addPropertyOfType<QrealAnimator>(name);
+    if (!prop) { return nullptr; }
+    prop->prp_startTransform();
+    prop->setCurrentBaseValue(value);
+    prop->prp_finishTransform();
+    return prop;
+}
+
 void BoundingBox::setBlendEffectsVisible(const bool visible)
 {
     if (mBlendEffectCollection->SWT_isVisible() == visible) { return; }

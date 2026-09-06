@@ -4,26 +4,29 @@
 // 图层位置跟随「线性轮播控制器」Null 的位置（K 控制器 X 即可
 // 实现左右滑动轮播），越靠近画布中心的图层越大，两侧缩小。
 //
-// 引擎适配说明（相对 AE 原版）：
+// 参数存放（AE 滑块控制特效的 Friction 对应物）：
+//   间距/最大缩放/最小缩放/影响范围/衰减 全部存在控制器的
+//   「properties」自定义属性上——时间轴可直接调、可 K 关键帧、
+//   面板滑杆拖动实时写入（控制器存在时即实时预览）。
+//   每张卡自己的序号偏移和轴心是生成时烤入的常量。
+//
+// 引擎适配说明：
 //   - 位置/缩放通过 property("positionx"/"scalex") 等子动画器
 //     挂表达式（表达式只能挂在标量动画器上）
-//   - AE 的"平滑时间"低通滤波在原版中读 value 当上帧状态，
-//     实际产生的是恒定偏移而非时间平滑（远端卡片停在 92.5%
-//     而非设定的最小缩放），属于原版缺陷，本版未移植，
-//     改用可选的距离衰减曲线（线性/Smoothstep/Sine）
-//   - 缩放单位为分数（1.0 = 100%），非 AE 百分比
-//   - 参数在生成时写入表达式常量；改参数后重新执行即可覆盖
+//   - bindings 区只接受属性路径/$frame/$value/$scene.*，常量必须
+//     烤进 script；$frame 绑定=换帧信号生死线，必须带
+//   - AE 原版"平滑时间"低通滤波是 value 误用 bug，未移植
+//   - 缩放单位为分数（1.0 = 100%），properties 里按 AE 惯例存百分比
 
 (function () {
     var SCRIPT_NAME = "线性轮播";
     var CTRL_NAME = "线性轮播控制器";
+    var P = { SPACING: "间距", MAX: "最大缩放", MIN: "最小缩放",
+              RANGE: "影响范围", CURVE: "衰减" };
 
     var settings = {
-        spacing: 400,      // 相邻图层水平间距 px
-        maxScale: 150,     // 最大缩放 %
-        minScale: 50,      // 最小缩放 %
-        range: 600,        // 缩放影响范围 px（以画布中心为圆心）
-        curve: 1           // 0=线性 1=Smoothstep 2=Sine
+        spacing: 400, maxScale: 150, minScale: 50,
+        range: 600, curve: 1
     };
 
     var debugLog = [];
@@ -37,7 +40,20 @@
         return { scene: scene, sel: sel };
     }
 
-    // 查找或创建控制器 Null，并放到画布中心
+    function findCtrl() {
+        var scene = app.activeScene;
+        return scene ? scene.layer(CTRL_NAME) : null;
+    }
+
+    // 面板滑杆 → 控制器属性实时写入（控制器不存在时静默跳过，
+    // 生成时会用面板值创建）
+    function writeProp(name, v) {
+        var ctrl = findCtrl();
+        if (!ctrl) return;
+        var p = ctrl.numberProperty(name, v);
+        if (p) p.setValue(v);
+    }
+
     function ensureController(scene) {
         var ctrl = scene.layer(CTRL_NAME);
         if (!ctrl) {
@@ -49,11 +65,17 @@
         }
         ctrl.property("position").setValue(
             [scene.width / 2, scene.height / 2]);
+        // 参数上控制器（存在则用面板值刷新，缺失则按面板值创建）
+        ctrl.numberProperty(P.SPACING, settings.spacing).setValue(settings.spacing);
+        ctrl.numberProperty(P.MAX, settings.maxScale).setValue(settings.maxScale);
+        ctrl.numberProperty(P.MIN, settings.minScale).setValue(settings.minScale);
+        ctrl.numberProperty(P.RANGE, settings.range).setValue(settings.range);
+        ctrl.numberProperty(P.CURVE, settings.curve).setValue(settings.curve);
         return ctrl;
     }
 
-    // 统一图层像素宽为画布短边 25%：先把轴心居中于内容，
-    // 再按 bounds 宽度换算缩放分数（1.0 = 100%）
+    // 统一图层像素宽为画布短边 25%：轴心居中于内容后按
+    // bounds 宽换算缩放分数（1.0 = 100%）
     function unifySize(layer) {
         var b = layer.bounds();
         if (!b || b.width <= 0 || b.height <= 0) return null;
@@ -62,8 +84,7 @@
         var targetPx = Math.min(sceneW, sceneH) * 0.25;
         var s = targetPx / b.width;
         layer.property("scale").setValue([s, s]);
-        return { px: targetPx, pivot: [b.left + b.width / 2,
-                                       b.top + b.height / 2] };
+        return { pivot: [b.left + b.width / 2, b.top + b.height / 2] };
     }
 
     var sceneW = 0, sceneH = 0;
@@ -88,12 +109,6 @@
             var n = layers.length;
             if (n === 0) { alert("除控制器外没有可选图层"); return; }
 
-            var maxS = settings.maxScale / 100;
-            var minS = settings.minScale / 100;
-            var range = settings.range;
-            var spacing = settings.spacing;
-            var curve = settings.curve;
-
             var bound = 0;
             for (var k = 0; k < n; k++) {
                 var layer = layers[k];
@@ -104,16 +119,12 @@
                 var pivX = uni.pivot[0].toFixed(2);
                 var pivY = uni.pivot[1].toFixed(2);
 
-                // 位置：X = 控制器X + 中心偏移*间距；Y = 控制器Y
-                // （pos + pivot = 视觉中心，故表达式里减去轴心）
-                // 注意：bindings 区只接受属性路径/$frame/$value/$scene.*，
-                // 字面量常量必须烤进 script 函数体；
-                // $frame 绑定=换帧信号生死线，缺了播放/换帧不重新求值
-                var offsetX = (centerOffset * spacing).toFixed(2);
+                // 位置：X = 控制器X + 序号偏移*间距；Y = 控制器Y
                 var err = layer.property("positionx").setExpression(
                     "frame = $frame;\n" +
-                    "cx = " + CTRL_NAME + ".transform.translation.x;",
-                    "return cx + (" + offsetX + ") - " + pivX + ";");
+                    "cx = " + CTRL_NAME + ".transform.translation.x;\n" +
+                    "sp = " + CTRL_NAME + ".properties." + P.SPACING + ";",
+                    "return cx + (" + centerOffset.toFixed(4) + ") * sp - " + pivX + ";");
                 if (err) { log(layer.name + " 位置X表达式失败: " + err); continue; }
 
                 err = layer.property("positiony").setExpression(
@@ -122,21 +133,23 @@
                     "return cy - " + pivY + ";");
                 if (err) { log(layer.name + " 位置Y表达式失败: " + err); continue; }
 
-                // 缩放：距画布中心越近越大（X/Y 同步缩放）
+                // 缩放：距画布中心越近越大（X/Y 同步）
                 var scaleBindings =
                     "frame = $frame;\n" +
-                    "cx = " + CTRL_NAME + ".transform.translation.x;\n" +
                     "mx = transform.translation.x;\n" +
-                    "sc = $scene.width;";
+                    "sc = $scene.width;\n" +
+                    "rg = " + CTRL_NAME + ".properties." + P.RANGE + ";\n" +
+                    "mxs = " + CTRL_NAME + ".properties." + P.MAX + ";\n" +
+                    "mns = " + CTRL_NAME + ".properties." + P.MIN + ";\n" +
+                    "cv = " + CTRL_NAME + ".properties." + P.CURVE + ";";
                 var scaleScript =
                     "var d = Math.abs((mx + " + pivX + ") - sc / 2);\n" +
-                    "var t = d < " + range.toFixed(2) +
-                    " ? 1 - d / " + range.toFixed(2) + " : 0;\n" +
+                    "var t = d < rg ? 1 - d / rg : 0;\n" +
                     "var f;\n" +
-                    "if (" + curve + " === 0) { f = t; }\n" +
-                    "else if (" + curve + " === 1) { f = t * t * (3 - 2 * t); }\n" +
+                    "if (cv < 0.5) { f = t; }\n" +
+                    "else if (cv < 1.5) { f = t * t * (3 - 2 * t); }\n" +
                     "else { f = Math.sin(t * Math.PI / 2); }\n" +
-                    "return " + minS + " + (" + maxS + " - " + minS + ") * f;";
+                    "return mns / 100 + (mxs / 100 - mns / 100) * f;";
                 err = layer.property("scalex").setExpression(scaleBindings, scaleScript);
                 if (err) { log(layer.name + " 缩放X表达式失败: " + err); continue; }
                 err = layer.property("scaley").setExpression(scaleBindings, scaleScript);
@@ -151,11 +164,9 @@
                     (sv * 100).toFixed(0) + "%");
                 bound++;
             }
-            log("绑定完成: " + bound + "/" + n + " 个图层, 间距=" + spacing +
-                ", 缩放=" + settings.minScale + "%~" + settings.maxScale +
-                "%, 范围=" + range);
+            log("绑定完成: " + bound + "/" + n + " 个图层");
+            log("调参数：拖面板滑杆（实时）或控制器 properties 行（可K帧）");
 
-            // 选中控制器方便直接拖动
             for (var j = 0; j < layers.length; j++) layers[j].selected = false;
             ctrl.selected = true;
         } catch (err) {
@@ -170,33 +181,42 @@
         alert("使用方法：\n" +
               "1. 选中多个图层（按时间轴顺序排列）\n" +
               "2. 点击「生成轮播」\n" +
-              "3. 拖动「线性轮播控制器」Null 的 X 位置 → 图层左右滑动\n" +
-              "4. 对控制器 X 位置打关键帧即可做自动轮播动画\n\n" +
-              "参数：\n" +
-              "· 图层间距：相邻图层的水平像素间距\n" +
-              "· 最大/最小缩放：滑到中间/远离中间的比例\n" +
-              "· 影响范围：以画布中心为准的缩放衰减范围\n" +
-              "· 衰减曲线：距离→缩放的映射\n\n" +
-              "提示：图层尺寸会统一为画布短边的 25%；\n" +
-              "修改参数后重新执行即可覆盖旧表达式。");
+              "3. 拖动「线性轮播控制器」的 X 位置 → 图层左右滑动\n" +
+              "4. 对控制器 X 位置 K 关键帧即可做自动轮播动画\n\n" +
+              "参数（控制器 properties 行，可 K 帧）：\n" +
+              "· 间距：相邻图层的水平像素间距\n" +
+              "· 最大/最小缩放：滑到中间/远离中间的百分比\n" +
+              "· 影响范围：以画布中心为准的衰减像素范围\n" +
+              "· 衰减：0=线性 1=Smoothstep 2=Sine\n\n" +
+              "面板滑杆拖动即实时写入控制器属性；\n" +
+              "生成时面板值会覆盖控制器上的同名参数；\n" +
+              "图层尺寸统一为画布短边的 25%。");
     }
 
     registerPanel({
         title: SCRIPT_NAME, columns: 2,
         sliders: [
             { label: "间距", id: "spacing", min: 50, max: 2000, value: settings.spacing, decimals: 0,
-              tooltip: "相邻图层的水平像素间距", onChange: function (v) { settings.spacing = v; } },
+              tooltip: "相邻图层的水平像素间距（实时写入控制器）",
+              onChanging: function (v) { settings.spacing = v; writeProp(P.SPACING, v); },
+              onChange: function (v) { settings.spacing = v; writeProp(P.SPACING, v); } },
             { label: "最大%", id: "maxS", min: 100, max: 300, value: settings.maxScale, decimals: 0,
-              tooltip: "滑到画布中心时的放大百分比", onChange: function (v) { settings.maxScale = v; } },
+              tooltip: "滑到画布中心时的放大百分比（实时）",
+              onChanging: function (v) { settings.maxScale = v; writeProp(P.MAX, v); },
+              onChange: function (v) { settings.maxScale = v; writeProp(P.MAX, v); } },
             { label: "最小%", id: "minS", min: 10, max: 100, value: settings.minScale, decimals: 0,
-              tooltip: "远离中心时的缩小百分比", onChange: function (v) { settings.minScale = v; } },
+              tooltip: "远离中心时的缩小百分比（实时）",
+              onChanging: function (v) { settings.minScale = v; writeProp(P.MIN, v); },
+              onChange: function (v) { settings.minScale = v; writeProp(P.MIN, v); } },
             { label: "范围", id: "range", min: 100, max: 2000, value: settings.range, decimals: 0,
-              tooltip: "缩放衰减的影响像素范围", onChange: function (v) { settings.range = v; } }
+              tooltip: "缩放衰减的影响像素范围（实时）",
+              onChanging: function (v) { settings.range = v; writeProp(P.RANGE, v); },
+              onChange: function (v) { settings.range = v; writeProp(P.RANGE, v); } }
         ],
         combos: [
             { label: "衰减", id: "curve", options: ["线性", "Smoothstep", "Sine"], index: settings.curve,
-              tooltip: "距离→缩放强度的映射曲线",
-              onChange: function (i) { settings.curve = i; } }
+              tooltip: "距离→缩放强度的映射曲线（实时写入控制器）",
+              onChange: function (i) { settings.curve = i; writeProp(P.CURVE, i); } }
         ],
         extraButtons: [
             { label: "▶ 生成轮播", tooltip: "按当前参数绑定选中图层", onClick: runLinear },

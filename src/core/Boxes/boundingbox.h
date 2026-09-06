@@ -57,6 +57,7 @@ class RasterEffectCollection;
 struct ShaderEffectProgram;
 class BoxTransformAnimator;
 class BasicTransformAnimator;
+class QrealAnimator;
 class CustomProperties;
 class BlendEffectCollection;
 class TransformEffectCollection;
@@ -345,6 +346,16 @@ public:
     void ca_childIsRecordingChanged();
 
     BasicTransformAnimator *getTransformAnimator() const;
+
+    // get-or-create a named custom number property (script-side AE
+    // "Slider Control" equivalent: keyable, timeline-editable and
+    // expression-bindable via "<layer>.properties.<name>"); makes
+    // the properties group timeline-visible when creating the first
+    // one, hidden properties are skipped by binding path search
+    QrealAnimator *getOrCreateNumberProperty(const QString &name,
+                                             const qreal value);
+    CustomProperties *getCustomProperties() const
+    { return mCustomProperties.get(); }
 
     stdsptr<BoxRenderData> createRenderData(const qreal relFrame);
     stdsptr<BoxRenderData> queRender(const qreal relFrame,
