@@ -17,10 +17,10 @@
     var CTRL_PROP_NAME = "天平角度";
     var PLACEHOLDER = "（无图层）";
 
-    // 自动识别图层名关键词（按顺序匹配，AE 原版同款）
-    var BEAM_KEYWORDS = ["秤杆", "天平杆", "横梁", "beam"];
-    var LEFT_KEYWORDS = ["左平台", "左盘", "左托盘", "left"];
-    var RIGHT_KEYWORDS = ["右平台", "右盘", "右托盘", "right"];
+    // 自动识别图层名关键词（按顺序匹配，AE 原版同款 + 左/右/杆 单字）
+    var BEAM_KEYWORDS = ["秤杆", "天平杆", "横梁", "杆", "beam"];
+    var LEFT_KEYWORDS = ["左平台", "左盘", "左托盘", "左", "left"];
+    var RIGHT_KEYWORDS = ["右平台", "右盘", "右托盘", "右", "right"];
 
     var state = { beam: null, left: null, right: null, angle: 0 };
 
@@ -156,10 +156,11 @@
 
             // 2. 角度数值属性（AE 滑块效果等价）：
             //    已有键则当前帧自动 K 帧，否则直接设值
+            //    （numKeys 被 Q_PROPERTY 遮蔽，只能属性形式读取）
             var slider = ctrl.numberProperty(CTRL_PROP_NAME, 0);
             if (!slider) { throw "无法创建数值属性 " + CTRL_PROP_NAME; }
             var angle = state.angle;
-            if (slider.numKeys() > 0) {
+            if (slider.numKeys > 0) {
                 slider.setValueAtFrame(scene.currentFrame, angle);
             } else {
                 slider.setValue(angle);
@@ -199,7 +200,7 @@
         var slider = ctrl.numberProperty(CTRL_PROP_NAME, v);
         if (!slider) { return; }
         try {
-            if (slider.numKeys() > 0) {
+            if (slider.numKeys > 0) {
                 slider.setValueAtFrame(scene.currentFrame, v);
             } else {
                 slider.setValue(v);
