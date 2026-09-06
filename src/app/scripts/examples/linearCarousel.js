@@ -107,23 +107,27 @@
                 // 位置：X = 控制器X + 中心偏移*间距；Y = 控制器Y
                 // （pos + pivot = 视觉中心，故表达式里减去轴心）
                 // 注意：bindings 区只接受属性路径/$frame/$value/$scene.*，
-                // 字面量常量必须烤进 script 函数体
+                // 字面量常量必须烤进 script 函数体；
+                // $frame 绑定=换帧信号生死线，缺了播放/换帧不重新求值
                 var offsetX = (centerOffset * spacing).toFixed(2);
                 var err = layer.property("positionx").setExpression(
+                    "frame = $frame;\n" +
                     "cx = " + CTRL_NAME + ".transform.translation.x;",
                     "return cx + (" + offsetX + ") - " + pivX + ";");
                 if (err) { log(layer.name + " 位置X表达式失败: " + err); continue; }
 
                 err = layer.property("positiony").setExpression(
+                    "frame = $frame;\n" +
                     "cy = " + CTRL_NAME + ".transform.translation.y;",
                     "return cy - " + pivY + ";");
                 if (err) { log(layer.name + " 位置Y表达式失败: " + err); continue; }
 
                 // 缩放：距画布中心越近越大（X/Y 同步缩放）
                 var scaleBindings =
+                    "frame = $frame;\n" +
                     "cx = " + CTRL_NAME + ".transform.translation.x;\n" +
                     "mx = transform.translation.x;\n" +
-                    "sc = $scene.width;\n";
+                    "sc = $scene.width;";
                 var scaleScript =
                     "var d = Math.abs((mx + " + pivX + ") - sc / 2);\n" +
                     "var t = d < " + range.toFixed(2) +
@@ -138,6 +142,13 @@
                 err = layer.property("scaley").setExpression(scaleBindings, scaleScript);
                 if (err) { log(layer.name + " 缩放Y表达式失败: " + err); continue; }
 
+                // 生效值回读（含表达式结果），验证表达式真的在出数
+                var pv = layer.property("position").effectiveValue();
+                var sv = layer.property("scalex").effectiveValue();
+                log(layer.name + " 生效: 中心=[" +
+                    (pv[0] + uni.pivot[0]).toFixed(0) + ", " +
+                    (pv[1] + uni.pivot[1]).toFixed(0) + "] 缩放=" +
+                    (sv * 100).toFixed(0) + "%");
                 bound++;
             }
             log("绑定完成: " + bound + "/" + n + " 个图层, 间距=" + spacing +

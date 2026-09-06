@@ -231,6 +231,20 @@ namespace Friction
             return QJSValue(scalar->getCurrentBaseValue());
         }
 
+        QJSValue JsPropertyProxy::effectiveValue()
+        {
+            if (!mProp) { return QJSValue(QJSValue::NullValue); }
+            const auto engine = qjsEngine(this);
+            if (!engine) { return QJSValue(); }
+            if (mKind == Kind::Point) {
+                const auto point = static_cast<QPointFAnimator*>(mProp.data());
+                const auto p = point->getEffectiveValue();
+                return makeArray(engine, p.x(), p.y());
+            }
+            const auto scalar = static_cast<QrealAnimator*>(mProp.data());
+            return QJSValue(scalar->getEffectiveValue());
+        }
+
         void JsPropertyProxy::setValue(const QJSValue &v)
         {
             if (!mProp) { return; }

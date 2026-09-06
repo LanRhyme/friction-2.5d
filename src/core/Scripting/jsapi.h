@@ -80,6 +80,12 @@ namespace Friction
             Q_INVOKABLE QJSValue value();
             Q_INVOKABLE void setValue(const QJSValue &v);
 
+            // effective value at the current frame (base value with
+            // expression applied) - use to verify a setExpression()
+            // is actually producing numbers; value() only reads the
+            // pre-expression base value
+            Q_INVOKABLE QJSValue effectiveValue();
+
             // time in seconds (AE convention), converted with scene fps
             Q_INVOKABLE QJSValue valueAtTime(const qreal seconds);
             Q_INVOKABLE void setValueAtTime(const qreal seconds,

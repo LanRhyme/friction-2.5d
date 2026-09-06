@@ -92,11 +92,13 @@
                 var pivY = (b.top + b.height / 2).toFixed(2);
                 var idxDeg = (k * spacing).toFixed(4);
 
-                // 公共绑定：控制器旋转（度）/ 位置 / Z 位置
+                // 公共绑定：换帧信号 + 控制器旋转（度）/ 位置 / Z 位置
+                // （$frame 绑定=换帧信号生死线，缺了播放/换帧不重新求值）
                 var bind =
+                    "frame = $frame;\n" +
                     "rot = " + CTRL_NAME + ".transform.rotation;\n" +
                     "cp = " + CTRL_NAME + ".transform.translation;\n" +
-                    "cz = " + CTRL_NAME + ".transform.3D position Z;\n";
+                    "cz = " + CTRL_NAME + ".transform.3D position Z;";
 
                 // 角度→位置（与 AE 原版同式：sin/-cos）
                 // Y轴轮播: x=cp.x+R·sin(a)  y=cp.y  |  X轴轮播: y=cp.y+R·sin(a)  x=cp.x

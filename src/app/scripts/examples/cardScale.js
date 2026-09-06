@@ -83,10 +83,12 @@
                 var pivY = (b.top + b.height / 2).toFixed(2);
 
                 // 距离 = 鼠标 → 卡片视觉中心；距离→强度→缩放
+                // （$frame 绑定=换帧信号生死线，缺了播放/换帧不重新求值）
                 var bindings =
+                    "frame = $frame;\n" +
                     "mp = " + CTRL_NAME + ".transform.translation;\n" +
                     "mx = transform.translation.x;\n" +
-                    "my = transform.translation.y;\n";
+                    "my = transform.translation.y;";
                 var script =
                     "var dx = mp[0] - (mx + " + pivX + ");\n" +
                     "var dy = mp[1] - (my + " + pivY + ");\n" +
@@ -142,11 +144,13 @@
                 var pivX = (b.left + b.width / 2).toFixed(2);
                 var pivY = (b.top + b.height / 2).toFixed(2);
                 var err = layer.property("positionx").setExpression(
-                    "cx = " + CTRL_NAME + ".transform.translation.x;\n",
+                    "frame = $frame;\n" +
+                    "cx = " + CTRL_NAME + ".transform.translation.x;",
                     "return cx - " + pivX + ";");
                 if (err) { log(layer.name + " X跟随失败: " + err); continue; }
                 err = layer.property("positiony").setExpression(
-                    "cy = " + CTRL_NAME + ".transform.translation.y;\n",
+                    "frame = $frame;\n" +
+                    "cy = " + CTRL_NAME + ".transform.translation.y;",
                     "return cy - " + pivY + ";");
                 if (err) { log(layer.name + " Y跟随失败: " + err); continue; }
                 ok++;
