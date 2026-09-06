@@ -144,7 +144,7 @@
         var zStart = Z_START * sf;
         var zEnd = Z_END * sf;
 
-        app.beginUndoGroup("视差生成器设置");
+        app.beginUndoGroup("应用视差");
         try {
             // 控制器（相机参数 = 自定义属性，可 K 帧动画）
             var ctrl = scene.addNull(CTRL_NAME);
@@ -256,7 +256,7 @@
         if (!scene) { return; }
         var ctrl = findCtrl(scene);
         if (!ctrl) {
-            alert("未找到视差控制器，请先运行「视差设置」。");
+            alert("未找到视差控制器，请先点「应用视差」。");
             return;
         }
         var Z0 = +defZoom(scene).toFixed(2);
@@ -287,7 +287,7 @@
         if (!scene) { return; }
         var ctrl = findCtrl(scene);
         if (!ctrl) {
-            alert("未找到视差控制器，请先运行「视差设置」。");
+            alert("未找到视差控制器，请先点「应用视差」。");
             return;
         }
 
@@ -378,7 +378,7 @@
               onClick: doBake }
         ],
         extraButtons: [
-            { label: "⚙ 视差设置", tooltip: "Z 轴分布全部图层 + 建立视差相机（选好场景后点击）",
+            { label: "⚙ 应用视差", tooltip: "Z 轴分布全部图层 + 建立视差相机（选好场景后点击）",
               onClick: doSetup },
             { label: "☰ 调试日志", tooltip: "查看并复制调试日志",
               onClick: function () {
