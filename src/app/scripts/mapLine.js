@@ -393,6 +393,28 @@
                 + " | 中线宽" + state.v1 + " 边线宽" + state.v2
                 + " 间距" + state.gap + " 密度" + Math.max(2, state.density));
 
+            // 几何读回（animator 原始数据，可靠）：打印中线首尾顶点，
+            // 供与 AE 成品逐点对照（AE 视口 200×170 + 居中偏移）
+            var clPaths = cl.paths();
+            if (clPaths && clPaths.length > 0) {
+                var info = clPaths[0].pathInfo();
+                if (info && info.nodes && info.nodes.length > 0) {
+                    var first = null;
+                    var last = null;
+                    for (var ci = 0; ci < info.nodes.length; ci++) {
+                        if (info.nodes[ci]) {
+                            if (!first) { first = info.nodes[ci]; }
+                            last = info.nodes[ci];
+                        }
+                    }
+                    log("几何读回: 首点=(" + first.point[0].toFixed(1) + ","
+                        + first.point[1].toFixed(1) + ") 尾点=("
+                        + last.point[0].toFixed(1) + ","
+                        + last.point[1].toFixed(1) + ") 节点数="
+                        + info.nodes.length + " 闭合=" + info.closed);
+                }
+            }
+
             // CEP 语义：生成成功后隐藏引导路径层（保留以便再次调整）
             var guide = scene.layer("划线引导路径");
             if (guide && guide.visible) {
