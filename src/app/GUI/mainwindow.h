@@ -83,6 +83,7 @@ class ProjectPanel;
 class EffectsPresetsPanel;
 class TopViewWindow;
 class QuickEffectSearchDialog;
+class DockDropTuner;
 
 class MainWindow : public QMainWindow
 {
@@ -450,6 +451,9 @@ private:
     void applyPendingStateRestore();
 
     intMB mMemoryUsed;
+
+    // Softens the dock merge (tabify) hit test while dragging panels.
+    DockDropTuner *mDockDropTuner = nullptr;
 
 protected:
     void keyPressEvent(QKeyEvent *event);

@@ -52,6 +52,7 @@
 #include <QScrollBar>
 #include <QMenu>
 #include <QMouseEvent>
+#include <QDockWidget>
 #include <QLabel>
 #include <QLineEdit>
 #include <QTextEdit>
@@ -122,6 +123,92 @@
 using namespace Friction;
 
 MainWindow *MainWindow::sInstance = nullptr;
+
+// Qt merges (tabifies) a dragged dock into the target panel as soon as the
+// cursor enters the middle 2/3 x 2/3 of that panel (QDockAreaLayoutInfo::
+// gapIndex -> dockPosHelper), and there is no API to tune that. This filter
+// shifts the cursor position Qt sees while a dock drag is in progress:
+// a merge is only offered inside the middle 1/3 x 1/3 of the target, and in
+// the zone between the two the seen position is pushed to the nearest edge
+// so Qt previews a split in the direction of the cursor instead. The
+// dragged floating window is moved back by the same offset afterwards, so
+// the drag preview stays exactly under the cursor, and since a programmatic
+// move never re-enters the hover path (QDockWidgetPrivate::moveEvent
+// requires a native-frame drag) the adjusted highlight is what the drop
+// commits to.
+class DockDropTuner : public QObject {
+public:
+    using QObject::QObject;
+
+    bool eventFilter(QObject * const watched, QEvent * const event) override{
+        if (!mDispatching && event->type() == QEvent::MouseMove) {
+            auto dock = qobject_cast<QDockWidget*>(watched);
+            // A dock drag detaches the widget into a top-level window and
+            // grabs the mouse on it; anything else is not a dock drag.
+            if (dock && dock->isWindow()
+                    && QWidget::mouseGrabber() == dock) {
+                const auto &me = *static_cast<QMouseEvent*>(event);
+                const QPoint offset = dropAdjust(me.globalPos(), dock);
+                if (!offset.isNull()) {
+                    const QPoint gp = me.globalPos() + offset;
+                    QMouseEvent adjusted(QEvent::MouseMove,
+                                         QPointF(me.pos()) + QPointF(offset),
+                                         QPointF(gp),
+                                         me.button(), me.buttons(),
+                                         me.modifiers());
+                    mDispatching = true;
+                    QCoreApplication::sendEvent(dock, &adjusted);
+                    mDispatching = false;
+                    dock->move(dock->pos() - offset);
+                    return true;
+                }
+            }
+        }
+        return QObject::eventFilter(watched, event);
+    }
+
+private:
+    static QPoint dropAdjust(const QPoint &globalMouse, QWidget * const dragged) {
+        const auto &mw = MainWindow::sGetInstance();
+        if (!mw) { return QPoint(); }
+        const auto docks = mw->findChildren<QDockWidget*>();
+        for (const auto &dock : docks) {
+            if (dock == dragged || dock->isFloating() || !dock->isVisible()) {
+                continue;
+            }
+            const QRect g(dock->mapToGlobal(QPoint(0, 0)), dock->size());
+            if (!g.contains(globalMouse)) { continue; }
+            const qreal rx = qreal(globalMouse.x() - g.x()) / g.width();
+            const qreal ry = qreal(globalMouse.y() - g.y()) / g.height();
+            const qreal dx = qAbs(rx - 0.5);
+            const qreal dy = qAbs(ry - 0.5);
+            // Already outside Qt's merge zone (middle 2/3 x 2/3): keep the
+            // native split preview untouched.
+            if (dx >= 1.0 / 3.0 || dy >= 1.0 / 3.0) { return QPoint(); }
+            // Dead center (middle 1/3 x 1/3): allow the merge.
+            if (dx < 1.0 / 6.0 && dy < 1.0 / 6.0) { return QPoint(); }
+            // In between: report a point on the nearest edge instead. The
+            // other axis is clamped into its middle third so the layout
+            // orientation cannot reinterpret the direction.
+            QPointF local(globalMouse - g.topLeft());
+            if (dx * g.width() >= dy * g.height()) {
+                local.setX(rx < 0.5 ? g.width() / 12.0
+                                    : g.width() - g.width() / 12.0);
+                local.setY(qBound(g.height() / 3.0 + 1, local.y(),
+                                  g.height() * 2.0 / 3.0 - 1));
+            } else {
+                local.setY(ry < 0.5 ? g.height() / 12.0
+                                    : g.height() - g.height() / 12.0);
+                local.setX(qBound(g.width() / 3.0 + 1, local.x(),
+                                  g.width() * 2.0 / 3.0 - 1));
+            }
+            return g.topLeft() + local.toPoint() - globalMouse;
+        }
+        return QPoint();
+    }
+
+    bool mDispatching = false;
+};
 
 namespace {
 // In-memory debug log buffer, filled by the Qt message handler and by
@@ -412,6 +499,9 @@ MainWindow::MainWindow(Document& document,
     updateRecentMenu();
 
     installEventFilter(this);
+
+    mDockDropTuner = new DockDropTuner(this);
+    qApp->installEventFilter(mDockDropTuner);
 
     setupLayout();
     setupDebugLog();
