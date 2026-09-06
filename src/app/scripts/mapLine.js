@@ -96,78 +96,16 @@
         ];
     }
 
-    // 法线方向（前后锚点连线的垂直向量，CEP calcNormalAt）
-    function normalAt(nodes, idx, width) {
-        var n = nodes.length;
-        var prev = nodes[idx > 0 ? idx - 1 : 0].point;
-        var next = nodes[idx < n - 1 ? idx + 1 : n - 1].point;
-        var dx = next[0] - prev[0];
-        var dy = next[1] - prev[1];
-        var len = Math.sqrt(dx * dx + dy * dy);
-        if (len < 0.001) { return [0, 0]; }
-        return [-dy / len * width, dx / len * width];
-    }
-
-    // 道路矩形：上边正序 + 法线偏移，下边倒序 - 法线偏移，闭合
-    function roadRectNodes(nodes, gap) {
-        var rect = [];
-        var i;
-        var nrm;
-        for (i = 0; i < nodes.length; i++) {
-            nrm = normalAt(nodes, i, gap);
-            rect.push(node([nodes[i].point[0] + nrm[0],
-                            nodes[i].point[1] + nrm[1]]));
-        }
-        for (i = nodes.length - 1; i >= 0; i--) {
-            nrm = normalAt(nodes, i, gap);
-            rect.push(node([nodes[i].point[0] - nrm[0],
-                            nodes[i].point[1] - nrm[1]]));
-        }
-        return rect;
-    }
-
-    // 终点切线角（度）：终点入射手柄反方向，退化用末两点连线
-    function endAngle(nodes) {
-        var last = nodes[nodes.length - 1];
-        var dx = -last.inTan[0];
-        var dy = -last.inTan[1];
-        if (Math.abs(dx) < 0.001 && Math.abs(dy) < 0.001 && nodes.length > 1) {
-            dx = last.point[0] - nodes[nodes.length - 2].point[0];
-            dy = last.point[1] - nodes[nodes.length - 2].point[1];
-        }
-        return Math.atan2(dy, dx) * 180 / Math.PI;
-    }
-
-    // 起点切线角：起点出射手柄，退化用首两点连线
-    function startAngle(nodes) {
-        var first = nodes[0];
-        var dx = first.outTan[0];
-        var dy = first.outTan[1];
-        if (Math.abs(dx) < 0.001 && Math.abs(dy) < 0.001 && nodes.length > 1) {
-            dx = nodes[1].point[0] - first.point[0];
-            dy = nodes[1].point[1] - first.point[1];
-        }
-        return Math.atan2(dy, dx) * 180 / Math.PI;
-    }
-
-    // 顶点绕原点旋转 deg 后平移到 center
-    function place(p, angleDeg, center) {
-        var r = angleDeg * Math.PI / 180;
-        var c = Math.cos(r);
-        var s = Math.sin(r);
-        return [p[0] * c - p[1] * s + center[0],
-                p[0] * s + p[1] * c + center[1]];
-    }
-
-    // 端点形状节点集（箭头=三角+圆角描边，圆=8点贝塞尔，方块）
-    function shapeNodes(kind, size, center, angleDeg) {
+    // 端点形状节点集，以图层原点为中心（箭头=三角+圆角描边，圆=8点贝塞尔，方块）。
+    // 定位/旋转由 positionx/positiony/rotation 三表达式驱动
+    // （$path("中线虚线").end.x 等），拖动路径端点锚点实时跟随
+    function shapeNodes(kind, size) {
         var s = size;
         var raw = [];
-        var closed = true;
         var k = 4 * Math.tan(Math.PI / 16) / 3; // 8 点圆最优手柄系数
 
         if (kind === "arrow") {
-            // 圆角等腰三角形，顶点居中于原点（CEP 同款几何）
+            // 圆角等腰三角形，尖点朝 +x（行进方向），CEP 同款几何
             raw = [node([s + s / 3, 0]),
                    node([-s + s / 3, -s]),
                    node([-s + s / 3, s])];
@@ -182,19 +120,25 @@
             raw = [node([-s / 2, -s / 2]), node([s / 2, -s / 2]),
                    node([s / 2, s / 2]), node([-s / 2, s / 2])];
         }
+        return { nodes: raw, closed: true, roundJoin: kind === "arrow" };
+    }
 
-        var out = [];
-        for (var i = 0; i < raw.length; i++) {
-            var p = place(raw[i].point, angleDeg, center);
-            var it = place([raw[i].point[0] + raw[i].inTan[0],
-                            raw[i].point[1] + raw[i].inTan[1]], angleDeg, [0, 0]);
-            var ot = place([raw[i].point[0] + raw[i].outTan[0],
-                            raw[i].point[1] + raw[i].outTan[1]], angleDeg, [0, 0]);
-            out.push(node(p,
-                          [it[0] - p[0], it[1] - p[1]],
-                          [ot[0] - p[0], ot[1] - p[1]]));
-        }
-        return { nodes: out, closed: closed, roundJoin: kind === "arrow" };
+    // 端点形状三表达式绑定（AE 同款：位置=路径端点，旋转=切线方向）
+    function bindShapeToPath(layer, srcName, endPoint) {
+        var pt = endPoint ? "end" : "start";
+        var errs = [];
+        var bx = layer.property("positionx").setExpression(
+            "x = $path(\"" + srcName + "\")." + pt + ".x;", "return x;");
+        if (bx) { errs.push("x:" + bx); }
+        var by = layer.property("positiony").setExpression(
+            "y = $path(\"" + srcName + "\")." + pt + ".y;", "return y;");
+        if (by) { errs.push("y:" + by); }
+        var br = layer.property("rotation").setExpression(
+            "a = $path(\"" + srcName + "\")." + pt + ".angle;", "return a;");
+        if (br) { errs.push("角度:" + br); }
+        log(layer.name + " 端点表达式" + (pt === "end" ? "(终点)" : "(起点)")
+            + (errs.length === 0 ? " 绑定成功" : " 失败: " + errs.join("; ")));
+        return errs.length === 0;
     }
 
     // ---------------- 路径来源 ----------------
@@ -319,13 +263,12 @@
 
             // 添加顺序 = 视觉层级（Friction 后添加的在上方，与 AE 相反）：
             // 底线/道路边框（最底）→ 中线虚线 → 尾部 → 头部（最上）
-            // CEP 绑定语义：所有部件 reparent 到「中线虚线」层——
-            // 移动/旋转/缩放中线层时整条线联动（恒等变换下视觉不变）
+            // AE 共享路径语义：底线/道路框通过 setPathSource 引用中线层
+            // 的路径几何（拖中线层锚点实时同步）；道路框叠加法线偏移
             var baseLayer = null;
             if (state.mode === 3) {
-                // 道路标识：矩形框 + 中线虚线
-                var rectNodes = roadRectNodes(nodes, state.gap);
-                var rl = makeLayer(scene, group, "道路边框", rectNodes, true);
+                // 道路标识：引用路径+法线偏移 outlineOffset=gap 生成闭合框
+                var rl = makeLayer(scene, group, "道路边框", nodes, closed);
                 rl.setStroke({ width: state.v2, color: state.c2,
                                cap: "butt", join: "miter" });
                 created.push("道路边框");
@@ -346,21 +289,30 @@
                 baseLayer = sl;
             }
 
-            // 中线虚线（叠在底层线上）= 绑定宿主
+            // 中线虚线（叠在底层线上）= 路径宿主（锚点编辑在这一层做）
             var cl = makeLayer(scene, group, "中线虚线", nodes, closed);
             cl.setStroke({ width: state.v1, color: state.c1,
                            cap: "round", join: "round" });
             applyDash(cl, scene);
             created.push("中线虚线");
-            if (baseLayer) { baseLayer.setTransformParent(cl); }
 
-            // 端点形状（最上层，同样绑到中线层）
+            // 底线/道路框 → 路径引用中线层（节点编辑实时同步）
+            // + transform 绑定（移动/旋转/缩放中线层时整线联动）
+            if (baseLayer) {
+                var off = state.mode === 3 ? state.gap : 0;
+                var linkOk = baseLayer.setPathSource(cl, off);
+                baseLayer.setTransformParent(cl);
+                log(baseLayer.name + " 路径引用中线层: "
+                    + (linkOk ? "已绑定" : "失败!")
+                    + (state.mode === 3 ? " (法线偏移 " + state.gap + ")" : ""));
+            }
+
+            // 端点形状（最上层）：原点中心几何 + 三表达式绑定路径端点
             var tailShape = state.link ? state.headShape : state.tailShape;
             var tailSize = state.link ? state.headSize : state.tailSize;
             var tailColor = state.link ? state.headColor : state.tailColor;
             if (state.endpoint === 1 && tailShape !== "none") {
-                var tlShape = shapeNodes(tailShape, tailSize,
-                                          nodes[0].point, startAngle(nodes));
+                var tlShape = shapeNodes(tailShape, tailSize);
                 var tl = makeLayer(scene, group, "尾部形状",
                                    tlShape.nodes, tlShape.closed);
                 tl.setFill({ color: tailColor });
@@ -368,13 +320,11 @@
                     tl.setStroke({ width: tailSize * 0.3, color: tailColor,
                                    cap: "round", join: "round" });
                 }
-                tl.setTransformParent(cl);
+                bindShapeToPath(tl, "中线虚线", false);
                 created.push("尾部形状");
             }
             if (state.headShape !== "none") {
-                var headShape = shapeNodes(state.headShape, state.headSize,
-                                            nodes[nodes.length - 1].point,
-                                            endAngle(nodes));
+                var headShape = shapeNodes(state.headShape, state.headSize);
                 var hl = makeLayer(scene, group, "头部形状",
                                    headShape.nodes, headShape.closed);
                 hl.setFill({ color: state.headColor });
@@ -384,7 +334,7 @@
                                    color: state.headColor,
                                    cap: "round", join: "round" });
                 }
-                hl.setTransformParent(cl);
+                bindShapeToPath(hl, "中线虚线", true);
                 created.push("头部形状");
             }
 

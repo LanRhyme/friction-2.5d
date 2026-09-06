@@ -29,6 +29,7 @@
 #include "framebinding.h"
 #include "valuebinding.h"
 #include "scenebinding.h"
+#include "pathpointbinding.h"
 #include "appsupport.h"
 
 void skipSpaces(const QString& exp, int& position) {
@@ -123,6 +124,42 @@ bool parseSceneRangeMin(const QString& exp, int& pos) {
     return parse(exp, pos, "$scene.rangeMin");
 }
 
+// $path("layer name").start.x / start.y / start.angle /
+//                        end.x / end.y / end.angle
+bool parsePathPoint(const QString& exp, int& pos,
+                    QString& layerName, bool& end, int& component) {
+    int newPos = pos;
+    if(!parse(exp, newPos, "$path(")) return false;
+    QString raw;
+    while(newPos < exp.count()) {
+        const auto& c = exp.at(newPos);
+        if(c == '"') break;
+        raw.append(c);
+        newPos++;
+    }
+    if(newPos >= exp.count()) return false;
+    newPos++; // closing quote
+    if(newPos >= exp.count() || exp.at(newPos) != ')') return false;
+    newPos++;
+    const auto point = parse(exp, newPos, 6);
+    if(point == "start.") { end = false; }
+    else if(point == "end.") { end = true; }
+    else return false;
+    const auto comp = parse(exp, newPos, 3);
+    if(comp == "x") { component = 0; }
+    else if(comp == "y") { component = 1; }
+    else {
+        const auto compAngle = parse(exp, newPos, 3);
+        if(comp == "ang" && compAngle == "le") { component = 2; }
+        else return false;
+    }
+    if(newPos != exp.count()) return false;
+    layerName = raw.trimmed();
+    if(layerName.isEmpty()) return false;
+    pos = newPos;
+    return true;
+}
+
 void parseBinding(const QString& exp, int& pos, QString& binding) {
     while(pos < exp.count()) {
         const auto& c = exp.at(pos++);
@@ -166,12 +203,24 @@ qsptr<PropertyBindingBase> PropertyBindingParser::parseBinding(
     } else if(parseValue(exp, pos)) {
         result = ValueBinding::sCreate(context);
     } else {
-        QString binding;
-        parseBinding(exp, pos, binding);
-        result = PropertyBinding::sCreate(binding.trimmed(),
-                                          validator, context);
-        if(!result) PrettyRuntimeThrow("Binding could not be resolved:\n'" +
-                                       binding + "'");
+        QString layerName;
+        bool end = true;
+        int component = 0;
+        int pathPos = pos;
+        if(parsePathPoint(exp, pathPos, layerName, end, component)) {
+            result = PathPointBinding::sCreate(layerName, end, component,
+                                               context);
+            if(!result) PrettyRuntimeThrow(
+                        "Path layer '" + layerName + "' not found:\n'" +
+                        exp + "'");
+        } else {
+            QString binding;
+            parseBinding(exp, pos, binding);
+            result = PropertyBinding::sCreate(binding.trimmed(),
+                                              validator, context);
+            if(!result) PrettyRuntimeThrow("Binding could not be resolved:\n'" +
+                                           binding + "'");
+        }
     }
     if(!result) PrettyRuntimeThrow("Binding could not be resolved:\n'" +
                                    exp + "'");

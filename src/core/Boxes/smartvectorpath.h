@@ -72,6 +72,9 @@ public:
 
     bool differenceInEditPathBetweenFrames(const int frame1,
                                            const int frame2) const;
+    // path-source aware cache compatibility (path effects included)
+    bool localDifferenceInPathBetweenFrames(const int frame1,
+                                            const int frame2) const;
 
     void saveSVG(SvgExporter& exp, DomEleTask* const task) const;
 
@@ -81,11 +84,29 @@ public:
 
     SmartPathCollection *getPathAnimator();
 
+    // path source link (AE "shared path" equivalent): this layer's
+    // geometry is redirected to the source layer's path, so editing
+    // the source's nodes updates every linked layer live. An optional
+    // outline offset renders the normal-offset closed outline (road
+    // frame) instead of the plain path. Cycles are rejected.
+    void setPathSource(SmartVectorPath * const source);
+    SmartVectorPath *getPathSource() const { return mPathSource.data(); }
+    QrealAnimator *getPathSourceOffset() const
+    { return mPathSourceOffset.get(); }
+
     QList<qsptr<SmartVectorPath>> breakPathsApart_k();
 protected:
     void getMotionBlurProperties(QList<Property*> &list) const;
     qsptr<SmartPathCollection> mPathAnimator;
     bool mMaskMode = false;
+private:
+    SkPath outlineOffsetPath(const SkPath &src, const qreal offset) const;
+    void connectPathSource();
+    void disconnectPathSource();
+    qptr<SmartVectorPath> mPathSource;
+    qsptr<QrealAnimator> mPathSourceOffset;
+    qsptr<class BoxTargetProperty> mPathTarget;
+    QList<QMetaObject::Connection> mPathSourceConns;
 };
 
 #endif // SMARTSmartVectorPath_H

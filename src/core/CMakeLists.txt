@@ -90,6 +90,7 @@ set(
     Expressions/framebinding.cpp
     Expressions/scenebinding.cpp
     Expressions/propertybinding.cpp
+    Expressions/pathpointbinding.cpp
     Animators/SmartPath/listofnodes.cpp
     Animators/SmartPath/smartpath.cpp
     Animators/SmartPath/smartpathanimatoractions.cpp
@@ -455,6 +456,7 @@ set(
     Expressions/framebinding.h
     Expressions/scenebinding.h
     Expressions/propertybinding.h
+    Expressions/pathpointbinding.h
     Animators/SmartPath/listofnodes.h
     Animators/SmartPath/smartpath.h
     Animators/brushsettingsanimator.h

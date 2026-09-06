@@ -185,6 +185,14 @@ namespace Friction
             // pass null to detach. Used to bind decorations (outline,
             // endpoint shapes) to a master path layer.
             Q_INVOKABLE bool setTransformParent(const QJSValue &parent);
+            // AE "shared path" equivalent for path layers: this layer
+            // renders the SOURCE layer's path geometry (own stroke/
+            // fill/effects stay). outlineOffset > 0 renders the
+            // normal-offset closed outline (road frame) instead.
+            // The source's node edits propagate live. Pass null to
+            // unlink. Only works between free-path layers.
+            Q_INVOKABLE bool setPathSource(const QJSValue &source,
+                                           const qreal outlineOffset);
 
             // get-or-create a named custom number property on this
             // layer (AE "Slider Control" equivalent): keyable,

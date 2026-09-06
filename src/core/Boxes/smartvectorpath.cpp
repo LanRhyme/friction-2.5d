@@ -38,6 +38,9 @@
 #include "PathEffects/patheffectcollection.h"
 #include "Animators/qpointfanimator.h"
 #include "svgexporter.h"
+#include "Properties/boxtargetproperty.h"
+#include "Animators/qrealanimator.h"
+#include "include/core/SkPathMeasure.h"
 
 SmartVectorPath::SmartVectorPath() :
     PathBox("Path", eBoxType::vectorPath) {
@@ -49,11 +52,135 @@ SmartVectorPath::SmartVectorPath() :
         setPathsOutdated(reason);
     });
     ca_prependChild(mPathEffectsAnimators.data(), mPathAnimator);
+
+    // path source link: holds the target for serialization + the
+    // timeline picker; offset drives the road-frame outline
+    mPathTarget = enve::make_shared<BoxTargetProperty>(
+                QStringLiteral("path source"));
+    mPathTarget->setValidator<SmartVectorPath>();
+    ca_prependChild(mPathEffectsAnimators.data(), mPathTarget);
+    connect(mPathTarget.data(), &BoxTargetProperty::targetSet,
+            this, [this](BoundingBox * const box) {
+        const auto src = enve_cast<SmartVectorPath*>(box);
+        if (src == mPathSource.data()) { return; }
+        // picker/undo path: re-run the full link setup
+        disconnectPathSource();
+        mPathSource = src;
+        connectPathSource();
+        setPathsOutdated(UpdateReason::userChange);
+    });
+    mPathSourceOffset = enve::make_shared<QrealAnimator>(
+                QStringLiteral("path offset"));
+    mPathSourceOffset->setValueRange(0., 9999.);
+    mPathSourceOffset->setCurrentBaseValue(0.);
+    connect(mPathSourceOffset.get(), &Property::prp_currentFrameChanged,
+            this, [this](const UpdateReason reason) {
+        if (mPathSource) { setPathsOutdated(reason); }
+    });
+    ca_prependChild(mPathEffectsAnimators.data(), mPathSourceOffset);
+}
+
+void SmartVectorPath::disconnectPathSource() {
+    for (const auto &conn : mPathSourceConns) { disconnect(conn); }
+    mPathSourceConns.clear();
+}
+
+void SmartVectorPath::connectPathSource() {
+    const auto src = mPathSource.data();
+    if (!src) { return; }
+    const auto anim = src->getPathAnimator();
+    if (anim) {
+        mPathSourceConns << connect(anim, &Property::prp_currentFrameChanged,
+                this, [this](const UpdateReason reason) {
+            setPathsOutdated(reason);
+        });
+    }
+    mPathSourceConns << connect(src, &QObject::destroyed,
+            this, [this]() {
+        disconnectPathSource();
+        mPathSource.clear();
+        setPathsOutdated(UpdateReason::userChange);
+    });
+}
+
+void SmartVectorPath::setPathSource(SmartVectorPath * const source) {
+    // reject cycles: walk the chain up from the candidate source
+    auto check = source;
+    while (check) {
+        if (check == this) { return; }
+        check = check->getPathSource();
+    }
+    disconnectPathSource();
+    mPathSource = source;
+    // keep the serialized target in sync (targetSet handler sees the
+    // pointer already matches and skips the re-entry)
+    if (mPathTarget) { mPathTarget->setTargetAction(source); }
+    connectPathSource();
+    setPathsOutdated(UpdateReason::userChange);
+}
+
+// normal-offset closed outline along the path (road frame geometry,
+// the CEP buildRoadRect expression ported to C++)
+SkPath SmartVectorPath::outlineOffsetPath(const SkPath &src,
+                                          const qreal offset) const {
+    SkPathMeasure measure(src, false);
+    SkPath result;
+    do {
+        const SkScalar len = measure.getLength();
+        if (len < 0.001f) { continue; }
+        const int samples = qBound(4, int(len / 8) + 2, 60);
+        QVector<QPointF> top;
+        QVector<QPointF> bottom;
+        for (int i = 0; i < samples; i++) {
+            const SkScalar d = len * SkScalar(i) / SkScalar(samples - 1);
+            SkPoint pos;
+            SkVector tan;
+            if (!measure.getPosTan(d, &pos, &tan)) { continue; }
+            const qreal nx = -qreal(tan.y());
+            const qreal ny = qreal(tan.x());
+            top << QPointF(qreal(pos.x()) + nx * offset,
+                          qreal(pos.y()) + ny * offset);
+            bottom << QPointF(qreal(pos.x()) - nx * offset,
+                              qreal(pos.y()) - ny * offset);
+        }
+        if (top.count() < 2) { continue; }
+        result.moveTo(toSkScalar(top.first().x()),
+                      toSkScalar(top.first().y()));
+        for (int i = 1; i < top.count(); i++) {
+            result.lineTo(toSkScalar(top.at(i).x()),
+                          toSkScalar(top.at(i).y()));
+        }
+        for (int i = bottom.count() - 1; i >= 0; i--) {
+            result.lineTo(toSkScalar(bottom.at(i).x()),
+                          toSkScalar(bottom.at(i).y()));
+        }
+        result.close();
+    } while (measure.nextContour());
+    return result;
 }
 
 bool SmartVectorPath::differenceInEditPathBetweenFrames(
         const int frame1, const int frame2) const {
+    if (mPathSource) {
+        const auto src = mPathSource.data();
+        if (mPathSourceOffset->prp_differencesBetweenRelFrames(
+                    frame1, frame2)) { return true; }
+        return src->differenceInEditPathBetweenFrames(frame1, frame2);
+    }
     return mPathAnimator->prp_differencesBetweenRelFrames(frame1, frame2);
+}
+
+bool SmartVectorPath::localDifferenceInPathBetweenFrames(
+        const int frame1, const int frame2) const {
+    if (mPathSource) {
+        // linked layers share the parent group, so rel frames match
+        if (mPathSource->differenceInPathBetweenFrames(frame1, frame2)) {
+            return true;
+        }
+        return differenceInEditPathBetweenFrames(frame1, frame2);
+    }
+    return BoxWithPathEffects::localDifferenceInPathBetweenFrames(
+                frame1, frame2);
 }
 
 SkBlendMode SmartVectorPath::getPaintBlendMode(const qreal relFrame) const {
@@ -234,7 +361,17 @@ void SmartVectorPath::applyCurrentTransform()
 }
 
 SkPath SmartVectorPath::getRelativePath(const qreal relFrame) const {
-     return mPathAnimator->getPathAtRelFrame(relFrame);
+    if (mPathSource) {
+        // linked geometry: the source's local coordinates are used
+        // as-is (linked layers share the parent group/transform by
+        // convention of the map-line generator)
+        const auto srcPath = mPathSource->getRelativePath(relFrame);
+        const qreal offset = mPathSourceOffset ?
+                    mPathSourceOffset->getEffectiveValue(relFrame) : 0.;
+        if (offset > 0.01) { return outlineOffsetPath(srcPath, offset); }
+        return srcPath;
+    }
+    return mPathAnimator->getPathAtRelFrame(relFrame);
 }
 
 void SmartVectorPath::getMotionBlurProperties(QList<Property*> &list) const {

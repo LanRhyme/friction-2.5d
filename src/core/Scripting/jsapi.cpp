@@ -709,6 +709,33 @@ namespace Friction
             return true;
         }
 
+        bool JsLayerProxy::setPathSource(const QJSValue &source,
+                                         const qreal outlineOffset)
+        {
+            if (!mBox) { return false; }
+            const auto svp = enve_cast<SmartVectorPath*>(mBox.data());
+            if (!svp) { return false; }
+            if (source.isNull()) {
+                svp->setPathSource(nullptr);
+                finishAction();
+                return true;
+            }
+            const auto proxy = qobject_cast<JsLayerProxy*>(
+                        source.toQObject());
+            if (!proxy || !proxy->valid()) { return false; }
+            const auto srcBox = enve_cast<SmartVectorPath*>(proxy->box());
+            if (!srcBox || srcBox == svp) { return false; }
+            svp->setPathSource(srcBox);
+            const auto offsetAnim = svp->getPathSourceOffset();
+            if (offsetAnim) {
+                offsetAnim->prp_startTransform();
+                offsetAnim->setCurrentBaseValue(qMax(0., outlineOffset));
+                offsetAnim->prp_finishTransform();
+            }
+            finishAction();
+            return true;
+        }
+
         bool JsLayerProxy::setTransformParent(const QJSValue &parent)
         {
             if (!mBox) { return false; }
