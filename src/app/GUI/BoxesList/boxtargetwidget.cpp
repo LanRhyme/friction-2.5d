@@ -97,11 +97,15 @@ void BoxTargetWidget::mousePressEvent(QMouseEvent *event) {
                 act->setDisabled(true);
             }
         }
-        for(const auto& box : boxes) {
+        for(int i = 0; i < boxes.count(); i++) {
+            const auto& box = boxes.at(i);
             if(box == parentBox) continue;
             const auto& validator = mProperty->validator();
             if(validator && !validator(box)) continue;
-            const auto act = menu.addAction(box->prp_getName());
+            // same natural-number layer index shown in the timeline (top=1)
+            const auto act = menu.addAction(
+                        QStringLiteral("%1. %2").arg(i + 1)
+                                     .arg(box->prp_getName()));
             connect(act, &QAction::triggered, this, [this, box]() {
                 mProperty->setTargetAction(box);
                 Document::sInstance->actionFinished();
@@ -136,7 +140,13 @@ void BoxTargetWidget::paintEvent(QPaintEvent *) {
     if(!target) {
         p.drawText(rect(), Qt::AlignCenter, "-none-");
     } else {
-        p.drawText(rect(), Qt::AlignCenter, target->prp_getName());
+        const auto group = target->getParentGroup();
+        const int boxId = group ? group->getContainedIndex(target) : -1;
+        const QString label = boxId >= 0 ?
+                    QStringLiteral("%1. %2").arg(boxId + 1)
+                                  .arg(target->prp_getName()) :
+                    target->prp_getName();
+        p.drawText(rect(), Qt::AlignCenter, label);
     }
 
     p.end();

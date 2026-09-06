@@ -344,8 +344,10 @@ void ScriptManager::createPanel(Friction::Core::JsHost * const host)
 
     const auto dock = new QDockWidget(mMainWindow);
     // unique objectName from the script title (stable across reloads
-    // for saveState persistence)
-    dock->setObjectName(QStringLiteral("dockScriptPanel_%1")
+    // for saveState persistence); renamed from "dockScriptPanel_" so
+    // layouts saved with the old docked default stop pinning these
+    // panels back into the dock area - script panels open floating now
+    dock->setObjectName(QStringLiteral("dockScriptFloat_%1")
                         .arg(QString::fromUtf8(desc.title.toUtf8()
                                                .toBase64(
                                                    QByteArray::Base64UrlEncoding |
@@ -543,6 +545,16 @@ void ScriptManager::createPanel(Friction::Core::JsHost * const host)
 
     dock->setWidget(content);
     mMainWindow->addDockWidget(Qt::LeftDockWidgetArea, dock);
+    // script panels open as floating windows by default; they can still
+    // be docked by dragging them into the main window
+    dock->setFloating(true);
+    const auto hint = content->sizeHint();
+    dock->resize(qMax(320, hint.width()) + 16,
+                 qMax(240, hint.height()) + 40);
+    // cascade so several panels don't stack on the exact same spot
+    const int cascade = mPanels.count() * 32;
+    dock->move(mMainWindow->mapToGlobal(QPoint(0, 0))
+               + QPoint(80 + cascade, 120 + cascade));
     mPanels.append(dock);
     mPanelHosts.insert(host, dock);
 

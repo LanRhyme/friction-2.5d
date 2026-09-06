@@ -2427,6 +2427,18 @@ void BoxSingleWidget::paintEvent(QPaintEvent *) {
             } else {
                 p.setPen(ThemeSupport::getThemeBaseColor().lightnessF() > 0.5 ? QColor(30, 30, 30) : Qt::white);
             }
+            // natural-number layer index (topmost = 1, AE-style), same
+            // numbering the track-matte source picker uses
+            const auto group = bsTarget->getParentGroup();
+            const int boxId = group ? group->getContainedIndex(bsTarget) : -1;
+            if (boxId >= 0) {
+                const QRect numRect(nameX, 0, eSizesUI::widget,
+                                    eSizesUI::widget);
+                p.drawText(numRect.adjusted(0, 0, -4, 0),
+                           Qt::AlignVCenter | Qt::AlignRight,
+                           QString::number(boxId + 1));
+                nameX += eSizesUI::widget;
+            }
         } else if (enve_cast<BlendEffectBoxShadow*>(prop)) {
             p.fillRect(rect(), ThemeSupport::getThemeColorGreen(50));
             nameX += eSizesUI::widget;
