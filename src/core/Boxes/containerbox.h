@@ -201,7 +201,9 @@ public:
 
     void deselectAllBoxesFromBoxesGroup();
     void selectAllBoxesFromBoxesGroup();
-    void addContainedBoxesToSelection(const QRectF &rect);
+    // marquee select: returns whether anything was selected (recursive,
+    // children of an intersecting group win over the group itself)
+    bool addContainedBoxesToSelection(const QRectF &rect);
 
     void setIsCurrentGroup_k(const bool bT);
 

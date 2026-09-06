@@ -27,6 +27,7 @@
 #include "Timeline/durationrectangle.h"
 #include "Animators/transformanimator.h"
 #include "canvas.h"
+#include "bonelayer.h"
 #include "internallinkgroupbox.h"
 #include "PathEffects/patheffectcollection.h"
 #include "PathEffects/patheffect.h"
@@ -1461,7 +1462,9 @@ void ContainerBox::anim_setAbsFrame(const int frame) {
         cont->anim_setAbsFrame(frame);
 }
 
-void ContainerBox::addContainedBoxesToSelection(const QRectF &rect) {
+bool ContainerBox::addContainedBoxesToSelection(const QRectF &rect) {
+    // returns whether anything was selected, so a parent knows to stand
+    // back when its children took over the selection
     const auto pScene = getParentScene();
     const auto minMax = getContainedMinMax();
     const bool soloActive = childrenSoloActive();
@@ -1469,19 +1472,35 @@ void ContainerBox::addContainedBoxesToSelection(const QRectF &rect) {
     // is valid, otherwise intersects() never matches (same as the node
     // marquee does with its rect)
     const QRectF normRect = rect.normalized();
+    bool anySelected = false;
     for(int i = minMax.fMin; i <= minMax.fMax; i++) {
         const auto& box = mContainedBoxes.at(i);
-        if(box->isVisibleAndUnlocked() &&
-                box->isVisibleAndInVisibleDurationRect() &&
-                (!soloActive || box->soloAffectsDraw())) {
-            // AE marquee semantics: any overlap with the layer bounds
-            // selects it; the old full-containment test made layers
-            // larger than the marquee impossible to select
-            if(box->getAbsBoundingRect().intersects(normRect)) {
-                pScene->addBoxToSelection(box);
+        if(!box->isVisibleAndUnlocked() ||
+                !box->isVisibleAndInVisibleDurationRect() ||
+                (soloActive && !box->soloAffectsDraw())) {
+            continue;
+        }
+        // AE marquee semantics: any overlap with the layer bounds
+        // selects it; the old full-containment test made layers
+        // larger than the marquee impossible to select
+        if(!box->getAbsBoundingRect().intersects(normRect)) { continue; }
+        // PSD-style deep pick, matching the pixel auto-select click:
+        // descend into groups and select what is actually inside; the
+        // group itself is only selected when none of its children
+        // matched (empty group, or its children all sit outside the
+        // marquee). Links are leaves here (their content belongs to
+        // the source scene), bone layers keep their dedicated tool
+        const auto cont = enve_cast<ContainerBox*>(box);
+        if (cont && !cont->isLink() && !enve_cast<BoneLayer*>(cont)) {
+            if (cont->addContainedBoxesToSelection(normRect)) {
+                anySelected = true;
+                continue;
             }
         }
+        pScene->addBoxToSelection(box);
+        anySelected = true;
     }
+    return anySelected;
 }
 
 void ContainerBox::addContained(const qsptr<eBoxOrSound>& child) {
