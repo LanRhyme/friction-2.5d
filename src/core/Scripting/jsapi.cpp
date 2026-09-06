@@ -186,7 +186,7 @@ namespace Friction
                 if (Document::sInstance) { Document::sInstance->actionFinished(); }
             }
 
-            void beginUndoGroupBatch()
+            void beginUndoGroupBatchImpl()
             {
                 if (sUndoGroupDepth == 0 && Document::sInstance) {
                     // flush any records pending from earlier actions
@@ -196,7 +196,7 @@ namespace Friction
                 sUndoGroupDepth++;
             }
 
-            void endUndoGroupBatch()
+            void endUndoGroupBatchImpl()
             {
                 if (sUndoGroupDepth > 0) { sUndoGroupDepth--; }
                 if (sUndoGroupDepth == 0 && Document::sInstance) {
@@ -2484,12 +2484,12 @@ namespace Friction
             // the group name is not used yet (the undo set inherits
             // the name of its first record); kept for AE compatibility
             Q_UNUSED(name)
-            beginUndoGroupBatch();
+            beginUndoGroupBatchImpl();
         }
 
         void JsAppProxy::endUndoGroup()
         {
-            endUndoGroupBatch();
+            endUndoGroupBatchImpl();
         }
 
         //---------------------------- JsHost ----------------------------
@@ -2945,6 +2945,18 @@ namespace Friction
         Canvas *JsHost::activeScene() const
         {
             return activeSceneOrNull();
+        }
+
+        // exported undo batching for non-script callers (MCP dispatcher
+        // bulk tools); forwards into the file-local implementation above
+        void beginUndoGroupBatch()
+        {
+            beginUndoGroupBatchImpl();
+        }
+
+        void endUndoGroupBatch()
+        {
+            endUndoGroupBatchImpl();
         }
 
     }

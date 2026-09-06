@@ -642,6 +642,13 @@ namespace Friction
         // the shared name/type table); single source of truth for
         // script engines and the MCP tools surface
         CORE_EXPORT QStringList knownEffectNames();
+
+        // undo batching for bulk C++-side operations; the same
+        // machinery the JS app.beginUndoGroup()/endUndoGroup() pair
+        // uses - every undo record created between begin/end merges
+        // into a single undo step
+        CORE_EXPORT void beginUndoGroupBatch();
+        CORE_EXPORT void endUndoGroupBatch();
     }
 }
 

@@ -24,10 +24,16 @@
 #include "mcpdispatcher.h"
 #include "Scripting/jsapi.h"
 #include "Private/document.h"
+#include "Private/esettings.h"
+#include "Expressions/expressionpresets.h"
 #include "canvas.h"
 #include "actions.h"
 #include "appsupport.h"
 #include "Boxes/boundingbox.h"
+#include "Boxes/containerbox.h"
+#include "Boxes/textbox.h"
+#include "layeranimpresets.h"
+#include "textanimpresets.h"
 #include "GUI/mainwindow.h"
 #include "GUI/canvaswindow.h"
 #include "GUI/timelinedockwidget.h"
@@ -181,42 +187,186 @@ namespace Friction
             return QString();
         }
 
-        // builds a JS argument for __findLayer(): plain number for an
-        // index, JSON-quoted literal for a name
-        static QString parseLayerRef(const QJsonObject &args, const QString &prefix = QString(), bool *ok = nullptr)
+        // parses a row index or group path argument; every segment
+        // is a 1-based row number within its container (the number
+        // the timeline shows). Group-internal rows and top-level
+        // rows repeat numbers by design - only the full path is
+        // unambiguous ("2/1" = top-level row 2, its child row 1)
+        static bool parseLayerPathValue(const QJsonValue &v, QList<int> &path)
         {
-            if (ok) *ok = true;
+            if (v.isDouble()) {
+                const int n = v.toInt();
+                if (n < 1) { return false; }
+                path.append(n);
+                return true;
+            }
+            if (v.isArray()) {
+                const auto arr = v.toArray();
+                if (arr.isEmpty()) { return false; }
+                for (const auto &seg : arr) {
+                    if (!seg.isDouble() || seg.toInt() < 1) { return false; }
+                    path.append(seg.toInt());
+                }
+                return true;
+            }
+            if (v.isString()) {
+                const QString s = v.toString().trimmed();
+                if (s.isEmpty()) { return false; }
+                const auto parts = s.split(QLatin1Char('/'), Qt::SkipEmptyParts);
+                for (const auto &part : parts) {
+                    bool okNum = false;
+                    const int n = part.trimmed().toInt(&okNum);
+                    if (!okNum || n < 1) { return false; }
+                    path.append(n);
+                }
+                return !path.isEmpty();
+            }
+            return false;
+        }
+
+        static QString pathListLiteral(const QList<int> &path)
+        {
+            QStringList nums;
+            for (const int n : path) { nums << QString::number(n); }
+            return QStringLiteral("[%1]").arg(nums.join(QStringLiteral(", ")));
+        }
+
+        // Builds a JS expression resolving to the addressed layer.
+        // Priority: row index / group path (unambiguous, primary),
+        // then name (recursive lookup, ambiguous when duplicated).
+        // Accepted forms for "index", "path" or "layer":
+        //   3        top-level row 3
+        //   "3"      same
+        //   "2/1"    group path: top-level row 2, child row 1
+        //   [2,1]    path array, same as "2/1"
+        // "name"/"layerName" (and a non-numeric "layer" string) fall
+        // back to name lookup.
+        static QString layerRefExpr(const QJsonObject &args,
+                                    const QString &prefix = QString(),
+                                    bool *ok = nullptr)
+        {
+            if (ok) { *ok = true; }
             const QString idxKey = prefix.isEmpty() ? QStringLiteral("index") : prefix + QStringLiteral("Index");
+            const QString pathKey = prefix.isEmpty() ? QStringLiteral("path") : prefix + QStringLiteral("Path");
             const QString nameKey = prefix.isEmpty() ? QStringLiteral("name") : prefix + QStringLiteral("Name");
             const QString layerKey = prefix.isEmpty() ? QStringLiteral("layer") : prefix;
             const QString layerNameKey = prefix.isEmpty() ? QStringLiteral("layerName") : prefix + QStringLiteral("Layer");
 
-            if (args.contains(idxKey)) {
-                return QString::number(args.value(idxKey).toInt());
+            // primary: row index or group path
+            const QString refKeys[3] = { idxKey, pathKey, layerKey };
+            for (const auto &key : refKeys) {
+                if (!args.contains(key)) { continue; }
+                QList<int> path;
+                if (parseLayerPathValue(args.value(key), path)) {
+                    return path.count() == 1
+                            ? QStringLiteral("__findLayer(%1)").arg(path.first())
+                            : QStringLiteral("__findLayerPath(%1)").arg(pathListLiteral(path));
+                }
+                // a non-numeric string under the generic "layer" key
+                // is a name, not a path
+                const auto val = args.value(key);
+                if (key == layerKey && val.isString() && !val.toString().isEmpty()) {
+                    return QStringLiteral("__findLayer(%1)").arg(jsStr(val.toString()));
+                }
             }
-            if (args.contains(nameKey)) {
-                return jsStr(args.value(nameKey).toString());
-            }
-            if (args.contains(layerKey)) {
-                const auto val = args.value(layerKey);
-                if (val.isDouble()) {
-                    return QString::number(val.toInt());
+            // fallback: name (rows are the recommended addressing)
+            const QString nameKeys[2] = { nameKey, layerNameKey };
+            for (const auto &key : nameKeys) {
+                if (!args.contains(key)) { continue; }
+                const auto val = args.value(key);
+                if (val.isDouble() && val.toInt() >= 1) {
+                    return QStringLiteral("__findLayer(%1)").arg(val.toInt());
                 }
                 if (val.isString() && !val.toString().isEmpty()) {
-                    return jsStr(val.toString());
+                    return QStringLiteral("__findLayer(%1)").arg(jsStr(val.toString()));
                 }
             }
-            if (args.contains(layerNameKey)) {
-                const auto val = args.value(layerNameKey);
-                if (val.isDouble()) {
-                    return QString::number(val.toInt());
+            if (ok) { *ok = false; }
+            return QStringLiteral("null");
+        }
+
+        // C++ mirror of layerRefExpr for tools that operate on raw
+        // BoundingBox pointers (no JS roundtrip)
+        static BoundingBox *resolveLayerRefCxx(const QJsonObject &args,
+                                              ContainerBox * const root,
+                                              const QString &prefix = QString(),
+                                              bool *ok = nullptr)
+        {
+            if (ok) { *ok = true; }
+            if (!root) { if (ok) { *ok = false; } return nullptr; }
+            const QString idxKey = prefix.isEmpty() ? QStringLiteral("index") : prefix + QStringLiteral("Index");
+            const QString pathKey = prefix.isEmpty() ? QStringLiteral("path") : prefix + QStringLiteral("Path");
+            const QString nameKey = prefix.isEmpty() ? QStringLiteral("name") : prefix + QStringLiteral("Name");
+            const QString layerKey = prefix.isEmpty() ? QStringLiteral("layer") : prefix;
+            const QString layerNameKey = prefix.isEmpty() ? QStringLiteral("layerName") : prefix + QStringLiteral("Layer");
+
+            auto containedBoxes = [](ContainerBox * const c) {
+                QList<BoundingBox*> out;
+                if (!c) { return out; }
+                const auto &contained = c->getContained();
+                for (const auto &child : contained) {
+                    const auto box = enve_cast<BoundingBox*>(child.get());
+                    if (box) { out.append(box); }
                 }
-                if (val.isString() && !val.toString().isEmpty()) {
-                    return jsStr(val.toString());
+                return out;
+            };
+
+            QList<int> path;
+            const QString pathKeys[3] = { idxKey, pathKey, layerKey };
+            for (const auto &key : pathKeys) {
+                if (args.contains(key) && parseLayerPathValue(args.value(key), path)) { break; }
+                path.clear();
+            }
+
+            if (!path.isEmpty()) {
+                ContainerBox *cursor = root;
+                BoundingBox *result = nullptr;
+                for (int depth = 0; depth < path.count(); ++depth) {
+                    const auto siblings = containedBoxes(cursor);
+                    const int row = path.at(depth);
+                    if (row < 1 || row > siblings.count()) { if (ok) { *ok = false; } return nullptr; }
+                    result = siblings.at(row - 1);
+                    cursor = enve_cast<ContainerBox*>(result);
+                }
+                return result;
+            }
+
+            // name fallback: direct children first, then recursive
+            const QString nameKeys[2] = { nameKey, layerNameKey };
+            QString name;
+            for (const auto &key : nameKeys) {
+                if (args.contains(key) && args.value(key).isString()) {
+                    name = args.value(key).toString();
+                    if (!name.isEmpty()) { break; }
                 }
             }
-            if (ok) *ok = false;
-            return jsStr(QString());
+            if (name.isEmpty()) {
+                const auto layerVal = args.value(layerKey);
+                if (layerVal.isString() && !layerVal.toString().isEmpty()
+                        && !parseLayerPathValue(layerVal, path)) {
+                    name = layerVal.toString();
+                }
+            }
+            if (!name.isEmpty()) {
+                for (const auto box : containedBoxes(root)) {
+                    if (box->prp_getName() == name) { return box; }
+                }
+                std::function<BoundingBox*(ContainerBox*)> search =
+                        [&](ContainerBox * const c) -> BoundingBox* {
+                    for (const auto box : containedBoxes(c)) {
+                        if (box->prp_getName() == name) { return box; }
+                        const auto grp = enve_cast<ContainerBox*>(box);
+                        if (grp) {
+                            if (const auto hit = search(grp)) { return hit; }
+                        }
+                    }
+                    return nullptr;
+                };
+                return search(root);
+            }
+
+            if (ok) { *ok = false; }
+            return nullptr;
         }
 
         McpDispatcher::McpDispatcher(QObject *parent)
@@ -380,6 +530,12 @@ namespace Friction
                 return toolGetKeyframes(arguments);
             } else if (toolName == QStringLiteral("friction_set_expression")) {
                 return toolSetExpression(arguments);
+            } else if (toolName == QStringLiteral("friction_list_anim_presets")) {
+                return toolListAnimPresets(arguments);
+            } else if (toolName == QStringLiteral("friction_apply_anim_preset")) {
+                return toolApplyAnimPreset(arguments);
+            } else if (toolName == QStringLiteral("friction_list_easing_presets")) {
+                return toolListEasingPresets(arguments);
             } else if (toolName == QStringLiteral("friction_capture_viewport")) {
                 const QString fmt = arguments.value(QStringLiteral("format")).toString(QStringLiteral("png"));
                 const int quality = arguments.value(QStringLiteral("quality")).toInt(90);
@@ -430,6 +586,28 @@ namespace Friction
                 "      var all = s.layers(), names = [];\n"
                 "      for (var i = 0; i < all.length; i++) names.push(all[i].index + \": '\" + all[i].name + \"'\");\n"
                 "      throw new Error('Layer not found: ' + ref + '. Available layers in scene: [' + names.join(', ') + ']');\n"
+                "    }\n"
+                "    return l;\n"
+                "  }\n"
+                "  function __findLayerPath(path) {\n"
+                "    var s = app.activeScene;\n"
+                "    if (!s) throw new Error('No active scene');\n"
+                "    if (!path || !path.length) throw new Error('Empty layer path');\n"
+                "    var l = s.layer(path[0]);\n"
+                "    if (!l) {\n"
+                "      var tops = s.layers(), names = [];\n"
+                "      for (var i = 0; i < tops.length; i++) names.push((i + 1) + \": '\" + tops[i].name + \"'\");\n"
+                "      throw new Error('Layer path segment 1 (row ' + path[0] + ') not found. Top-level rows: [' + names.join(', ') + ']');\n"
+                "    }\n"
+                "    for (var i = 1; i < path.length; i++) {\n"
+                "      var kids = (typeof l.layers === 'function') ? l.layers() : [];\n"
+                "      var next = (typeof l.layer === 'function') ? l.layer(path[i]) : null;\n"
+                "      if (!next) {\n"
+                "        var kn = [];\n"
+                "        for (var k = 0; k < kids.length; k++) kn.push((k + 1) + \": '\" + kids[k].name + \"'\");\n"
+                "        throw new Error('Layer path segment ' + (i + 1) + ' (row ' + path[i] + ') not found inside group \"' + l.name + '\". Child rows: [' + kn.join(', ') + ']');\n"
+                "      }\n"
+                "      l = next;\n"
                 "    }\n"
                 "    return l;\n"
                 "  }\n"
@@ -717,27 +895,48 @@ namespace Friction
 
         QJsonObject McpDispatcher::toolListLayers(const QJsonObject &)
         {
+            // recursive tree: every layer reports its 1-based row
+            // within its container plus the full path ("2/1" =
+            // top-level row 2, child row 1) so group-internal rows
+            // can never be confused with top-level rows
             const QString script = QStringLiteral(
+                "var __out = [];\n"
+                "function __walk(list, parentPath, depth) {\n"
+                "  for (var i = 0; i < list.length; i++) {\n"
+                "    var l = list[i];\n"
+                "    var row = i + 1;\n"
+                "    var path = parentPath.concat([row]);\n"
+                "    var kids = [];\n"
+                "    if (depth < 6 && typeof l.layers === 'function') {\n"
+                "      try { kids = l.layers() || []; } catch (e) { kids = []; }\n"
+                "    }\n"
+                "    var o = {\n"
+                "      index: row,\n"
+                "      row: row,\n"
+                "      path: path.join('/'),\n"
+                "      pathArray: path,\n"
+                "      name: l.name,\n"
+                "      type: l.type,\n"
+                "      visible: l.visible,\n"
+                "      selected: l.selected,\n"
+                "      opacity: l.opacity,\n"
+                "      is3D: l.is3DEnabled(),\n"
+                "      inPoint: l.inPoint(),\n"
+                "      outPoint: l.outPoint(),\n"
+                "      depth: depth,\n"
+                "      isGroup: kids.length > 0,\n"
+                "      numChildren: kids.length\n"
+                "    };\n"
+                "    if (l.text !== undefined) { o.text = l.text; }\n"
+                "    __out.push(o);\n"
+                "    if (__out.length > 400) { return; }\n"
+                "    if (kids.length > 0) { __walk(kids, path, depth + 1); }\n"
+                "  }\n"
+                "}\n"
                 "var s = app.activeScene;\n"
                 "if (!s) return [];\n"
-                "var list = s.layers();\n"
-                "var out = [];\n"
-                "for (var i = 0; i < list.length; i++) {\n"
-                "  var l = list[i];\n"
-                "  out.push({\n"
-                "    index: l.index,\n"
-                "    name: l.name,\n"
-                "    type: l.type,\n"
-                "    text: l.text || undefined,\n"
-                "    visible: l.visible,\n"
-                "    selected: l.selected,\n"
-                "    opacity: l.opacity,\n"
-                "    is3D: l.is3DEnabled(),\n"
-                "    inPoint: l.inPoint(),\n"
-                "    outPoint: l.outPoint()\n"
-                "  });\n"
-                "}\n"
-                "return out;"
+                "__walk(s.layers(), [], 0);\n"
+                "return __out;"
             );
             return evalScript(script, QStringLiteral("AI List Layers"));
         }
@@ -745,7 +944,7 @@ namespace Friction
         QJsonObject McpDispatcher::toolGetLayerProperties(const QJsonObject &args)
         {
             bool ok = false;
-            const QString layerRef = parseLayerRef(args, QString(), &ok);
+            const QString layerRef = layerRefExpr(args, QString(), &ok);
             if (!ok) {
                 QJsonObject resp;
                 resp[QStringLiteral("error")] = QStringLiteral("Must specify layer (e.g. name: 'name', index: 1, or layer: 'name')");
@@ -754,7 +953,7 @@ namespace Friction
             }
 
             const QString script = QStringLiteral(
-                "var l = __findLayer(%1);\n"
+                "var l = %1;\n"
                 "return {\n"
                 "  index: l.index,\n"
                 "  name: l.name,\n"
@@ -845,11 +1044,11 @@ namespace Friction
             }
             if (args.contains(QStringLiteral("parent"))) {
                 bool pOk = false;
-                const QString pRef = parseLayerRef(args, QStringLiteral("parent"), &pOk);
+                const QString pRef = layerRefExpr(args, QStringLiteral("parent"), &pOk);
                 if (pOk) {
                     // JsLayerProxy::setParentLayer is the real API;
                     // the scene proxy has no setParent method
-                    script += QStringLiteral("var p = __findLayer(%1); if (p) l.setParentLayer(p);\n").arg(pRef);
+                    script += QStringLiteral("l.setParentLayer(%1);\n").arg(pRef);
                 }
             }
 
@@ -860,7 +1059,7 @@ namespace Friction
         QJsonObject McpDispatcher::toolDuplicateLayer(const QJsonObject &args)
         {
             bool ok = false;
-            const QString layerRef = parseLayerRef(args, QString(), &ok);
+            const QString layerRef = layerRefExpr(args, QString(), &ok);
             if (!ok) {
                 QJsonObject resp;
                 resp[QStringLiteral("error")] = QStringLiteral("Must specify layer (e.g. name: 'name', index: 1, or layer: 'name')");
@@ -869,7 +1068,7 @@ namespace Friction
             }
 
             const QString script = QStringLiteral(
-                "var lay = __findLayer(%1);\n"
+                "var lay = %1;\n"
                 "var dup = lay.duplicate(); return { name: dup.name, index: dup.index };"
             ).arg(layerRef);
 
@@ -879,7 +1078,7 @@ namespace Friction
         QJsonObject McpDispatcher::toolDeleteLayer(const QJsonObject &args)
         {
             bool ok = false;
-            const QString layerRef = parseLayerRef(args, QString(), &ok);
+            const QString layerRef = layerRefExpr(args, QString(), &ok);
             if (!ok) {
                 QJsonObject resp;
                 resp[QStringLiteral("error")] = QStringLiteral("Must specify layer (e.g. name: 'name', index: 1, or layer: 'name')");
@@ -888,7 +1087,7 @@ namespace Friction
             }
 
             const QString script = QStringLiteral(
-                "var lay = __findLayer(%1);\n"
+                "var lay = %1;\n"
                 "lay.remove(); return 'OK';"
             ).arg(layerRef);
 
@@ -898,7 +1097,7 @@ namespace Friction
         QJsonObject McpDispatcher::toolSetParentLayer(const QJsonObject &args)
         {
             bool ok = false;
-            const QString layerRef = parseLayerRef(args, QString(), &ok);
+            const QString layerRef = layerRefExpr(args, QString(), &ok);
             if (!ok) {
                 QJsonObject resp;
                 resp[QStringLiteral("error")] = QStringLiteral("Must specify child layer (e.g. name, index, layer)");
@@ -907,11 +1106,10 @@ namespace Friction
             }
 
             bool parentOk = false;
-            const QString parentRefStr = parseLayerRef(args, QStringLiteral("parent"), &parentOk);
-            const QString parentRef = parentOk ? QStringLiteral("__findLayer(%1)").arg(parentRefStr) : QStringLiteral("null");
+            const QString parentRef = layerRefExpr(args, QStringLiteral("parent"), &parentOk);
 
             const QString script = QStringLiteral(
-                "var lay = __findLayer(%1);\n"
+                "var lay = %1;\n"
                 "lay.setParentLayer(%2); return 'OK';"
             ).arg(layerRef, parentRef);
 
@@ -921,7 +1119,7 @@ namespace Friction
         QJsonObject McpDispatcher::toolSet3DMode(const QJsonObject &args)
         {
             bool ok = false;
-            const QString layerRef = parseLayerRef(args, QString(), &ok);
+            const QString layerRef = layerRefExpr(args, QString(), &ok);
             if (!ok) {
                 QJsonObject resp;
                 resp[QStringLiteral("error")] = QStringLiteral("Must specify layer (e.g. name, index, layer)");
@@ -931,7 +1129,7 @@ namespace Friction
 
             const bool enabled = args.value(QStringLiteral("enabled")).toBool(true);
             const QString script = QStringLiteral(
-                "var lay = __findLayer(%1);\n"
+                "var lay = %1;\n"
                 "lay.set3DEnabled(%2); return 'OK';"
             ).arg(layerRef, enabled ? QStringLiteral("true") : QStringLiteral("false"));
 
@@ -941,7 +1139,7 @@ namespace Friction
         QJsonObject McpDispatcher::toolSetProperty(const QJsonObject &args)
         {
             bool ok = false;
-            const QString layerRef = parseLayerRef(args, QString(), &ok);
+            const QString layerRef = layerRefExpr(args, QString(), &ok);
             if (!ok) {
                 QJsonObject resp;
                 resp[QStringLiteral("error")] = QStringLiteral("Must specify layer (e.g. name, index, layer)");
@@ -954,7 +1152,7 @@ namespace Friction
             const QString valStr = QString::fromUtf8(QJsonDocument(QJsonArray{val}).toJson(QJsonDocument::Compact).mid(1).chopped(1));
 
             const QString script = QStringLiteral(
-                "var lay = __findLayer(%1);\n"
+                "var lay = %1;\n"
                 "var p = __findProp(lay, %2);\n"
                 "p.setValue(%3); return 'OK';"
             ).arg(layerRef, jsStr(prop), valStr);
@@ -965,7 +1163,7 @@ namespace Friction
         QJsonObject McpDispatcher::toolSetKeyframe(const QJsonObject &args)
         {
             bool ok = false;
-            const QString layerRef = parseLayerRef(args, QString(), &ok);
+            const QString layerRef = layerRefExpr(args, QString(), &ok);
             if (!ok) {
                 QJsonObject resp;
                 resp[QStringLiteral("error")] = QStringLiteral("Must specify layer (e.g. name, index, layer)");
@@ -996,7 +1194,7 @@ namespace Friction
             }
 
             const QString script = QStringLiteral(
-                "var lay = __findLayer(%1);\n"
+                "var lay = %1;\n"
                 "var p = __findProp(lay, %2);\n"
                 "%3 return 'OK';"
             ).arg(layerRef, jsStr(prop), setCall);
@@ -1007,7 +1205,7 @@ namespace Friction
         QJsonObject McpDispatcher::toolRemoveKeyframe(const QJsonObject &args)
         {
             bool ok = false;
-            const QString layerRef = parseLayerRef(args, QString(), &ok);
+            const QString layerRef = layerRefExpr(args, QString(), &ok);
             if (!ok) {
                 QJsonObject resp;
                 resp[QStringLiteral("error")] = QStringLiteral("Must specify layer (e.g. name, index, layer)");
@@ -1027,7 +1225,7 @@ namespace Friction
             }
 
             const QString script = QStringLiteral(
-                "var lay = __findLayer(%1);\n"
+                "var lay = %1;\n"
                 "var p = __findProp(lay, %2);\n"
                 "p.removeKeyAtFrame(%3); return 'OK';"
             ).arg(layerRef, jsStr(prop), frameExpr);
@@ -1038,7 +1236,7 @@ namespace Friction
         QJsonObject McpDispatcher::toolClearKeyframes(const QJsonObject &args)
         {
             bool ok = false;
-            const QString layerRef = parseLayerRef(args, QString(), &ok);
+            const QString layerRef = layerRefExpr(args, QString(), &ok);
             if (!ok) {
                 QJsonObject resp;
                 resp[QStringLiteral("error")] = QStringLiteral("Must specify layer (e.g. name, index, layer)");
@@ -1048,7 +1246,7 @@ namespace Friction
 
             const QString prop = args.value(QStringLiteral("property")).toString();
             const QString script = QStringLiteral(
-                "var lay = __findLayer(%1);\n"
+                "var lay = %1;\n"
                 "var p = __findProp(lay, %2);\n"
                 "while (p.numKeys > 0) {\n"
                 "  p.removeKeyAtFrame(p.keyFrame(1));\n"
@@ -1112,7 +1310,7 @@ namespace Friction
         QJsonObject McpDispatcher::toolSetInOutPoint(const QJsonObject &args)
         {
             bool ok = false;
-            const QString layerRef = parseLayerRef(args, QString(), &ok);
+            const QString layerRef = layerRefExpr(args, QString(), &ok);
             if (!ok) {
                 QJsonObject resp;
                 resp[QStringLiteral("error")] = QStringLiteral("Must specify layer (e.g. name, index, layer)");
@@ -1138,7 +1336,7 @@ namespace Friction
             }
 
             const QString script = QStringLiteral(
-                "var lay = __findLayer(%1);\n"
+                "var lay = %1;\n"
                 "%2"
                 "return { name: lay.name, inPoint: lay.inPoint(), outPoint: lay.outPoint() };"
             ).arg(layerRef, setCalls);
@@ -1149,7 +1347,7 @@ namespace Friction
         QJsonObject McpDispatcher::toolSetTextProperties(const QJsonObject &args)
         {
             bool ok = false;
-            const QString layerRef = parseLayerRef(args, QString(), &ok);
+            const QString layerRef = layerRefExpr(args, QString(), &ok);
             if (!ok) {
                 QJsonObject resp;
                 resp[QStringLiteral("error")] = QStringLiteral("Must specify layer (e.g. name, index, layer)");
@@ -1157,7 +1355,7 @@ namespace Friction
                 return resp;
             }
 
-            QString script = QStringLiteral("var lay = __findLayer(%1);\n").arg(layerRef);
+            QString script = QStringLiteral("var lay = %1;\n").arg(layerRef);
             if (args.contains(QStringLiteral("text"))) {
                 script += QStringLiteral("lay.setText(%1);\n").arg(jsStr(args.value(QStringLiteral("text")).toString()));
             }
@@ -1188,7 +1386,7 @@ namespace Friction
         QJsonObject McpDispatcher::toolSetLayerStyle(const QJsonObject &args)
         {
             bool ok = false;
-            const QString layerRef = parseLayerRef(args, QString(), &ok);
+            const QString layerRef = layerRefExpr(args, QString(), &ok);
             if (!ok) {
                 QJsonObject resp;
                 resp[QStringLiteral("error")] = QStringLiteral("Must specify layer (e.g. name, index, layer)");
@@ -1196,7 +1394,7 @@ namespace Friction
                 return resp;
             }
 
-            QString script = QStringLiteral("var lay = __findLayer(%1);\n").arg(layerRef);
+            QString script = QStringLiteral("var lay = %1;\n").arg(layerRef);
             if (args.contains(QStringLiteral("fillColor"))) {
                 script += QStringLiteral("lay.setFillColor(%1);\n").arg(jsStr(args.value(QStringLiteral("fillColor")).toString()));
             }
@@ -1222,7 +1420,7 @@ namespace Friction
         QJsonObject McpDispatcher::toolSetLayerOrder(const QJsonObject &args)
         {
             bool ok = false;
-            const QString layerRef = parseLayerRef(args, QString(), &ok);
+            const QString layerRef = layerRefExpr(args, QString(), &ok);
             if (!ok) {
                 QJsonObject resp;
                 resp[QStringLiteral("error")] = QStringLiteral("Must specify layer (e.g. name, index, layer)");
@@ -1250,7 +1448,7 @@ namespace Friction
             }
 
             const QString script = QStringLiteral(
-                "var lay = __findLayer(%1);\n"
+                "var lay = %1;\n"
                 "%2\n"
                 "return { name: lay.name, index: lay.index, action: '%3' };"
             ).arg(layerRef, call, action);
@@ -1261,7 +1459,7 @@ namespace Friction
         QJsonObject McpDispatcher::toolSetLayerVisibility(const QJsonObject &args)
         {
             bool ok = false;
-            const QString layerRef = parseLayerRef(args, QString(), &ok);
+            const QString layerRef = layerRefExpr(args, QString(), &ok);
             if (!ok) {
                 QJsonObject resp;
                 resp[QStringLiteral("error")] = QStringLiteral("Must specify layer (e.g. name, index, layer)");
@@ -1270,14 +1468,14 @@ namespace Friction
             }
 
             const bool visible = args.value(QStringLiteral("visible")).toBool(true);
-            const QString script = QStringLiteral("var lay = __findLayer(%1);\nlay.visible = %2;\nreturn { name: lay.name, visible: lay.visible };\n").arg(layerRef).arg(visible ? QStringLiteral("true") : QStringLiteral("false"));
+            const QString script = QStringLiteral("var lay = %1;\nlay.visible = %2;\nreturn { name: lay.name, visible: lay.visible };\n").arg(layerRef).arg(visible ? QStringLiteral("true") : QStringLiteral("false"));
             return evalScript(script, QStringLiteral("Set Layer Visibility"));
         }
 
         QJsonObject McpDispatcher::toolSetLayerLock(const QJsonObject &args)
         {
             bool ok = false;
-            const QString layerRef = parseLayerRef(args, QString(), &ok);
+            const QString layerRef = layerRefExpr(args, QString(), &ok);
             if (!ok) {
                 QJsonObject resp;
                 resp[QStringLiteral("error")] = QStringLiteral("Must specify layer (e.g. name, index, layer)");
@@ -1286,14 +1484,14 @@ namespace Friction
             }
 
             const bool locked = args.value(QStringLiteral("locked")).toBool(true);
-            const QString script = QStringLiteral("var lay = __findLayer(%1);\nlay.setLocked(%2);\nreturn { name: lay.name, locked: lay.isLocked() };\n").arg(layerRef).arg(locked ? QStringLiteral("true") : QStringLiteral("false"));
+            const QString script = QStringLiteral("var lay = %1;\nlay.setLocked(%2);\nreturn { name: lay.name, locked: lay.isLocked() };\n").arg(layerRef).arg(locked ? QStringLiteral("true") : QStringLiteral("false"));
             return evalScript(script, QStringLiteral("Set Layer Lock"));
         }
 
         QJsonObject McpDispatcher::toolSetKeyframeEasing(const QJsonObject &args)
         {
             bool ok = false;
-            const QString layerRef = parseLayerRef(args, QString(), &ok);
+            const QString layerRef = layerRefExpr(args, QString(), &ok);
             if (!ok) {
                 QJsonObject resp;
                 resp[QStringLiteral("error")] = QStringLiteral("Must specify layer (e.g. name, index, layer)");
@@ -1320,7 +1518,7 @@ namespace Friction
             }
 
             const QString script = QStringLiteral(
-                "var lay = __findLayer(%1);\n"
+                "var lay = %1;\n"
                 "var p = __findProp(lay, %2);\n"
                 "var ok = p.setEasing(%3, %4, %5);\n"
                 "return { name: lay.name, property: %2, easing: %3, success: ok };"
@@ -1344,7 +1542,7 @@ namespace Friction
         QJsonObject McpDispatcher::toolAddRasterEffect(const QJsonObject &args)
         {
             bool ok = false;
-            const QString layerRef = parseLayerRef(args, QString(), &ok);
+            const QString layerRef = layerRefExpr(args, QString(), &ok);
             if (!ok) {
                 QJsonObject resp;
                 resp[QStringLiteral("error")] = QStringLiteral("Must specify layer (e.g. name, index, layer)");
@@ -1353,14 +1551,14 @@ namespace Friction
             }
 
             const QString effectType = args.value(QStringLiteral("effectType")).toString(QStringLiteral("glow"));
-            const QString script = QStringLiteral("var lay = __findLayer(%1);\nvar ok = lay.addEffect(%2);\nreturn { name: lay.name, effect: %2, success: ok };\n").arg(layerRef, jsStr(effectType));
+            const QString script = QStringLiteral("var lay = %1;\nvar ok = lay.addEffect(%2);\nreturn { name: lay.name, effect: %2, success: ok };\n").arg(layerRef, jsStr(effectType));
             return evalScript(script, QStringLiteral("Add Raster Effect"));
         }
 
         QJsonObject McpDispatcher::toolRemoveRasterEffect(const QJsonObject &args)
         {
             bool ok = false;
-            const QString layerRef = parseLayerRef(args, QString(), &ok);
+            const QString layerRef = layerRefExpr(args, QString(), &ok);
             if (!ok) {
                 QJsonObject resp;
                 resp[QStringLiteral("error")] = QStringLiteral("Must specify layer (e.g. name, index, layer)");
@@ -1369,7 +1567,7 @@ namespace Friction
             }
 
             const int effectIndex = args.value(QStringLiteral("effectIndex")).toInt(0);
-            const QString script = QStringLiteral("var lay = __findLayer(%1);\nvar ok = lay.removeEffect(%2);\nreturn { name: lay.name, removedIndex: %2, success: ok };\n").arg(layerRef).arg(effectIndex);
+            const QString script = QStringLiteral("var lay = %1;\nvar ok = lay.removeEffect(%2);\nreturn { name: lay.name, removedIndex: %2, success: ok };\n").arg(layerRef).arg(effectIndex);
             return evalScript(script, QStringLiteral("Remove Raster Effect"));
         }
 
@@ -1538,7 +1736,7 @@ namespace Friction
         QJsonObject McpDispatcher::toolUpdateLayer(const QJsonObject &args)
         {
             bool ok = false;
-            const QString layerRef = parseLayerRef(args, QString(), &ok);
+            const QString layerRef = layerRefExpr(args, QString(), &ok);
             if (!ok) {
                 QJsonObject err;
                 err[QStringLiteral("error")] = QStringLiteral("Must specify layer (e.g. name, index, layer)");
@@ -1595,12 +1793,18 @@ namespace Friction
             }
             if (args.contains(QStringLiteral("parent"))) {
                 bool pOk = false;
-                const QString pRef = parseLayerRef(args, QStringLiteral("parent"), &pOk);
-                const QString refName = args.value(QStringLiteral("parentName")).toString().trimmed().toLower();
-                const bool wantsUnparent = !pOk || refName == QStringLiteral("null") ||
-                        refName == QStringLiteral("none") || refName.isEmpty();
-                if (!wantsUnparent) {
-                    ops << QStringLiteral("lay.setParentLayer(__findLayer(%1));").arg(pRef);
+                const QString pRef = layerRefExpr(args, QStringLiteral("parent"), &pOk);
+                const auto parentVal = args.value(QStringLiteral("parent"));
+                QString nullishText;
+                if (parentVal.isString()) { nullishText = parentVal.toString().trimmed(); }
+                const QString nameVal = args.value(QStringLiteral("parentName")).toString().trimmed().toLower();
+                const bool wantsUnparent =
+                        (nullishText.isEmpty() ||
+                         nullishText.compare(QStringLiteral("null"), Qt::CaseInsensitive) == 0 ||
+                         nullishText.compare(QStringLiteral("none"), Qt::CaseInsensitive) == 0) &&
+                        nameVal.isEmpty();
+                if (!wantsUnparent && pOk) {
+                    ops << QStringLiteral("lay.setParentLayer(%1);").arg(pRef);
                 } else {
                     ops << QStringLiteral("lay.setParentLayer(null);");
                 }
@@ -1692,7 +1896,7 @@ namespace Friction
             }
 
             const QString script = QStringLiteral(
-                "var lay = __findLayer(%1);\n"
+                "var lay = %1;\n"
                 "%2\n"
                 "return { success: true, name: lay.name, index: lay.index, visible: lay.visible, opacity: lay.opacity };"
             ).arg(layerRef, ops.join(QStringLiteral("\n")));
@@ -1703,7 +1907,7 @@ namespace Friction
         QJsonObject McpDispatcher::toolAnimateLayer(const QJsonObject &args)
         {
             bool ok = false;
-            const QString layerRef = parseLayerRef(args, QString(), &ok);
+            const QString layerRef = layerRefExpr(args, QString(), &ok);
             if (!ok) {
                 QJsonObject err;
                 err[QStringLiteral("error")] = QStringLiteral("Must specify layer (e.g. name, index, layer)");
@@ -1731,7 +1935,7 @@ namespace Friction
             const bool isOut = args.value(QStringLiteral("isOut")).toBool(false);
 
             const QString script = QStringLiteral(
-                "var lay = __findLayer(%1);\n"
+                "var lay = %1;\n"
                 "var fps = (app.activeScene && app.activeScene.fps) ? app.activeScene.fps : 60;\n"
                 "var startF = (%2 >= 0) ? %2 : ((%3 >= 0) ? Math.round(%3 * fps) : 0);\n"
                 "var dur = (%4 > 0) ? %4 : ((%5 > 0) ? Math.round(%5 * fps) : 25);\n"
@@ -1973,10 +2177,250 @@ namespace Friction
             return resp;
         }
 
+        QJsonObject McpDispatcher::toolListAnimPresets(const QJsonObject &args)
+        {
+            const QString kindFilter = args.value(QStringLiteral("kind")).toString().toLower();
+            QJsonObject resp;
+            QJsonArray layerArr;
+            QJsonArray textArr;
+            if (kindFilter.isEmpty() || kindFilter == QStringLiteral("layer")) {
+                for (const auto &p : LayerAnimPresets::all()) {
+                    QJsonObject o;
+                    o[QStringLiteral("id")] = p.id;
+                    o[QStringLiteral("name")] = p.name;
+                    o[QStringLiteral("desc")] = p.desc;
+                    o[QStringLiteral("category")] = (p.category == 2) ? QStringLiteral("loop") : QStringLiteral("inout");
+                    o[QStringLiteral("duration")] = p.duration;
+                    o[QStringLiteral("tag")] = p.tag;
+                    o[QStringLiteral("supportsOut")] = (p.outGen != nullptr);
+                    layerArr.append(o);
+                }
+            }
+            if (kindFilter.isEmpty() || kindFilter == QStringLiteral("text")) {
+                for (const auto &p : TextAnimPresets::all()) {
+                    QJsonObject o;
+                    o[QStringLiteral("id")] = p.id;
+                    o[QStringLiteral("name")] = p.name;
+                    o[QStringLiteral("desc")] = p.desc;
+                    o[QStringLiteral("category")] = (p.category == 2) ? QStringLiteral("loop") : QStringLiteral("inout");
+                    o[QStringLiteral("fragment")] = (p.fragment == 0) ? QStringLiteral("letters") :
+                                                    (p.fragment == 1) ? QStringLiteral("words") : QStringLiteral("lines");
+                    o[QStringLiteral("duration")] = p.duration;
+                    o[QStringLiteral("tag")] = p.tag;
+                    o[QStringLiteral("supportsOut")] = p.supportsOut;
+                    textArr.append(o);
+                }
+            }
+            resp[QStringLiteral("success")] = true;
+            resp[QStringLiteral("layerPresets")] = layerArr;
+            resp[QStringLiteral("textPresets")] = textArr;
+            return resp;
+        }
+
+        QJsonObject McpDispatcher::toolApplyAnimPreset(const QJsonObject &args)
+        {
+            QJsonObject resp;
+            auto scene = activeScene();
+            if (!scene) {
+                resp[QStringLiteral("error")] = QStringLiteral("No active scene");
+                resp[QStringLiteral("success")] = false;
+                return resp;
+            }
+
+            const QString kind = args.value(QStringLiteral("kind")).toString(QStringLiteral("layer")).toLower();
+            const QString presetId = args.value(QStringLiteral("preset")).toString(
+                        args.value(QStringLiteral("presetId")).toString()).trimmed();
+            if (presetId.isEmpty()) {
+                resp[QStringLiteral("error")] = QStringLiteral("preset is required (list ids via friction_list_anim_presets)");
+                resp[QStringLiteral("success")] = false;
+                return resp;
+            }
+
+            const QString direction = args.value(QStringLiteral("direction")).toString(QStringLiteral("in")).toLower();
+            if (direction != QStringLiteral("in") && direction != QStringLiteral("out") &&
+                    direction != QStringLiteral("both")) {
+                resp[QStringLiteral("error")] = QStringLiteral("direction must be in, out or both");
+                resp[QStringLiteral("success")] = false;
+                return resp;
+            }
+
+            const qreal fps = scene->getFps() > 0 ? scene->getFps() : 60.0;
+            const qreal durationScale = args.value(QStringLiteral("durationScale")).toDouble(1.0);
+
+            int baseFrame = 0;
+            if (args.contains(QStringLiteral("startFrame"))) {
+                baseFrame = args.value(QStringLiteral("startFrame")).toInt();
+            } else if (args.contains(QStringLiteral("startTime"))) {
+                baseFrame = qRound(args.value(QStringLiteral("startTime")).toDouble() * fps);
+            }
+            int outBase = -1;
+            if (args.contains(QStringLiteral("outFrame"))) {
+                outBase = args.value(QStringLiteral("outFrame")).toInt();
+            } else if (args.contains(QStringLiteral("outTime"))) {
+                outBase = qRound(args.value(QStringLiteral("outTime")).toDouble() * fps);
+            }
+
+            // rhythm: stagger each subsequent layer row so MG scenes
+            // do not animate all at once; 8 frames is the sane default
+            const QString order = args.value(QStringLiteral("order")).toString(QStringLiteral("top")).toLower();
+            int stagger = -1;
+            if (args.contains(QStringLiteral("staggerFrames"))) {
+                stagger = args.value(QStringLiteral("staggerFrames")).toInt();
+            } else if (args.contains(QStringLiteral("staggerSeconds"))) {
+                stagger = qRound(args.value(QStringLiteral("staggerSeconds")).toDouble() * fps);
+            } else {
+                stagger = 8;
+            }
+            if (stagger < 0) { stagger = 0; }
+
+            // targets: one addressed layer, or every top-level row
+            QVector<BoundingBox*> targets;
+            const bool scopeAll = args.value(QStringLiteral("scope")).toString().toLower() == QStringLiteral("all");
+            if (scopeAll) {
+                const auto &contained = scene->getContained();
+                for (const auto &child : contained) {
+                    const auto box = enve_cast<BoundingBox*>(child.get());
+                    if (box) { targets.append(box); }
+                }
+            } else {
+                bool refOk = false;
+                const auto box = resolveLayerRefCxx(args, scene, QString(), &refOk);
+                if (!refOk || !box) {
+                    resp[QStringLiteral("error")] = QStringLiteral(
+                                "Must address a layer (index / path \"2/1\" / name) or pass scope:\"all\"");
+                    resp[QStringLiteral("success")] = false;
+                    return resp;
+                }
+                targets.append(box);
+            }
+            if (targets.isEmpty()) {
+                resp[QStringLiteral("error")] = QStringLiteral("No layers to animate");
+                resp[QStringLiteral("success")] = false;
+                return resp;
+            }
+
+            if (kind == QStringLiteral("text")) {
+                const auto *preset = TextAnimPresets::byId(presetId);
+                if (!preset) {
+                    resp[QStringLiteral("error")] = QStringLiteral("Unknown text preset: %1 (list ids via friction_list_anim_presets)").arg(presetId);
+                    resp[QStringLiteral("success")] = false;
+                    return resp;
+                }
+                if (direction == QStringLiteral("out") && !preset->supportsOut) {
+                    resp[QStringLiteral("error")] = QStringLiteral("Preset %1 does not support the out direction").arg(presetId);
+                    resp[QStringLiteral("success")] = false;
+                    return resp;
+                }
+                Friction::Core::beginUndoGroupBatch();
+                QJsonArray applied;
+                int skipped = 0;
+                for (int i = 0; i < targets.count(); ++i) {
+                    auto *box = targets.at(i);
+                    const int slot = (order == QStringLiteral("bottom")) ?
+                                (targets.count() - 1 - i) : i;
+                    const int start = baseFrame + slot * stagger;
+                    auto *tb = enve_cast<TextBox*>(box);
+                    if (!tb) { skipped++; continue; }
+                    const bool ok = TextAnimPresets::apply(tb, *preset, start, fps,
+                                                           durationScale,
+                                                           direction == QStringLiteral("out"));
+                    if (ok) {
+                        applied.append(QJsonObject{
+                            {QStringLiteral("row"), i + 1},
+                            {QStringLiteral("name"), box->prp_getName()},
+                            {QStringLiteral("startFrame"), start}});
+                    } else { skipped++; }
+                }
+                Friction::Core::endUndoGroupBatch();
+                resp[QStringLiteral("success")] = true;
+                resp[QStringLiteral("applied")] = applied;
+                resp[QStringLiteral("skipped")] = skipped;
+                return resp;
+            }
+
+            // layer presets (any layer type)
+            const auto *preset = LayerAnimPresets::byId(presetId);
+            if (!preset) {
+                resp[QStringLiteral("error")] = QStringLiteral("Unknown layer preset: %1 (list ids via friction_list_anim_presets)").arg(presetId);
+                resp[QStringLiteral("success")] = false;
+                return resp;
+            }
+            if (direction == QStringLiteral("out") && !preset->outGen) {
+                resp[QStringLiteral("error")] = QStringLiteral("Preset %1 has no exit variant").arg(presetId);
+                resp[QStringLiteral("success")] = false;
+                return resp;
+            }
+            if (direction == QStringLiteral("both") && outBase < 0) {
+                resp[QStringLiteral("error")] = QStringLiteral("direction \"both\" requires outFrame or outTime");
+                resp[QStringLiteral("success")] = false;
+                return resp;
+            }
+
+            Friction::Core::beginUndoGroupBatch();
+            QJsonArray applied;
+            for (int i = 0; i < targets.count(); ++i) {
+                auto *box = targets.at(i);
+                const int slot = (order == QStringLiteral("bottom")) ?
+                            (targets.count() - 1 - i) : i;
+                const int start = baseFrame + slot * stagger;
+                int inS = -1;
+                int outS = -1;
+                if (direction == QStringLiteral("in") || direction == QStringLiteral("both")) {
+                    inS = start;
+                }
+                if (direction == QStringLiteral("out")) {
+                    outS = start;
+                } else if (direction == QStringLiteral("both")) {
+                    outS = outBase + slot * stagger;
+                }
+                LayerAnimPresets::apply(box, *preset, inS, outS, fps, durationScale,
+                                        scene->getCanvasWidth(), scene->getCanvasHeight(), true);
+                applied.append(QJsonObject{
+                    {QStringLiteral("row"), i + 1},
+                    {QStringLiteral("name"), box->prp_getName()},
+                    {QStringLiteral("startFrame"), start}});
+            }
+            Friction::Core::endUndoGroupBatch();
+            resp[QStringLiteral("success")] = true;
+            resp[QStringLiteral("applied")] = applied;
+            return resp;
+        }
+
+        QJsonObject McpDispatcher::toolListEasingPresets(const QJsonObject &)
+        {
+            QJsonObject resp;
+            if (!eSettings::sInstance) {
+                resp[QStringLiteral("error")] = QStringLiteral("Settings unavailable");
+                resp[QStringLiteral("success")] = false;
+                return resp;
+            }
+            // same registry and filter the easing presets panel uses
+            QJsonArray arr;
+            const auto presets = eSettings::sInstance->fExpressions.getCore(QStringLiteral("Easing"));
+            for (const auto &p : presets) {
+                const bool isEasing = p.id.contains(QLatin1String("InOut")) ||
+                        p.id.contains(QLatin1String("easeIn")) ||
+                        p.id.contains(QLatin1String("easeOut"));
+                if (!isEasing || !p.enabled) { continue; }
+                QJsonObject o;
+                o[QStringLiteral("id")] = p.id;
+                o[QStringLiteral("title")] = p.title;
+                if (!p.description.isEmpty()) {
+                    o[QStringLiteral("desc")] = p.description;
+                }
+                arr.append(o);
+            }
+            resp[QStringLiteral("success")] = true;
+            resp[QStringLiteral("easings")] = arr;
+            resp[QStringLiteral("usage")] = QStringLiteral(
+                        "pass the id to friction_set_keyframe_easing (easing param) - the same engine the easing presets panel applies");
+            return resp;
+        }
+
         QJsonObject McpDispatcher::toolGetKeyframes(const QJsonObject &args)
         {
             bool ok = false;
-            const QString layerRef = parseLayerRef(args, QString(), &ok);
+            const QString layerRef = layerRefExpr(args, QString(), &ok);
             if (!ok) {
                 QJsonObject err;
                 err[QStringLiteral("error")] = QStringLiteral("Must specify layer (e.g. name, index, layer)");
@@ -1993,7 +2437,7 @@ namespace Friction
             }
 
             const QString script = QStringLiteral(
-                "var lay = __findLayer(%1);\n"
+                "var lay = %1;\n"
                 "var p = __findProp(lay, %2);\n"
                 "var n = p.numKeys;\n"
                 "var keys = [];\n"
@@ -2010,7 +2454,7 @@ namespace Friction
         QJsonObject McpDispatcher::toolSetExpression(const QJsonObject &args)
         {
             bool ok = false;
-            const QString layerRef = parseLayerRef(args, QString(), &ok);
+            const QString layerRef = layerRefExpr(args, QString(), &ok);
             if (!ok) {
                 QJsonObject err;
                 err[QStringLiteral("error")] = QStringLiteral("Must specify layer (e.g. name, index, layer)");
@@ -2029,7 +2473,7 @@ namespace Friction
             }
 
             const QString script = QStringLiteral(
-                "var lay = __findLayer(%1);\n"
+                "var lay = %1;\n"
                 "var p = __findProp(lay, %2);\n"
                 "var err = p.setExpression(%3, %4);\n"
                 "if (err && err.length) { throw new Error('setExpression failed: ' + err); }\n"
@@ -2115,14 +2559,15 @@ namespace Friction
 
             // 3. list_layers
             tools.append(makeTool(QStringLiteral("friction_list_layers"),
-                                  QStringLiteral("List all layers in the active scene with their index, name, type, visibility, and 3D mode"),
+                                  QStringLiteral("Recursive layer tree of the active scene. Each layer reports its 1-based row within its container and a group path like \"2/1\" (top-level row 2, child row 1). Group-internal rows and top-level rows reuse the same numbers by design - ALWAYS address layers by row index or full path (primary), name only as a fallback. Also reports type, visibility, opacity, 3D mode, in/out points and depth."),
                                   QJsonObject()));
 
             // 4. get_layer_properties
             {
                 QJsonObject props;
-                props[QStringLiteral("index")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("integer")}, {QStringLiteral("description"), QStringLiteral("Layer index")}};
-                props[QStringLiteral("name")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("string")}, {QStringLiteral("description"), QStringLiteral("Layer name")}};
+                props[QStringLiteral("index")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("integer")}, {QStringLiteral("description"), QStringLiteral("Top-level row number, 1-based from top")}};
+                props[QStringLiteral("path")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("string")}, {QStringLiteral("description"), QStringLiteral("Group path, e.g. \"2/1\" = top-level row 2, child row 1 (each segment 1-based within its container)")}};
+                props[QStringLiteral("name")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("string")}, {QStringLiteral("description"), QStringLiteral("Layer name (fallback; ambiguous when duplicated)")}};
                 tools.append(makeTool(QStringLiteral("friction_get_layer_properties"),
                                       QStringLiteral("Get transform properties, bounds and keyframe counts for a layer"),
                                       props));
@@ -2221,13 +2666,13 @@ namespace Friction
                 props[QStringLiteral("index")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("integer")}};
                 props[QStringLiteral("name")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("string")}};
                 props[QStringLiteral("property")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("string")}, {QStringLiteral("description"), QStringLiteral("Property name to ease (position, scale, rotation, opacity, etc.)")}};
-                props[QStringLiteral("easing")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("string")}, {QStringLiteral("description"), QStringLiteral("Easing preset ID (easeOutCubic, easeInOutQuad, easeOutBack, easeOutBounce, easeOutElastic, etc.)")}};
+                props[QStringLiteral("easing")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("string")}, {QStringLiteral("description"), QStringLiteral("Easing preset id (see friction_list_easing_presets; e.g. easeOutCubic, easeInOutQuad, easeOutBack, easeOutBounce, easeOutElastic)")}};
                 props[QStringLiteral("startFrame")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("integer")}, {QStringLiteral("description"), QStringLiteral("Range start frame number (not a key index; omit or -1 to apply to all keys)")}};
                 props[QStringLiteral("endFrame")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("integer")}, {QStringLiteral("description"), QStringLiteral("Range end frame number (not a key index; omit or -1 to apply to all keys)")}};
                 props[QStringLiteral("startTime")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("number")}, {QStringLiteral("description"), QStringLiteral("Start time in seconds")}};
                 props[QStringLiteral("endTime")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("number")}, {QStringLiteral("description"), QStringLiteral("End time in seconds")}};
                 tools.append(makeTool(QStringLiteral("friction_set_keyframe_easing"),
-                                      QStringLiteral("Apply a smooth mathematical easing curve (Robert Penner equations) between keyframes on a property"),
+                                      QStringLiteral("Apply an easing curve between keyframes on a property - the programmatic equivalent of the easing presets panel (same preset registry; enumerate ids with friction_list_easing_presets)"),
                                       props, QJsonArray{QStringLiteral("property"), QStringLiteral("easing")}));
             }
 
@@ -2508,6 +2953,38 @@ namespace Friction
                                       QStringLiteral("Attach a JS expression to a property (AE expression equivalent); bindings bind $frame/$value/other properties, script computes the number"),
                                       props, QJsonArray{QStringLiteral("property"), QStringLiteral("script")}));
             }
+
+            // 26.4 list_anim_presets
+            tools.append(makeTool(QStringLiteral("friction_list_anim_presets"),
+                                  QStringLiteral("Enumerate the animation preset library of the text-animation presets panel: layer presets (any layer type, from the panel's layer-motion category) and text presets (per-letter/word/line, text layers only). Returns ids with names, categories (inout/loop), durations and whether the out direction is supported. Use the ids with friction_apply_anim_preset."),
+                                  QJsonObject()));
+
+            // 26.5 apply_anim_preset
+            {
+                QJsonObject props;
+                props[QStringLiteral("kind")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("string")}, {QStringLiteral("enum"), QJsonArray{QStringLiteral("layer"), QStringLiteral("text")}}, {QStringLiteral("description"), QStringLiteral("layer = panel's layer-motion presets, works on every layer (default); text = per-fragment text presets, text layers only")}};
+                props[QStringLiteral("preset")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("string")}, {QStringLiteral("description"), QStringLiteral("Preset id from friction_list_anim_presets")}};
+                props[QStringLiteral("direction")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("string")}, {QStringLiteral("enum"), QJsonArray{QStringLiteral("in"), QStringLiteral("out"), QStringLiteral("both")}}, {QStringLiteral("description"), QStringLiteral("in = entrance (default), out = exit, both = entrance + exit (requires outFrame/outTime)")}};
+                props[QStringLiteral("scope")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("string")}, {QStringLiteral("enum"), QJsonArray{QStringLiteral("layer"), QStringLiteral("all")}}, {QStringLiteral("description"), QStringLiteral("all = animate every top-level layer in row order (the default MG flow); otherwise address one layer via index/path/name")}};
+                props[QStringLiteral("index")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("integer")}, {QStringLiteral("description"), QStringLiteral("Top-level row number, 1-based from top")}};
+                props[QStringLiteral("path")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("string")}, {QStringLiteral("description"), QStringLiteral("Group path, e.g. \"2/1\" = top-level row 2, child row 1")}};
+                props[QStringLiteral("name")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("string")}, {QStringLiteral("description"), QStringLiteral("Layer name (fallback)")}};
+                props[QStringLiteral("startFrame")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("integer")}, {QStringLiteral("description"), QStringLiteral("First layer starts here (default 0)")}};
+                props[QStringLiteral("startTime")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("number")}, {QStringLiteral("description"), QStringLiteral("First layer starts here, seconds (converted with scene fps)")}};
+                props[QStringLiteral("outFrame")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("integer")}, {QStringLiteral("description"), QStringLiteral("Exit window start for direction=both")}};
+                props[QStringLiteral("durationScale")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("number")}, {QStringLiteral("description"), QStringLiteral("Multiplies each preset's built-in duration (default 1)")}};
+                props[QStringLiteral("staggerFrames")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("integer")}, {QStringLiteral("description"), QStringLiteral("Frames between consecutive layers (default 8) - the rhythm knob: stagger by row so a motion-graphics scene entrances cascade instead of popping at once. 0 = simultaneous")}};
+                props[QStringLiteral("staggerSeconds")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("number")}, {QStringLiteral("description"), QStringLiteral("Stagger in seconds (converted with scene fps)")}};
+                props[QStringLiteral("order")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("string")}, {QStringLiteral("enum"), QJsonArray{QStringLiteral("top"), QStringLiteral("bottom")}}, {QStringLiteral("description"), QStringLiteral("Which row animates first when staggering (default top)")}};
+                tools.append(makeTool(QStringLiteral("friction_apply_anim_preset"),
+                                      QStringLiteral("Apply an animation-preset-panel preset with built-in rhythm: give one layer (index/path/name) for a single animation, or scope:\"all\" to animate every top-level layer staggered by row (default 8 frames apart) - the default flow for MG scenes without detailed requirements. One undo step for the whole batch."),
+                                      props, QJsonArray{QStringLiteral("preset")}));
+            }
+
+            // 26.6 list_easing_presets
+            tools.append(makeTool(QStringLiteral("friction_list_easing_presets"),
+                                  QStringLiteral("Enumerate the easing preset ids of the easing presets panel (same registry). Pass an id to friction_set_keyframe_easing after creating keyframes - that tool is the programmatic equivalent of the panel."),
+                                  QJsonObject()));
 
             // 26.3 get_api_schema (introspection)
             tools.append(makeTool(QStringLiteral("friction_get_api_schema"),

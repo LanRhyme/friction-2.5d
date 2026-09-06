@@ -122,6 +122,9 @@ namespace Friction
             QJsonObject toolGetStoryboard(const QJsonObject &args);
             QJsonObject toolGetKeyframes(const QJsonObject &args);
             QJsonObject toolSetExpression(const QJsonObject &args);
+            QJsonObject toolListAnimPresets(const QJsonObject &args);
+            QJsonObject toolApplyAnimPreset(const QJsonObject &args);
+            QJsonObject toolListEasingPresets(const QJsonObject &args);
             QJsonObject toolUndo(const QJsonObject &args);
             QJsonObject toolRedo(const QJsonObject &args);
 
