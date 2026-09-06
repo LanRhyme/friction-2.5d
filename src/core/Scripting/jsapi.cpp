@@ -561,16 +561,6 @@ namespace Friction
             return makeProperty(QStringLiteral("rotation"));
         }
 
-        QJSValue JsLayerProxy::rotationX()
-        {
-            return makeProperty(QStringLiteral("rotationx"));
-        }
-
-        QJSValue JsLayerProxy::rotationY()
-        {
-            return makeProperty(QStringLiteral("rotationy"));
-        }
-
         QJSValue JsLayerProxy::zPosition()
         {
             return makeProperty(QStringLiteral("zposition"));

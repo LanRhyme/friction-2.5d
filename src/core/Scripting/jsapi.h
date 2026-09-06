@@ -150,9 +150,7 @@ namespace Friction
             Q_INVOKABLE QJSValue position();
             Q_INVOKABLE QJSValue scale();
             Q_INVOKABLE QJSValue rotation();
-            // 2.5D billboard shorthand proxies
-            Q_INVOKABLE QJSValue rotationX();
-            Q_INVOKABLE QJSValue rotationY();
+            // 3D depth proxies (used by the parallax generator)
             Q_INVOKABLE QJSValue zPosition();
             Q_INVOKABLE QJSValue perspective();
             // 2.5D layer toggle (timeline cube button state)
