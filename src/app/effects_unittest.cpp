@@ -37,6 +37,10 @@
 #include "include/core/SkBitmap.h"
 
 #include "themesupport.h"
+#include "AI/mcpserver.h"
+#include "AI/mcpdispatcher.h"
+#include "textanimpresets.h"
+#include "layeranimpresets.h"
 
 int main(int argc, char *argv[])
 {
@@ -591,6 +595,253 @@ int main(int argc, char *argv[])
 
         // Restore friction theme
         ThemeSupport::setThemeFromId(QStringLiteral("friction"));
+    });
+
+    // Test 6: AI MCP Tool Dispatcher & Schema validation
+    runTest("Test 6: AI MCP Tool Dispatcher & Schema validation", [&]() {
+        Friction::AI::McpDispatcher dispatcher;
+        const auto schema = dispatcher.getToolsSchema();
+        if (schema.isEmpty()) {
+            throw std::runtime_error("McpDispatcher tools schema is empty");
+        }
+
+        bool hasSceneInfo = false;
+        bool hasCreateLayer = false;
+        bool hasSetKeyframe = false;
+        bool hasSetKeyframeEasing = false;
+        bool hasSetInOutPoint = false;
+        bool hasSetLayerOrder = false;
+        bool hasEvalScript = false;
+        bool hasCapture = false;
+        bool hasKeyframeEasingParam = false;
+        bool hasRenderMarkup = false;
+        bool hasUpdateLayer = false;
+        bool hasAnimateLayer = false;
+        bool hasGetStoryboard = false;
+
+        for (const auto &val : schema) {
+            const auto obj = val.toObject();
+            const QString name = obj.value(QStringLiteral("name")).toString();
+            if (name == QStringLiteral("friction_get_scene_info")) hasSceneInfo = true;
+            if (name == QStringLiteral("friction_create_layer")) hasCreateLayer = true;
+            if (name == QStringLiteral("friction_set_keyframe")) {
+                hasSetKeyframe = true;
+                const auto inputSchema = obj.value(QStringLiteral("inputSchema")).toObject();
+                const auto props = inputSchema.value(QStringLiteral("properties")).toObject();
+                if (props.contains(QStringLiteral("easing"))) hasKeyframeEasingParam = true;
+            }
+            if (name == QStringLiteral("friction_set_keyframe_easing")) hasSetKeyframeEasing = true;
+            if (name == QStringLiteral("friction_set_in_out_point")) hasSetInOutPoint = true;
+            if (name == QStringLiteral("friction_set_layer_order")) hasSetLayerOrder = true;
+            if (name == QStringLiteral("friction_eval_script")) hasEvalScript = true;
+            if (name == QStringLiteral("friction_capture_viewport")) hasCapture = true;
+            if (name == QStringLiteral("friction_render_markup")) hasRenderMarkup = true;
+            if (name == QStringLiteral("friction_update_layer")) hasUpdateLayer = true;
+            if (name == QStringLiteral("friction_animate_layer")) hasAnimateLayer = true;
+            if (name == QStringLiteral("friction_get_storyboard")) hasGetStoryboard = true;
+        }
+
+        if (!hasSceneInfo || !hasCreateLayer || !hasSetKeyframe || !hasEvalScript || !hasCapture) {
+            throw std::runtime_error("Required MCP tools missing from schema");
+        }
+        if (!hasSetKeyframeEasing || !hasSetInOutPoint || !hasSetLayerOrder) {
+            throw std::runtime_error("Newly added MCP animation tools missing from schema");
+        }
+        if (!hasKeyframeEasingParam) {
+            throw std::runtime_error("friction_set_keyframe schema missing 'easing' parameter");
+        }
+        if (!hasRenderMarkup || !hasUpdateLayer || !hasAnimateLayer || !hasGetStoryboard) {
+            throw std::runtime_error("Advanced AI orchestration tools (markup, update, animate, storyboard) missing from schema");
+        }
+
+        // Test tool dispatcher error handling / execution path for newly registered tools
+        QJsonObject dummyArgs;
+        dummyArgs[QStringLiteral("index")] = 1;
+        const auto respEasing = dispatcher.dispatchTool(QStringLiteral("friction_set_keyframe_easing"), dummyArgs);
+        if (!respEasing.contains(QStringLiteral("success"))) {
+            throw std::runtime_error("friction_set_keyframe_easing dispatch response malformed");
+        }
+
+        const auto respInOut = dispatcher.dispatchTool(QStringLiteral("friction_set_in_out_point"), dummyArgs);
+        if (!respInOut.contains(QStringLiteral("success"))) {
+            throw std::runtime_error("friction_set_in_out_point dispatch response malformed");
+        }
+
+        dummyArgs[QStringLiteral("order")] = QStringLiteral("top");
+        const auto respOrder = dispatcher.dispatchTool(QStringLiteral("friction_set_layer_order"), dummyArgs);
+        if (!respOrder.contains(QStringLiteral("success"))) {
+            throw std::runtime_error("friction_set_layer_order dispatch response malformed");
+        }
+
+        // Test update_layer dispatch
+        QJsonObject updateArgs;
+        updateArgs[QStringLiteral("name")] = QStringLiteral("NonExistentLayer");
+        updateArgs[QStringLiteral("opacity")] = 50.0;
+        const auto respUpdate = dispatcher.dispatchTool(QStringLiteral("friction_update_layer"), updateArgs);
+        if (!respUpdate.contains(QStringLiteral("success"))) {
+            throw std::runtime_error("friction_update_layer dispatch response malformed");
+        }
+
+        // Test animate_layer dispatch
+        QJsonObject animArgs;
+        animArgs[QStringLiteral("name")] = QStringLiteral("NonExistentLayer");
+        animArgs[QStringLiteral("preset")] = QStringLiteral("pop");
+        const auto respAnim = dispatcher.dispatchTool(QStringLiteral("friction_animate_layer"), animArgs);
+        if (!respAnim.contains(QStringLiteral("success"))) {
+            throw std::runtime_error("friction_animate_layer dispatch response malformed");
+        }
+
+        // Test render_markup dispatch validation (empty markup returns error)
+        QJsonObject markupArgs;
+        markupArgs[QStringLiteral("markup")] = QStringLiteral("");
+        const auto respMarkup = dispatcher.dispatchTool(QStringLiteral("friction_render_markup"), markupArgs);
+        if (respMarkup.value(QStringLiteral("success")).toBool() != false) {
+            throw std::runtime_error("friction_render_markup should fail gracefully on empty markup");
+        }
+
+        // Test storyboard dispatch (handled without crash when window absent in test harness)
+        QJsonObject sbArgs;
+        sbArgs[QStringLiteral("numFrames")] = 3;
+        const auto respSb = dispatcher.dispatchTool(QStringLiteral("friction_get_storyboard"), sbArgs);
+        if (!respSb.contains(QStringLiteral("success"))) {
+            throw std::runtime_error("friction_get_storyboard dispatch response malformed");
+        }
+    });
+
+    // Test 7: AI MCP Server JSON-RPC Protocol Parser
+    runTest("Test 7: AI MCP Server JSON-RPC Protocol Parser", [&]() {
+        Friction::AI::McpServer server;
+
+        // Test initialize
+        QJsonObject initReq;
+        initReq[QStringLiteral("jsonrpc")] = QStringLiteral("2.0");
+        initReq[QStringLiteral("id")] = 1;
+        initReq[QStringLiteral("method")] = QStringLiteral("initialize");
+
+        const auto initResp = server.processJsonRpc(initReq);
+        if (initResp.value(QStringLiteral("jsonrpc")).toString() != QStringLiteral("2.0")) {
+            throw std::runtime_error("Invalid jsonrpc version in response");
+        }
+        if (initResp.value(QStringLiteral("id")).toInt() != 1) {
+            throw std::runtime_error("Mismatch response id in initialize");
+        }
+        const auto resObj = initResp.value(QStringLiteral("result")).toObject();
+        if (!resObj.contains(QStringLiteral("serverInfo"))) {
+            throw std::runtime_error("serverInfo missing in initialize result");
+        }
+
+        // Test ping
+        QJsonObject pingReq;
+        pingReq[QStringLiteral("jsonrpc")] = QStringLiteral("2.0");
+        pingReq[QStringLiteral("id")] = 2;
+        pingReq[QStringLiteral("method")] = QStringLiteral("ping");
+
+        const auto pingResp = server.processJsonRpc(pingReq);
+        if (pingResp.value(QStringLiteral("id")).toInt() != 2) {
+            throw std::runtime_error("Mismatch response id in ping");
+        }
+
+        // Test tools/list
+        QJsonObject listReq;
+        listReq[QStringLiteral("jsonrpc")] = QStringLiteral("2.0");
+        listReq[QStringLiteral("id")] = 3;
+        listReq[QStringLiteral("method")] = QStringLiteral("tools/list");
+
+        const auto listResp = server.processJsonRpc(listReq);
+        const auto listResult = listResp.value(QStringLiteral("result")).toObject();
+        if (!listResult.contains(QStringLiteral("tools")) || !listResult.value(QStringLiteral("tools")).isArray()) {
+            throw std::runtime_error("Invalid tools array in tools/list result");
+        }
+    });
+
+    // Test 8: Kinetic Text & Layer Animation Presets
+    runTest("Test 8: Kinetic Text & Layer Animation Presets", [&]() {
+        const auto& textPresets = TextAnimPresets::all();
+        if (textPresets.size() < 160) {
+            throw std::runtime_error(QString("Text presets count too low: %1 (expected >= 160)").arg(textPresets.size()).toStdString());
+        }
+
+        const auto& layerPresets = LayerAnimPresets::all();
+        if (layerPresets.size() < 60) {
+            throw std::runtime_error(QString("Layer presets count too low: %1 (expected >= 60)").arg(layerPresets.size()).toStdString());
+        }
+
+        const int totalPresets = textPresets.size() + layerPresets.size();
+        if (totalPresets < 220) {
+            throw std::runtime_error(QString("Total presets count too low: %1 (expected >= 220)").arg(totalPresets).toStdString());
+        }
+
+        // Verify key text presets from each archetype exist and have valid fields
+        const QStringList keyTextIds = {
+            "sharp-snap-rise", "sharp-elastic-pop", "sharp-blade-cut",
+            "sharp-double-bounce", "sharp-jelly-squash", "sharp-trampoline",
+            "smooth-float-rise", "smooth-cinematic-fade", "smooth-aurora",
+            "smooth-par-float", "smooth-bloom-slow",
+            "prop-pos-x-left", "prop-scale-uniform", "prop-rot-full-360", "prop-shear-slash-x",
+            "prop-scale-wide-8x",
+            "3d-flip-y-cw", "3d-corkscrew", "3d-barrel-roll", "3d-door-swing-left",
+            "tech-typewriter-std", "tech-number-roll", "tech-matrix-rain",
+            "tech-binary-matrix", "tech-crt-scan",
+            "loop-sine-wave", "loop-breathe-soft", "loop-heartbeat", "loop-rainbow-wave"
+        };
+        for (const auto& id : keyTextIds) {
+            const auto p = TextAnimPresets::byId(id);
+            if (!p) {
+                throw std::runtime_error(QString("Missing key text preset: %1").arg(id).toStdString());
+            }
+            if (p->name.isEmpty() || p->duration <= 0.0 || p->tag.isEmpty()) {
+                throw std::runtime_error(QString("Invalid data in text preset: %1").arg(id).toStdString());
+            }
+        }
+
+        // Verify key text presets have diverse and distinct physical easings
+        const auto snapPreset = TextAnimPresets::byId("sharp-snap-rise");
+        if (!snapPreset || snapPreset->easing != TextEasing::sharpSnap) {
+            throw std::runtime_error("sharp-snap-rise missing sharpSnap easing");
+        }
+        const auto bouncePreset = TextAnimPresets::byId("sharp-overshoot-down");
+        if (!bouncePreset || bouncePreset->easing != TextEasing::bounce) {
+            throw std::runtime_error("sharp-overshoot-down missing bounce easing");
+        }
+        const auto elasticPreset = TextAnimPresets::byId("sharp-elastic-pop");
+        if (!elasticPreset || elasticPreset->easing != TextEasing::elastic) {
+            throw std::runtime_error("sharp-elastic-pop missing elastic easing");
+        }
+        const auto anticipatePreset = TextAnimPresets::byId("3d-corkscrew");
+        if (!anticipatePreset || anticipatePreset->easing != TextEasing::anticipate) {
+            throw std::runtime_error("3d-corkscrew missing anticipate easing");
+        }
+        const auto steppedPreset = TextAnimPresets::byId("tech-typewriter-std");
+        if (!steppedPreset || steppedPreset->easing != TextEasing::stepped) {
+            throw std::runtime_error("tech-typewriter-std missing stepped easing");
+        }
+
+        // Verify TextEffect setups physics correctly
+        const auto effect = enve::make_shared<TextEffect>();
+        effect->setupFromPreset(*elasticPreset, 200.0, 48.0, 0, 30.0, 1.0);
+        if (!effect->hasCustomPhysics()) {
+            throw std::runtime_error("TextEffect failed to initialize custom physics");
+        }
+        if (effect->getEasing() != TextEasing::elastic) {
+            throw std::runtime_error("TextEffect easing mismatch");
+        }
+
+        // Verify key layer presets exist and have valid generators
+        const QStringList keyLayerIds = {
+            "l-fade", "l-pop", "l-drop", "l-flip-x",
+            "l-swing", "l-skew-slide", "l-elastic-scale", "l-orbit-3d",
+            "l-door-open-l", "l-dive-3d", "l-jelly-wobble", "l-heavy-stamp-jitter",
+            "l-sheet-slide-up", "l-glitch-shake", "l-heartbeat-layer"
+        };
+        for (const auto& id : keyLayerIds) {
+            const auto p = LayerAnimPresets::byId(id);
+            if (!p) {
+                throw std::runtime_error(QString("Missing key layer preset: %1").arg(id).toStdString());
+            }
+            if (p->name.isEmpty() || p->duration <= 0.0 || (!p->gen && !p->outGen)) {
+                throw std::runtime_error(QString("Invalid data or missing generator in layer preset: %1").arg(id).toStdString());
+            }
+        }
     });
 
     std::cout << "\n=========================================" << std::endl;
