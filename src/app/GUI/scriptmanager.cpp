@@ -24,6 +24,7 @@
 #include "scriptmanager.h"
 #include "scriptconsole.h"
 #include "mainwindow.h"
+#include "GUI/coloranimatorbutton.h"
 
 #include "Scripting/jsapi.h"
 #include "appsupport.h"
@@ -369,7 +370,8 @@ void ScriptManager::createPanel(Friction::Core::JsHost * const host)
         layout->addWidget(preview);
     }
 
-    // color swatch row (on top): native color dialog per button
+    // color swatch row (on top): each button opens friction's own
+    // color picker (wheel/HSV panel, follows the app theme)
     if (!desc.colors.isEmpty()) {
         const auto row = new QHBoxLayout();
         row->setSpacing(4);
@@ -377,37 +379,16 @@ void ScriptManager::createPanel(Friction::Core::JsHost * const host)
             if (!c.label.isEmpty()) {
                 row->addWidget(new QLabel(c.label, content));
             }
-            const auto pb = new QPushButton(content);
+            const auto pb = new ColorAnimatorButton(
+                        QColor(c.value), content);
             pb->setFixedSize(44, 22);
             pb->setFocusPolicy(Qt::NoFocus);
             pb->setCursor(Qt::PointingHandCursor);
             pb->setToolTip(c.tooltip.isEmpty() ? c.label : c.tooltip);
-            const auto applyColor = [pb](const QString &hex) {
-                pb->setStyleSheet(
-                            QStringLiteral(
-                                "background-color: %1;"
-                                "border: 1px solid #666666;"
-                                "border-radius: 2px;").arg(hex));
-            };
-            applyColor(c.value);
-            connect(pb, &QPushButton::clicked, this,
-                    [this, host, &c, pb, applyColor]() {
-                // non-native dialog + inherit the main window
-                // stylesheet so it follows the app's dark theme
-                // (the native one stays light and ignores QSS)
-                QColorDialog dlg(QColor(c.value), pb);
-                dlg.setWindowTitle(tr("选择颜色"));
-                dlg.setOptions(QColorDialog::DontUseNativeDialog);
-                if (mMainWindow) {
-                    dlg.setStyleSheet(mMainWindow->styleSheet());
-                }
-                dlg.exec();
-                if (dlg.result() != QDialog::Accepted) { return; }
-                const QColor chosen = dlg.selectedColor();
-                if (!chosen.isValid()) { return; }
-                const QString hex = chosen.name();
-                applyColor(hex);
-                host->invokePanelValue(1, c.id, 0, hex);
+            connect(pb, &ColorAnimatorButton::colorChanged, this,
+                    [host, c](const QColor &col) {
+                if (!col.isValid()) { return; }
+                host->invokePanelValue(1, c.id, 0, col.name());
             });
             row->addWidget(pb);
         }
@@ -501,6 +482,22 @@ void ScriptManager::createPanel(Friction::Core::JsHost * const host)
         combo->setFocusPolicy(Qt::NoFocus);
         row->addWidget(combo, 1);
         layout->addLayout(row);
+
+        // runtime refresh: script updateCombo(id, options, index)
+        // swaps the option list (e.g. re-reading scene layer names);
+        // blocked so repopulating never fires onChange; context is
+        // the combo itself so the connection dies with the widget
+        const QString comboId = c.id;
+        connect(host, &Friction::Core::JsHost::panelComboChanged, combo,
+                [combo, comboId](const QString &id,
+                                 const QStringList &options,
+                                 const int index) {
+            if (id != comboId || options.isEmpty()) { return; }
+            QSignalBlocker block(combo);
+            combo->clear();
+            combo->addItems(options);
+            combo->setCurrentIndex(qBound(0, index, options.count() - 1));
+        });
 
         connect(combo, qOverload<int>(&QComboBox::currentIndexChanged),
                 this, [host, &c, combo](const int index) {
