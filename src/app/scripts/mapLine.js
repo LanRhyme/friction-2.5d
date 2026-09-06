@@ -319,6 +319,9 @@
 
             // 添加顺序 = 视觉层级（Friction 后添加的在上方，与 AE 相反）：
             // 底线/道路边框（最底）→ 中线虚线 → 尾部 → 头部（最上）
+            // CEP 绑定语义：所有部件 reparent 到「中线虚线」层——
+            // 移动/旋转/缩放中线层时整条线联动（恒等变换下视觉不变）
+            var baseLayer = null;
             if (state.mode === 3) {
                 // 道路标识：矩形框 + 中线虚线
                 var rectNodes = roadRectNodes(nodes, state.gap);
@@ -326,28 +329,32 @@
                 rl.setStroke({ width: state.v2, color: state.c2,
                                cap: "butt", join: "miter" });
                 created.push("道路边框");
+                baseLayer = rl;
             } else if (state.mode === 1) {
                 // 经典路感：底层粗线（模拟双侧边线+间距）
                 var bl = makeLayer(scene, group, "底层边线", nodes, closed);
                 bl.setStroke({ width: state.v1 + state.gap * 2 + state.v2 * 2,
                                color: state.c2, cap: "round", join: "round" });
                 created.push("底层边线");
+                baseLayer = bl;
             } else {
                 // 双层叠压：底层实线
                 var sl = makeLayer(scene, group, "底层线", nodes, closed);
                 sl.setStroke({ width: state.v2, color: state.c2,
                                cap: "round", join: "round" });
                 created.push("底层线");
+                baseLayer = sl;
             }
 
-            // 中线虚线（叠在底层线上）
+            // 中线虚线（叠在底层线上）= 绑定宿主
             var cl = makeLayer(scene, group, "中线虚线", nodes, closed);
             cl.setStroke({ width: state.v1, color: state.c1,
                            cap: "round", join: "round" });
             applyDash(cl, scene);
             created.push("中线虚线");
+            if (baseLayer) { baseLayer.setTransformParent(cl); }
 
-            // 端点形状（最上层）
+            // 端点形状（最上层，同样绑到中线层）
             var tailShape = state.link ? state.headShape : state.tailShape;
             var tailSize = state.link ? state.headSize : state.tailSize;
             var tailColor = state.link ? state.headColor : state.tailColor;
@@ -361,6 +368,7 @@
                     tl.setStroke({ width: tailSize * 0.3, color: tailColor,
                                    cap: "round", join: "round" });
                 }
+                tl.setTransformParent(cl);
                 created.push("尾部形状");
             }
             if (state.headShape !== "none") {
@@ -376,6 +384,7 @@
                                    color: state.headColor,
                                    cap: "round", join: "round" });
                 }
+                hl.setTransformParent(cl);
                 created.push("头部形状");
             }
 

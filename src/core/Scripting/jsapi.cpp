@@ -709,6 +709,31 @@ namespace Friction
             return true;
         }
 
+        bool JsLayerProxy::setTransformParent(const QJSValue &parent)
+        {
+            if (!mBox) { return false; }
+            // null detaches the transform parent
+            if (parent.isNull()) {
+                mBox->setParentTransform(nullptr);
+                finishAction();
+                return true;
+            }
+            const auto proxy = qobject_cast<JsLayerProxy*>(
+                        parent.toQObject());
+            if (!proxy || !proxy->valid()) { return false; }
+            const auto parentBox = proxy->box();
+            if (!parentBox || parentBox == mBox.data()) { return false; }
+            const auto parentTransform =
+                    parentBox->getBoxTransformAnimator();
+            if (!parentTransform) { return false; }
+            // AE pick-whip semantics: transform inheritance only,
+            // containment and render order stay untouched (the same
+            // call the canvas parenting interaction uses)
+            mBox->setParentTransform(parentTransform);
+            finishAction();
+            return true;
+        }
+
         QJSValue JsLayerProxy::numberProperty(const QString &name,
                                               const qreal value)
         {

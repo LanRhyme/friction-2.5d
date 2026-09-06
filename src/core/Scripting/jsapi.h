@@ -180,6 +180,11 @@ namespace Friction
             // re-parent this layer under the given layer (group/null)
             // without changing its world position
             Q_INVOKABLE bool setParentLayer(const QJSValue &parent);
+            // AE parenting (pick whip): inherit the given layer's
+            // transform without changing containment or render order;
+            // pass null to detach. Used to bind decorations (outline,
+            // endpoint shapes) to a master path layer.
+            Q_INVOKABLE bool setTransformParent(const QJSValue &parent);
 
             // get-or-create a named custom number property on this
             // layer (AE "Slider Control" equivalent): keyable,
