@@ -83,6 +83,8 @@ namespace EvFormat {
         // in writeBoundingBox, after the package/layerKey block); older
         // files lack the byte and must skip it (positional)
         psdClippingMask = 45,
+        // Text animation preset physics curves & easing parameters
+        textPhysicsEasing = 46,
 
         nextVersion
     };

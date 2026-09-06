@@ -39,6 +39,8 @@
 #include "themesupport.h"
 #include "AI/mcpserver.h"
 #include "AI/mcpdispatcher.h"
+#include "textanimpresets.h"
+#include "layeranimpresets.h"
 
 int main(int argc, char *argv[])
 {
@@ -749,6 +751,96 @@ int main(int argc, char *argv[])
         const auto listResult = listResp.value(QStringLiteral("result")).toObject();
         if (!listResult.contains(QStringLiteral("tools")) || !listResult.value(QStringLiteral("tools")).isArray()) {
             throw std::runtime_error("Invalid tools array in tools/list result");
+        }
+    });
+
+    // Test 8: Kinetic Text & Layer Animation Presets
+    runTest("Test 8: Kinetic Text & Layer Animation Presets", [&]() {
+        const auto& textPresets = TextAnimPresets::all();
+        if (textPresets.size() < 160) {
+            throw std::runtime_error(QString("Text presets count too low: %1 (expected >= 160)").arg(textPresets.size()).toStdString());
+        }
+
+        const auto& layerPresets = LayerAnimPresets::all();
+        if (layerPresets.size() < 60) {
+            throw std::runtime_error(QString("Layer presets count too low: %1 (expected >= 60)").arg(layerPresets.size()).toStdString());
+        }
+
+        const int totalPresets = textPresets.size() + layerPresets.size();
+        if (totalPresets < 220) {
+            throw std::runtime_error(QString("Total presets count too low: %1 (expected >= 220)").arg(totalPresets).toStdString());
+        }
+
+        // Verify key text presets from each archetype exist and have valid fields
+        const QStringList keyTextIds = {
+            "sharp-snap-rise", "sharp-elastic-pop", "sharp-blade-cut",
+            "sharp-double-bounce", "sharp-jelly-squash", "sharp-trampoline",
+            "smooth-float-rise", "smooth-cinematic-fade", "smooth-aurora",
+            "smooth-par-float", "smooth-bloom-slow",
+            "prop-pos-x-left", "prop-scale-uniform", "prop-rot-full-360", "prop-shear-slash-x",
+            "prop-scale-wide-8x",
+            "3d-flip-y-cw", "3d-corkscrew", "3d-barrel-roll", "3d-door-swing-left",
+            "tech-typewriter-std", "tech-number-roll", "tech-matrix-rain",
+            "tech-binary-matrix", "tech-crt-scan",
+            "loop-sine-wave", "loop-breathe-soft", "loop-heartbeat", "loop-rainbow-wave"
+        };
+        for (const auto& id : keyTextIds) {
+            const auto p = TextAnimPresets::byId(id);
+            if (!p) {
+                throw std::runtime_error(QString("Missing key text preset: %1").arg(id).toStdString());
+            }
+            if (p->name.isEmpty() || p->duration <= 0.0 || p->tag.isEmpty()) {
+                throw std::runtime_error(QString("Invalid data in text preset: %1").arg(id).toStdString());
+            }
+        }
+
+        // Verify key text presets have diverse and distinct physical easings
+        const auto snapPreset = TextAnimPresets::byId("sharp-snap-rise");
+        if (!snapPreset || snapPreset->easing != TextEasing::sharpSnap) {
+            throw std::runtime_error("sharp-snap-rise missing sharpSnap easing");
+        }
+        const auto bouncePreset = TextAnimPresets::byId("sharp-overshoot-down");
+        if (!bouncePreset || bouncePreset->easing != TextEasing::bounce) {
+            throw std::runtime_error("sharp-overshoot-down missing bounce easing");
+        }
+        const auto elasticPreset = TextAnimPresets::byId("sharp-elastic-pop");
+        if (!elasticPreset || elasticPreset->easing != TextEasing::elastic) {
+            throw std::runtime_error("sharp-elastic-pop missing elastic easing");
+        }
+        const auto anticipatePreset = TextAnimPresets::byId("3d-corkscrew");
+        if (!anticipatePreset || anticipatePreset->easing != TextEasing::anticipate) {
+            throw std::runtime_error("3d-corkscrew missing anticipate easing");
+        }
+        const auto steppedPreset = TextAnimPresets::byId("tech-typewriter-std");
+        if (!steppedPreset || steppedPreset->easing != TextEasing::stepped) {
+            throw std::runtime_error("tech-typewriter-std missing stepped easing");
+        }
+
+        // Verify TextEffect setups physics correctly
+        const auto effect = enve::make_shared<TextEffect>();
+        effect->setupFromPreset(*elasticPreset, 200.0, 48.0, 0, 30.0, 1.0);
+        if (!effect->hasCustomPhysics()) {
+            throw std::runtime_error("TextEffect failed to initialize custom physics");
+        }
+        if (effect->getEasing() != TextEasing::elastic) {
+            throw std::runtime_error("TextEffect easing mismatch");
+        }
+
+        // Verify key layer presets exist and have valid generators
+        const QStringList keyLayerIds = {
+            "l-fade", "l-pop", "l-drop", "l-flip-x",
+            "l-swing", "l-skew-slide", "l-elastic-scale", "l-orbit-3d",
+            "l-door-open-l", "l-dive-3d", "l-jelly-wobble", "l-heavy-stamp-jitter",
+            "l-sheet-slide-up", "l-glitch-shake", "l-heartbeat-layer"
+        };
+        for (const auto& id : keyLayerIds) {
+            const auto p = LayerAnimPresets::byId(id);
+            if (!p) {
+                throw std::runtime_error(QString("Missing key layer preset: %1").arg(id).toStdString());
+            }
+            if (p->name.isEmpty() || p->duration <= 0.0 || (!p->gen && !p->outGen)) {
+                throw std::runtime_error(QString("Invalid data or missing generator in layer preset: %1").arg(id).toStdString());
+            }
         }
     });
 

@@ -61,19 +61,17 @@ public:
     { mChecked = checked; update(); }
     void setPreviewSize(const int size);
 
+    bool matches(const QString& query, const QString& filterTag) const;
+
     const TextAnimPreset* textPreset() const { return mTextPreset; }
     const LayerAnimPreset* layerPreset() const { return mLayerPreset; }
 
 protected:
     bool eventFilter(QObject* const obj, QEvent* const e) override;
-    void resizeEvent(QResizeEvent* const e) override;
     void paintEvent(QPaintEvent* const e) override;
     void enterEvent(QEvent* const e) override;
     void leaveEvent(QEvent* const e) override;
     QSize sizeHint() const override;
-
-private:
-    void repositionButtons();
 
     enum class Dir { in = 0, out = 1, all = 2 };
 
@@ -81,12 +79,12 @@ signals:
     void previewClicked(TextAnimTile* tile);
     void applyRequested(TextAnimTile* tile, int dir);
 
-
 private:
     const TextAnimPreset* mTextPreset = nullptr;
     const LayerAnimPreset* mLayerPreset = nullptr;
     class TextAnimPreview* mPreviewArea = nullptr;
     QLabel* mNameLabel = nullptr;
+    QLabel* mTagLabel = nullptr;
     QList<QPushButton*> mApplyButtons;
     bool mChecked = false;
     bool mHover = false;
@@ -104,7 +102,7 @@ public:
 
 protected:
     void paintEvent(QPaintEvent* const e) override;
-    QSize sizeHint() const override { return QSize(320, 132); }
+    QSize sizeHint() const override { return QSize(140, 140); }
 
 private:
     QList<QImage> mFrames;
@@ -112,18 +110,14 @@ private:
     QString mPlaceholder;
 };
 
-// Dockable animation preset browser: collapsible sections for
-// text / image / loop presets, animated square thumbnails with
-// per-preset IN (entrance) and OUT (exit) apply buttons, and a
-// big preview of the selected preset.
+// Dockable animation preset browser: clean category tab filter,
+// unobscured animated preview cards, separate button actions and
+// dual-row bottom control toolbar.
 class TextAnimPresetPanel : public QWidget {
     Q_OBJECT
 public:
     TextAnimPresetPanel(Document& doc, QWidget* const parent = nullptr);
 
-    // pause the thumbnail gallery animation while the main canvas
-    // preview plays: dozens of tiles repainting at 25 fps on the UI
-    // thread starve the playback timer and cause frame skips
     void setGalleryPaused(const bool paused);
 
 protected:
@@ -131,39 +125,43 @@ protected:
     void hideEvent(QHideEvent* const e) override;
 
 private:
-    struct Section {
-        QPushButton* header = nullptr;
-        QWidget* body = nullptr;
-        class FlowLayout* flow = nullptr;
-        bool built = false;
-        bool expanded = false;
-    };
+    enum class StatusType { Normal, Success, Warning };
 
-    void buildSection(Section& section, const int kind);
-    void fillGridFromKind(const int kind, FlowLayout* flow);
+    void buildAllTiles();
+    void updateCategoryCounts();
     // render preview frames for the given tiles on worker threads;
     // results are dropped if the duration scale changed mid-flight
     void queueRender(const QList<TextAnimTile*>& tiles);
     void selectTile(TextAnimTile* const tile);
     void applyPreset(TextAnimTile* const tile, const int dir);
+    void clearSelectedPresets();
+    void filterPresets();
+    void setStatusText(const QString& text, const StatusType type = StatusType::Normal);
+
     QList<TextBox*> selectedTextBoxes() const;
     QList<class BoundingBox*> selectedBoxes() const;
     const QImage& mascotImage();
     const QString& defaultCjkFamily();
 
     Document& mDocument;
-    Section mTextSection;
-    Section mImageSection;
-    Section mLoopSection;
+    class FlowLayout* mFlow = nullptr;
+    bool mBuilt = false;
     QTimer* mPlayTimer = nullptr;
+
+    class QLineEdit* mSearchEdit = nullptr;
+    class QButtonGroup* mCategoryGroup = nullptr;
+    QString mActiveFilterTag = QStringLiteral("all");
 
     QScrollArea* mScroll = nullptr;
     QWidget* mScrollHost = nullptr;
+    QLabel* mStatusDot = nullptr;
     QLabel* mStatusLabel = nullptr;
+    QPushButton* mClearButton = nullptr;
     QSlider* mDurationSlider = nullptr;
     QSpinBox* mDurationSpin = nullptr;
+    QPushButton* mDurationResetBtn = nullptr;
     QSlider* mTileSizeSlider = nullptr;
-    int mTileSize = 150;
+    int mTileSize = 130;
 
     QList<TextAnimTile*> mTiles;
     qreal mDurationScale = 1.0;

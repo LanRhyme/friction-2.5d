@@ -37,8 +37,26 @@ class WordRenderData;
 class LineRenderData;
 class TextBoxRenderData;
 class AnimatedPoint;
+class XevImporter;
 
 enum class TextFragmentType : short;
+
+// Physical easing archetype applied to fragment entrance / exit
+enum class TextEasing : short {
+    smooth = 0,
+    sharpSnap,
+    overshoot,
+    elastic,
+    bounce,
+    anticipate,
+    stepped
+};
+
+// Direction along text fragments
+enum class TextAnimDirection : short {
+    leftToRight,
+    rightToLeft
+};
 
 // recipe describing a baked text animation (see textanimpresets.h)
 struct TextAnimPreset;
@@ -52,24 +70,30 @@ class CORE_EXPORT TextEffect : public eEffect {
 public:
     TextEffect();
 
-    bool SWT_dropSupport(const QMimeData * const data);
-    bool SWT_drop(const QMimeData * const data);
-    QMimeData *SWT_createMimeData();
+    bool SWT_dropSupport(const QMimeData * const data) override;
+    bool SWT_drop(const QMimeData * const data) override;
+    QMimeData *SWT_createMimeData() override;
 
-    void prp_setupTreeViewMenu(PropertyMenu * const menu);
+    void prp_setupTreeViewMenu(PropertyMenu * const menu) override;
     void prp_drawCanvasControls(SkCanvas * const canvas,
                                 const CanvasMode mode,
                                 const float invScale,
-                                const bool ctrlPressed);
+                                const bool ctrlPressed) override;
 
-    void writeIdentifier(eWriteStream& dst) const
+    void writeIdentifier(eWriteStream& dst) const override
     { Q_UNUSED(dst) }
 
-    void writeIdentifierXEV(QDomElement& ele) const
-    { Q_UNUSED(ele) }
+    void writeIdentifierXEV(QDomElement& ele) const override;
+    void prp_writeProperty_impl(eWriteStream& dst) const override;
+    void prp_readProperty_impl(eReadStream& src) override;
+    void prp_readPropertyXEV_impl(const QDomElement& ele, const XevImporter& imp) override;
 
     void apply(TextBoxRenderData * const textData) const;
     TextFragmentType target() const;
+
+    bool hasCustomPhysics() const { return mCustomPhysics; }
+    TextEasing getEasing() const { return mEasing; }
+    void setEasing(const TextEasing easing) { mEasing = easing; }
 
     // configures this effect from an animation preset recipe
     // (fragment type, stagger mode, transform start state and the
@@ -131,6 +155,15 @@ private:
     qsptr<PathEffectCollection> mOutlinePathEffects;
 
     qsptr<RasterEffectCollection> mRasterEffects;
+
+    // Per-fragment physical easing animation parameters
+    bool mCustomPhysics = false;
+    TextEasing mEasing = TextEasing::smooth;
+    int mStartFrame = 0;
+    int mDurFrames = 24;
+    TextAnimDirection mDirection = TextAnimDirection::leftToRight;
+    TextAnim::Kind mKind = TextAnim::sweepIn;
+    qreal mStaggerPercent = 0.40;
 };
 
 #endif // TEXTEFFECT_H
