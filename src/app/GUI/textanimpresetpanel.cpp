@@ -580,14 +580,14 @@ TextAnimPresetPanel::TextAnimPresetPanel(Document& doc,
         QString label;
         QString tag;
     } filterDefs[] = {
-        { QString::fromUtf8("全部"), QStringLiteral("all") },
+        { QString::fromUtf8("图层动效"), QStringLiteral("layer") },
+        { QString::fromUtf8("极客代码"), QStringLiteral("tech") },
         { QString::fromUtf8("锐利动力"), QStringLiteral("sharp") },
         { QString::fromUtf8("丝滑流体"), QStringLiteral("smooth") },
         { QString::fromUtf8("属性通道"), QStringLiteral("prop") },
         { QString::fromUtf8("3D空间"), QStringLiteral("3d") },
-        { QString::fromUtf8("极客代码"), QStringLiteral("tech") },
-        { QString::fromUtf8("图层动效"), QStringLiteral("layer") },
-        { QString::fromUtf8("持续循环"), QStringLiteral("loop") }
+        { QString::fromUtf8("持续循环"), QStringLiteral("loop") },
+        { QString::fromUtf8("全部"), QStringLiteral("all") }
     };
 
     const QString pillStyle = QStringLiteral(
