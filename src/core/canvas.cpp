@@ -413,25 +413,26 @@ void Canvas::drawWorkspaceBackdrop(SkCanvas* const canvas,
     // coordinates so it follows pan/zoom
     const qreal zoom = mHasWorldToScreen ? mWorldToScreen.m11() : 0.0;
     if (zoom > 0.0) {
-        const qreal minSpacingDevice = 16.0 * pixelRatio;
-        static const qreal ladder[] = { 2.0, 4.0, 5.0, 8.0, 10.0, 16.0,
-                                        20.0, 32.0, 40.0, 64.0, 80.0,
-                                        128.0, 160.0, 256.0, 320.0,
-                                        512.0, 640.0, 1024.0 };
+        const qreal minSpacingDevice = 10.0 * pixelRatio;
+        static const qreal ladder[] = { 1.0, 2.0, 4.0, 5.0, 8.0, 10.0,
+                                        16.0, 20.0, 32.0, 40.0, 64.0,
+                                        80.0, 128.0, 160.0, 256.0,
+                                        320.0, 512.0, 640.0, 1024.0 };
         qreal worldSpacing = ladder[0];
         for (const qreal s : ladder) {
             worldSpacing = s;
             if (s * zoom >= minSpacingDevice) { break; }
         }
         const qreal screenSpacing = worldSpacing * zoom;
-        if (screenSpacing >= 12.0 && mHasWorldToScreen) {
-            const bool dark = base.lightnessF() < 0.5;
+        if (screenSpacing >= 6.0 && mHasWorldToScreen) {
             SkPaint linePaint;
             linePaint.setStyle(SkPaint::kStroke_Style);
             linePaint.setStrokeWidth(1.0f);
             linePaint.setAntiAlias(false);
-            linePaint.setColor(dark ? SkColorSetARGB(20, 255, 255, 255)
-                                    : SkColorSetARGB(18, 0, 0, 0));
+            // fixed #161616 grid line color (user preference): slightly
+            // lighter than the dark top of the gradient, slightly darker
+            // than the grey bottom, keeping the contrast subtle either way
+            linePaint.setColor(SkColorSetARGB(255, 0x16, 0x16, 0x16));
 
             const QRectF view = mScreenToWorld.mapRect(
                         QRectF(qreal(dx), qreal(dy), qreal(dw), qreal(dh))).normalized();

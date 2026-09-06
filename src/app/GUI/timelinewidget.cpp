@@ -56,14 +56,7 @@ TimelineWidget::TimelineWidget(Document &document,
     : QWidget(parent)
     , mDocument(document)
 {
-    // uniform black backdrop for the whole timeline panel (user preference,
-    // matches the near-black timeline zone of the reference design)
-    QPalette timelinePalette;
-    const QColor timelineBg(0, 0, 0);
-    timelinePalette.setColor(QPalette::Window, timelineBg);
-    timelinePalette.setColor(QPalette::Base, timelineBg);
-    timelinePalette.setColor(QPalette::Button, timelineBg);
-    setPalette(timelinePalette);
+    setPalette(ThemeSupport::getDarkerPalette());
     setAutoFillBackground(true);
 
     mMainLayout = new QGridLayout(this);

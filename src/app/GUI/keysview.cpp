@@ -630,9 +630,7 @@ void KeysView::paintEvent(QPaintEvent *) {
 
     //if(mGraphViewed) p.fillRect(rect(), QColor(33, 33, 38));
     //else p.fillRect(rect(), QColor(33, 33, 38));
-    // uniform black backdrop for the timeline panel (matches the palette
-    // set on TimelineWidget; the layer rows paint no base of their own)
-    p.fillRect(rect(), QColor(0, 0, 0));
+    p.fillRect(rect(), ThemeSupport::getThemeBaseColor());
 
     if(mPixelsPerFrame < 0.001) return;
     if(!mGraphViewed) {
