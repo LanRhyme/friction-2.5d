@@ -121,6 +121,9 @@ int FlowLayout::doLayout(const QRect &rect, bool testOnly) const {
     int lineHeight = 0;
 
     for(const auto item : mItemList) {
+        // hidden widgets report a (0,0) size hint but must not
+        // advance the flow cursor or suppress the line wrap
+        if(item->isEmpty()) { continue; }
         QWidget *wid = item->widget();
         int spaceX = horizontalSpacing();
         if(spaceX == -1)
