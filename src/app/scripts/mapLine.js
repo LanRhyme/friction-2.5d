@@ -362,6 +362,7 @@
             // 几何读回（animator 原始数据，可靠）：打印中线首尾顶点，
             // 供与 AE 成品逐点对照（AE 视口 200×170 + 居中偏移）
             var clPaths = cl.paths();
+            log("自检: 中线子路径数=" + (clPaths ? clPaths.length : 0));
             if (clPaths && clPaths.length > 0) {
                 var info = clPaths[0].pathInfo();
                 if (info && info.nodes && info.nodes.length > 0) {
@@ -379,6 +380,19 @@
                         + last.point[1].toFixed(1) + ") 节点数="
                         + info.nodes.length + " 闭合=" + info.closed);
                 }
+            }
+            // 自检：底层边线路径应为空（引用几何，无本地锚点）
+            if (baseLayer) {
+                var blPaths = baseLayer.paths();
+                var blCount = -1;
+                if (blPaths && blPaths.length > 0 && blPaths[0].pathInfo()) {
+                    blCount = blPaths[0].pathInfo().nodes ?
+                              blPaths[0].pathInfo().nodes.length : 0;
+                }
+                log("自检: 底线子路径数=" + (blPaths ? blPaths.length : 0)
+                    + " 首子路径节点数=" + blCount
+                    + (blCount === 0 ? "（正常，无本地锚点）"
+                                     : "（异常！锚点会残留，请反馈此日志）"));
             }
 
             // 生成成功后自动删除引用的源路径层（同撤销组内，
