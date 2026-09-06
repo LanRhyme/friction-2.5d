@@ -696,13 +696,14 @@ void ToolBox::setupColorPickerActions()
 void ToolBox::setupAutoSelectActions()
 {
     // PS-style move-tool option: clicking visible pixels on the canvas
-    // selects the layer that owns them (object mode only)
-    mAutoSelectLayer = new QCheckBox(
-                tr("\u81EA\u52A8\u9009\u62E9\u56FE\u5C42"),
-                mControls);
+    // selects the layer that owns them (object mode only); the Chinese
+    // label lives in friction_zh_CN.ts (this target has no /utf-8, so
+    // escaped literals garble)
+    mAutoSelectLayer = new QCheckBox(tr("Auto-Select Layer"), mControls);
     mAutoSelectLayer->setToolTip(
-                tr("\u5BF9\u8C61\u6A21\u5F0F\u4E0B\u70B9\u51FB\u753B\u5E03\u53EF\u89C1\u50CF\u7D20\uFF0C"
-                   "\u81EA\u52A8\u9009\u4E2D\u5E76\u8DF3\u8F6C\u5230\u6240\u5C5E\u56FE\u5C42\uFF08PS \u8BED\u4E49\uFF09"));
+                tr("Click visible pixels on the canvas to select and "
+                   "jump to the layer that owns them (Photoshop "
+                   "auto-select)"));
     mAutoSelectLayer->setChecked(mDocument.fAutoSelectLayer);
     connect(mAutoSelectLayer, &QCheckBox::toggled,
             this, [this](const bool checked) {

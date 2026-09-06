@@ -8654,6 +8654,17 @@ Select the layers you want to import:</source>
     </message>
 </context>
 <context>
+    <name>ToolBox</name>
+    <message>
+        <source>Auto-Select Layer</source>
+        <translation>自动选择图层</translation>
+    </message>
+    <message>
+        <source>Click visible pixels on the canvas to select and jump to the layer that owns them (Photoshop auto-select)</source>
+        <translation>对象模式下点击画布上的可见像素，自动选中并跳转到所属图层（PS 语义）</translation>
+    </message>
+</context>
+<context>
     <name>TimelineDockWidget</name>
     <message>
         <source>Cannot play: the preview range is empty - check the In/Out points</source>

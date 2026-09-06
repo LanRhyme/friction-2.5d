@@ -91,7 +91,7 @@ public:
     // instead of the top-most bounding rectangle
     bool fAutoSelectLayer = AppSupport::getSettings("canvas",
                                                     "AutoSelectLayer",
-                                                    false).toBool();
+                                                    true).toBool();
 
     bool fGizmoPositionVisibility = AppSupport::getSettings("gizmos",
                                                             "Position",
