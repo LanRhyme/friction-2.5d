@@ -36,6 +36,7 @@
 #include <QDir>
 #include <QDebug>
 #include <QDockWidget>
+#include <QTimer>
 #include <QPushButton>
 #include <QGridLayout>
 #include <QVBoxLayout>
@@ -95,7 +96,10 @@ ScriptManager::ScriptManager(MainWindow * const parent)
 
 void ScriptManager::reload()
 {
+    // recreates the panels the user has open immediately visible
+    mScriptsReload = true;
     loadScripts();
+    mScriptsReload = false;
     rebuildMenu();
     output(tr("Scripts reloaded (%1 command(s))")
            .arg(mCommands.count()));
@@ -289,16 +293,25 @@ void ScriptPreviewWidget::paintEvent(QPaintEvent * const event)
 void ScriptManager::loadScripts()
 {
     mCommands.clear();
-    // drop previous script panels before rebuilding; remember which
-    // ones were open so the rebuilt panels keep their visibility
-    mPanelWasVisible.clear();
+    mPanelScriptHosts.clear();
+    // tear down previous script panels; guarded because the deletes
+    // emit visibilityChanged which must not rewrite the persisted
+    // list of open panels
+    mUpdatingPanels = true;
     for (const auto dock : mPanels) {
-        mPanelWasVisible.insert(dock->objectName(), dock->isVisible());
         mMainWindow->removeDockWidget(dock);
         delete dock;
     }
     mPanels.clear();
     mPanelHosts.clear();
+    mUpdatingPanels = false;
+
+    // panels are only created for scripts the user actually had open;
+    // every other panel-type script stays a plain menu entry until the
+    // user clicks it (then it opens as a floating window)
+    const auto openNames = AppSupport::getSettings(
+                QStringLiteral("scripts"), QStringLiteral("openPanels"),
+                QStringList()).toStringList();
 
     const QString dirPath = AppSupport::getAppScriptsPath();
     const QDir dir(dirPath);
@@ -336,26 +349,47 @@ void ScriptManager::loadScripts()
             mCommands.insert(label, host);
         }
         if (host->panelDesc().valid) {
-            createPanel(host);
+            mPanelScriptHosts.append(host);
+            const auto name = panelObjectName(host->panelDesc().title);
+            if (openNames.contains(name)) {
+                // startup: hidden, the saved layout brings it back;
+                // reload: recreate it visible right away
+                createPanel(host, mScriptsReload);
+            }
         }
     }
 }
 
-void ScriptManager::createPanel(Friction::Core::JsHost * const host)
+QString ScriptManager::panelObjectName(const QString &title)
+{
+    // unique objectName from the script title (stable across reloads
+    // for saveState persistence) - must stay "dockScriptPanel_" so a
+    // saved layout keeps restoring panels the user docked on purpose
+    return QStringLiteral("dockScriptPanel_%1")
+            .arg(QString::fromUtf8(title.toUtf8()
+                                   .toBase64(
+                                       QByteArray::Base64UrlEncoding |
+                                       QByteArray::OmitTrailingEquals)));
+}
+
+void ScriptManager::saveOpenPanels() const
+{
+    if (mUpdatingPanels) { return; }
+    QStringList names;
+    for (const auto dock : mPanels) {
+        if (dock && dock->isVisible()) { names << dock->objectName(); }
+    }
+    AppSupport::setSettings(QStringLiteral("scripts"),
+                            QStringLiteral("openPanels"), names);
+}
+
+void ScriptManager::createPanel(Friction::Core::JsHost * const host,
+                                const bool show)
 {
     const auto &desc = host->panelDesc();
 
     const auto dock = new QDockWidget(mMainWindow);
-    // unique objectName from the script title (stable across reloads
-    // for saveState persistence) - must stay "dockScriptPanel_" so a
-    // saved layout keeps restoring panels the user docked on purpose;
-    // panels with no saved entry (newly installed scripts) simply stay
-    // in the floating state set below
-    dock->setObjectName(QStringLiteral("dockScriptPanel_%1")
-                        .arg(QString::fromUtf8(desc.title.toUtf8()
-                                               .toBase64(
-                                                   QByteArray::Base64UrlEncoding |
-                                                   QByteArray::OmitTrailingEquals))));
+    dock->setObjectName(panelObjectName(desc.title));
     dock->setWindowTitle(desc.title);
     dock->setFeatures(QDockWidget::DockWidgetClosable |
                       QDockWidget::DockWidgetMovable |
@@ -549,11 +583,9 @@ void ScriptManager::createPanel(Friction::Core::JsHost * const host)
 
     dock->setWidget(content);
     mMainWindow->addDockWidget(Qt::LeftDockWidgetArea, dock);
-    // panels are created HIDDEN in floating state: on startup only the
-    // ones the user had open come back (MainWindow's saved state calls
-    // restoreState on them); a panel opened from the Scripts menu for
-    // the first time appears as a floating window instead of silently
-    // docking into the left area
+    // created in floating state: startup-created panels stay hidden
+    // until the saved window layout restores them, panels opened from
+    // the Scripts menu (or a reload) display immediately
     dock->setFloating(true);
     const auto hint = content->sizeHint();
     dock->resize(qMax(320, hint.width()) + 16,
@@ -562,15 +594,12 @@ void ScriptManager::createPanel(Friction::Core::JsHost * const host)
     const int cascade = mPanels.count() * 32;
     dock->move(mMainWindow->mapToGlobal(QPoint(0, 0))
                + QPoint(80 + cascade, 120 + cascade));
-    // a scripts reload recreates every panel - keep the ones open that
-    // were open before, everything else stays hidden until the user
-    // opens it from the Scripts menu
-    if (mPanelWasVisible.value(dock->objectName(), false)) {
-        dock->show();
-        dock->raise();
-    } else {
-        dock->hide();
-    }
+    // keep the persisted open-panel list in sync with the UI so the
+    // next launch creates exactly the panels the user has open
+    connect(dock, &QDockWidget::visibilityChanged,
+            this, [this](const bool) { saveOpenPanels(); });
+    if (show) { dock->show(); dock->raise(); }
+    else { dock->hide(); }
     mPanels.append(dock);
     mPanelHosts.insert(host, dock);
 }
@@ -604,31 +633,39 @@ void ScriptManager::rebuildMenu()
             runCommand(label);
         });
     }
-    // panel-type scripts (registerPanel) live as dock widgets - list
-    // them here too so a closed panel can be brought back (click =
-    // toggle visibility); without this the two entry kinds were split
-    // across different places and closed panels were unreachable
-    if(!mPanelHosts.isEmpty()) {
+    // panel-type scripts (registerPanel): a panel only exists once the
+    // user opens it; unopened scripts are listed here and clicking one
+    // creates its panel as a floating window, created ones toggle
+    // visibility (click = show/hide)
+    if (!mPanelScriptHosts.isEmpty()) {
         mScriptsMenu->addSeparator();
-        for (auto it = mPanelHosts.constBegin();
-             it != mPanelHosts.constEnd(); ++it) {
-            const auto host = it.key();
-            const auto dock = it.value();
+        for (const auto host : mPanelScriptHosts) {
             const QString title = host->panelDesc().title;
+            const auto dock = mPanelHosts.value(host, nullptr);
             const auto act = mScriptsMenu->addAction(
-                        tr("Panel: %1").arg(title), this,
-                        [dock]() {
-                if(dock->isVisible()) dock->hide();
-                else {
-                    dock->show();
-                    dock->raise();
+                        tr("Panel: %1").arg(title), this, [this, host]() {
+                const auto d = mPanelHosts.value(host, nullptr);
+                if (d) {
+                    if (d->isVisible()) { d->hide(); }
+                    else { d->show(); d->raise(); }
+                } else {
+                    // lazy creation on first open - floating window
+                    createPanel(host, true);
+                    // refresh the menu so this entry turns into a
+                    // proper toggle bound to the new dock (deferred:
+                    // the action that triggered this is still alive)
+                    QTimer::singleShot(0, this, [this]() {
+                        rebuildMenu();
+                    });
                 }
             });
-            act->setCheckable(true);
-            act->setChecked(dock->isVisible());
-            // keep the checkmark live while the user docks/undocks
-            connect(dock, &QDockWidget::visibilityChanged,
-                    act, &QAction::setChecked);
+            if (dock) {
+                act->setCheckable(true);
+                act->setChecked(dock->isVisible());
+                // keep the checkmark live while the user docks/undocks
+                connect(dock, &QDockWidget::visibilityChanged,
+                        act, &QAction::setChecked);
+            }
         }
     }
 }

@@ -133,7 +133,14 @@ private:
     void loadScripts();
     void rebuildMenu();
     void runCommand(const QString &label);
-    void createPanel(Friction::Core::JsHost * const host);
+    // creates the dock for a panel-type script; 'show' displays it
+    // right away (menu open / reload), otherwise it stays hidden until
+    // the saved window layout restores it (startup)
+    void createPanel(Friction::Core::JsHost * const host, const bool show);
+    // persists which script panels are currently open, so the next
+    // launch only creates the panels the user actually had open
+    void saveOpenPanels() const;
+    static QString panelObjectName(const QString &title);
 
     MainWindow *mMainWindow;
     QMenu *mScriptsMenu = nullptr;
@@ -144,9 +151,15 @@ private:
     // script panels: host -> dock
     QMap<Friction::Core::JsHost*, QDockWidget*> mPanelHosts;
     QList<QDockWidget*> mPanels;
-    // panels open at the moment of a scripts reload, by objectName -
-    // lets the rebuilt panels keep their visibility
-    QHash<QString, bool> mPanelWasVisible;
+    // every panel-type script found on the last scan, created or not -
+    // unopened scripts are only menu entries until the user clicks one
+    QList<Friction::Core::JsHost*> mPanelScriptHosts;
+    // true while panels are torn down/rebuilt - suppresses the
+    // open-panels persistence during the deletes
+    bool mUpdatingPanels = false;
+    // reload() runs loadScripts() a second time and recreates the
+    // panels the user has open immediately visible
+    bool mScriptsReload = false;
     // slider live-preview coalescing: raw sliderMoved rates (30+/s)
     // would flood the undo stack and renderer; tail-merge to one run
     // per 100ms idle
