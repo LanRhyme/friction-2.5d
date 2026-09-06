@@ -23,7 +23,6 @@
 
 // Fork of enve - Copyright (C) 2016-2020 Maurycy Liebner
 
-#include <QSet>
 #include "Boxes/boundingbox.h"
 #include "Boxes/bone.h"
 #include "Animators/motionpathhandler.h"
@@ -399,23 +398,6 @@ void BoundingBox::drawAllCanvasControls(SkCanvas * const canvas,
                                         const CanvasMode mode,
                                         const float invScale,
                                         const bool ctrlPressed) {
-    // ANCHOR-DIAG: identify which selected layer paints how many
-    // anchors (deduped) - remove once the stray-anchor hunt is over
-    {
-        int total = 0;
-        for(const auto& prop : mCanvasProps) {
-            const auto handler = prop->getPointsHandler();
-            if(handler) total += handler->count();
-        }
-        static QSet<QString> sLogged;
-        const QString key = prp_getName() +
-                QStringLiteral(":%1").arg(total);
-        if(!sLogged.contains(key)) {
-            sLogged.insert(key);
-            qWarning() << "[ANCHOR-DIAG] paints" << total
-                       << "points:" << prp_getName();
-        }
-    }
     for(const auto& prop : mCanvasProps)
         prop->prp_drawCanvasControls(canvas, mode, invScale, ctrlPressed);
 }

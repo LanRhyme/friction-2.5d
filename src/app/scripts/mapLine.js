@@ -198,6 +198,17 @@
         var layer = scene.addPath(name, nodes, closed);
         if (!layer) { throw "创建路径图层失败: " + name; }
         layer.setParentLayer(group);
+        // 轴心收拢到路径内容中心：friction 每个选中层都显示自己的
+        // 轴心点，统一到中心后与组的轴心重叠成一个点，减少画布杂点
+        var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        for (var i = 0; i < nodes.length; i++) {
+            var p = nodes[i].point;
+            if (p[0] < minX) { minX = p[0]; }
+            if (p[1] < minY) { minY = p[1]; }
+            if (p[0] > maxX) { maxX = p[0]; }
+            if (p[1] > maxY) { maxY = p[1]; }
+        }
+        layer.setAnchorPoint([(minX + maxX) / 2, (minY + maxY) / 2]);
         return layer;
     }
 
