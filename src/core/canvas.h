@@ -419,6 +419,9 @@ public:
                   const QRect &drawRect,
                   const QMatrix &viewTrans,
                   const bool mouseGrabbing);
+    void drawWorkspaceBackdrop(SkCanvas* const canvas,
+                               const QRect &drawRect,
+                               const qreal pixelRatio);
     void renderGizmos(SkCanvas* const canvas,
                       const qreal qInvZoom,
                       const float invZoom);

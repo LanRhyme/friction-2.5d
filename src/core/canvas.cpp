@@ -373,6 +373,86 @@ void drawTransparencyMesh(SkCanvas* const canvas,
     canvas->drawRect(drawRect, paint);
 }
 
+void Canvas::drawWorkspaceBackdrop(SkCanvas* const canvas,
+                                   const QRect &drawRect,
+                                   const qreal pixelRatio)
+{
+    // workspace backdrop around the scene card: theme-derived vertical
+    // gradient (lighter grey on top fading to near-black) with a faint
+    // world-aligned fine grid; drawn in device pixel space, the canvas
+    // background and its contents are painted on top by the caller
+    const SkScalar dx = toSkScalar(drawRect.x() * pixelRatio);
+    const SkScalar dy = toSkScalar(drawRect.y() * pixelRatio);
+    const SkScalar dw = toSkScalar(drawRect.width() * pixelRatio);
+    const SkScalar dh = toSkScalar(drawRect.height() * pixelRatio);
+    const SkRect deviceRect = SkRect::MakeXYWH(dx, dy, dw, dh);
+
+    const QColor base = ThemeSupport::getThemeBaseColor();
+    const SkPoint gradPts[2] = { SkPoint::Make(dx, dy),
+                                 SkPoint::Make(dx, dy + dh) };
+    const SkColor gradCols[2] = { toSkColor(base.lighter(132)),
+                                  toSkColor(base.darker(210)) };
+    const auto shader = SkGradientShader::MakeLinear(gradPts, gradCols,
+                                                     nullptr, 2,
+                                                     SkTileMode::kClamp);
+    SkPaint paint;
+    paint.setStyle(SkPaint::kFill_Style);
+    paint.setAntiAlias(false);
+    if (shader) { paint.setShader(shader); }
+    else { paint.setColor(toSkColor(base)); }
+
+    canvas->save();
+    canvas->resetMatrix();
+    canvas->drawRect(deviceRect, paint);
+
+    // decorative fine grid: spacing from a coarse ladder so lines stay
+    // in a comfortable on-screen range at any zoom, aligned to scene
+    // coordinates so it follows pan/zoom
+    const qreal zoom = mHasWorldToScreen ? mWorldToScreen.m11() : 0.0;
+    if (zoom > 0.0) {
+        const qreal minSpacingDevice = 48.0 * pixelRatio;
+        static const qreal ladder[] = { 8.0, 10.0, 16.0, 20.0, 32.0,
+                                        40.0, 64.0, 80.0, 128.0, 160.0,
+                                        256.0, 320.0, 512.0, 640.0, 1024.0 };
+        qreal worldSpacing = ladder[0];
+        for (const qreal s : ladder) {
+            worldSpacing = s;
+            if (s * zoom >= minSpacingDevice) { break; }
+        }
+        const qreal screenSpacing = worldSpacing * zoom;
+        if (screenSpacing >= 12.0 && mHasWorldToScreen) {
+            const bool dark = base.lightnessF() < 0.5;
+            SkPaint linePaint;
+            linePaint.setStyle(SkPaint::kStroke_Style);
+            linePaint.setStrokeWidth(1.0f);
+            linePaint.setAntiAlias(false);
+            linePaint.setColor(dark ? SkColorSetARGB(20, 255, 255, 255)
+                                    : SkColorSetARGB(18, 0, 0, 0));
+
+            const QRectF view = mScreenToWorld.mapRect(
+                        QRectF(qreal(dx), qreal(dy), qreal(dw), qreal(dh))).normalized();
+            if (view.isValid() && !view.isEmpty()) {
+                const qreal xBegin = std::ceil(view.left() / worldSpacing) * worldSpacing;
+                const qreal xEnd = view.right() + worldSpacing;
+                for (qreal x = xBegin; x <= xEnd; x += worldSpacing) {
+                    canvas->drawLine(toSkPoint(mWorldToScreen.map(QPointF(x, view.top()))),
+                                     toSkPoint(mWorldToScreen.map(QPointF(x, view.bottom()))),
+                                     linePaint);
+                }
+                const qreal yBegin = std::ceil(view.top() / worldSpacing) * worldSpacing;
+                const qreal yEnd = view.bottom() + worldSpacing;
+                for (qreal y = yBegin; y <= yEnd; y += worldSpacing) {
+                    canvas->drawLine(toSkPoint(mWorldToScreen.map(QPointF(view.left(), y))),
+                                     toSkPoint(mWorldToScreen.map(QPointF(view.right(), y))),
+                                     linePaint);
+                }
+            }
+        }
+    }
+
+    canvas->restore();
+}
+
 void Canvas::renderSk(SkCanvas* const canvas,
                       const QRect& drawRect,
                       const QMatrix& viewTrans,
@@ -451,6 +531,7 @@ void Canvas::renderSk(SkCanvas* const canvas,
         canvas->clear(SK_ColorBLACK);
     } else {
         canvas->clear(ThemeSupport::getThemeBaseSkColor());
+        drawWorkspaceBackdrop(canvas, drawRect, pixelRatio);
         paint.setColor(SK_ColorGRAY);
         paint.setStyle(SkPaint::kStroke_Style);
         paint.setPathEffect(dashPathEffect);
