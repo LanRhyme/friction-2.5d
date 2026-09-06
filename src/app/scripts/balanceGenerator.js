@@ -6,13 +6,6 @@
 //   平台       <- 变换父级绑到秤杆（保持视觉位置），自身旋转 = -秤杆旋转（始终水平）
 // 对控制器的「天平角度」属性 K 帧即可记录天平动画；面板滑杆实时联动。
 (function () {
-    var debugLog = [];
-    function log(msg) {
-        debugLog.push(msg);
-        print(msg);
-        if (debugLog.length > 300) debugLog.shift();
-    }
-
     var CTRL_LAYER_NAME = "天平控制器";
     var CTRL_PROP_NAME = "天平角度";
     var PLACEHOLDER = "（无图层）";
@@ -56,21 +49,13 @@
         return names.length > 0 ? names.length - 1 : -1;
     }
 
-    function showPlaceholder(msg) {
-        updateCombo("beam", [PLACEHOLDER], 0);
-        updateCombo("left", [PLACEHOLDER], 0);
-        updateCombo("right", [PLACEHOLDER], 0);
-        state.beam = state.left = state.right = null;
-        log(msg);
-    }
-
     function refreshLayerList() {
         var names = layerNames();
-        if (!names) { showPlaceholder("刷新图层列表: 无活动场景"); return; }
-        log("刷新图层列表: 场景=" + app.activeScene.name
-            + " 图层数=" + names.length);
-        if (names.length === 0) {
-            showPlaceholder("刷新图层列表: 场景无图层");
+        if (!names || names.length === 0) {
+            updateCombo("beam", [PLACEHOLDER], 0);
+            updateCombo("left", [PLACEHOLDER], 0);
+            updateCombo("right", [PLACEHOLDER], 0);
+            state.beam = state.left = state.right = null;
             return;
         }
         var bi = pickIndex(names, state.beam, BEAM_KEYWORDS, 0);
@@ -82,9 +67,6 @@
         state.beam = names[bi];
         state.left = names[li];
         state.right = names[ri];
-        log("自动识别: 秤杆=" + state.beam
-            + " | 左平台=" + state.left
-            + " | 右平台=" + state.right);
     }
 
     // 表达式绑定路径以 "." 分段，图层名含点号会解析错乱
@@ -99,9 +81,6 @@
     function parentPlatform(platform, beam, label) {
         var world = platform.worldPosition();
         if (!world) { throw label + " 读取世界位置失败"; }
-        log(label + " [" + platform.name + "] 世界位置 ["
-            + Number(world[0]).toFixed(1) + ", "
-            + Number(world[1]).toFixed(1) + "]");
         if (!platform.setTransformParent(beam)) {
             throw label + " 父级绑定失败";
         }
@@ -113,11 +92,9 @@
             + "rot = " + beam.name + ".transform.rotation;",
             "return -rot;");
         if (err) { throw label + " 反向旋转表达式失败: " + err; }
-        log(label + " 已挂到秤杆 + 反向旋转表达式");
     }
 
     function applyBalance() {
-        log("=== 应用天平生成器 ===");
         var scene = app.activeScene;
         if (!scene) { alert("请先打开一个场景"); return; }
         if (!state.beam || !state.left || !state.right
@@ -144,19 +121,14 @@
             return;
         }
 
-        log("秤杆: " + beam.name + " | 左平台: " + left.name
-            + " | 右平台: " + right.name);
         app.beginUndoGroup("应用天平生成器");
         try {
             // 1. 控制器空对象（查找或新建，AE addNull 等价）
             var ctrl = scene.layer(CTRL_LAYER_NAME);
-            var created = false;
             if (!ctrl) {
                 ctrl = scene.addNull(CTRL_LAYER_NAME);
-                created = !!ctrl;
             }
             if (!ctrl) { throw "无法创建控制器 " + CTRL_LAYER_NAME; }
-            log((created ? "创建" : "复用") + "控制器: " + CTRL_LAYER_NAME);
 
             // 2. 角度数值属性（AE 滑块效果等价）：
             //    已有键则当前帧自动 K 帧，否则直接设值
@@ -179,17 +151,14 @@
                 + "ang = " + CTRL_LAYER_NAME + ".properties."
                 + CTRL_PROP_NAME + ";", "return ang;");
             if (err) { throw "秤杆表达式失败: " + err; }
-            log("秤杆旋转已绑定 " + CTRL_LAYER_NAME + "."
-                + CTRL_PROP_NAME + " = " + angle + "°");
 
             // 4. 平台挂到秤杆（保持视觉位置）+ 反向旋转
             parentPlatform(left, beam, "左平台");
             parentPlatform(right, beam, "右平台");
 
-            log("应用完成！对控制器 [" + CTRL_LAYER_NAME + "] 的 "
-                + CTRL_PROP_NAME + " 属性 K 帧即可记录天平动画");
+            alert("应用完成！拖动上方滑杆实时预览；对控制器「"
+                + CTRL_PROP_NAME + "」属性 K 帧可记录天平动画");
         } catch (err) {
-            log("应用失败: " + err);
             alert("应用失败: " + err);
         } finally {
             app.endUndoGroup();
@@ -208,13 +177,11 @@
         try {
             if (slider.numKeys > 0) {
                 slider.setValueAtFrame(scene.currentFrame, v);
-                log("天平角度 " + v + "° -> 第 " + scene.currentFrame + " 帧关键帧");
             } else {
                 slider.setValue(v);
-                log("天平角度 -> " + v + "°");
             }
         } catch (e) {
-            log("更新角度失败: " + e);
+            alert("更新角度失败: " + e);
         }
     }
 
@@ -248,12 +215,9 @@
         ],
         extraButtons: [
             { label: "▶ 应用",
-              tooltip: "秤杆绑定控制器角度；平台挂到秤杆并反向旋转（保持水平）",
-              onClick: applyBalance },
-            { label: "☰ 调试日志", tooltip: "查看并复制调试日志",
-              onClick: function () {
-                  alert(debugLog.length > 0 ? debugLog.join("\n") : "暂无日志");
-              } }
+              tooltip: "秤杆绑定控制器角度；平台挂到秤杆并反向旋转（保持水平）。"
+                     + "升级脚本后需重新应用一次以刷新表达式",
+              onClick: applyBalance }
         ]
     });
 
