@@ -106,18 +106,17 @@
 
                 // 位置：X = 控制器X + 中心偏移*间距；Y = 控制器Y
                 // （pos + pivot = 视觉中心，故表达式里减去轴心）
+                // 注意：bindings 区只接受属性路径/$frame/$value/$scene.*，
+                // 字面量常量必须烤进 script 函数体
+                var offsetX = (centerOffset * spacing).toFixed(2);
                 var err = layer.property("positionx").setExpression(
-                    "cx = " + CTRL_NAME + ".transform.translation.x;\n" +
-                    "off = " + centerOffset.toFixed(4) + ";\n" +
-                    "sp = " + spacing.toFixed(2) + ";\n" +
-                    "px = " + pivX + ";\n",
-                    "return cx + off * sp - px;");
+                    "cx = " + CTRL_NAME + ".transform.translation.x;",
+                    "return cx + (" + offsetX + ") - " + pivX + ";");
                 if (err) { log(layer.name + " 位置X表达式失败: " + err); continue; }
 
                 err = layer.property("positiony").setExpression(
-                    "cy = " + CTRL_NAME + ".transform.translation.y;\n" +
-                    "py = " + pivY + ";\n",
-                    "return cy - py;");
+                    "cy = " + CTRL_NAME + ".transform.translation.y;",
+                    "return cy - " + pivY + ";");
                 if (err) { log(layer.name + " 位置Y表达式失败: " + err); continue; }
 
                 // 缩放：距画布中心越近越大（X/Y 同步缩放）
