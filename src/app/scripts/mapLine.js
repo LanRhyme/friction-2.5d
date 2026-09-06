@@ -232,30 +232,20 @@
 
         app.beginUndoGroup("生成地图划线");
         try {
-            // 路径来源三级自动规则（须在清选之前读取选中图层）：
-            // 选中的路径层 > 引导路径层（CEP 按名查找遮罩层同款） > 内置样条
+            // 路径来源（须在清选之前读取选中图层）：
+            // 选中的路径层（用「绘制路径」工具画的）> 内置样条
             var pathData = null;
             var selLayers = scene.selectedLayers();
             if (selLayers && selLayers.length > 0) {
                 try {
                     pathData = nodesFromLayer(selLayers[0], "选中路径层");
                 } catch (e) {
-                    log("选中图层不是可用路径，改用引导层/内置样条 (" + e + ")");
-                }
-            }
-            if (!pathData) {
-                var guideSrc = scene.layer("划线引导路径");
-                if (guideSrc) {
-                    try {
-                        pathData = nodesFromLayer(guideSrc, "引导路径层");
-                    } catch (e) {
-                        log("引导路径层不可用: " + e);
-                    }
+                    log("选中图层不是可用路径，改用内置样条 (" + e + ")");
                 }
             }
             if (!pathData) {
                 pathData = { nodes: buildSampleNodes(scene), closed: false };
-                log("路径来源: 内置样条（画路径：点「创建引导路径层」用节点工具调整后再生成）");
+                log("路径来源: 内置样条（画自己的路线：用「绘制路径」工具画一条线并选中，再点生成）");
             }
 
             // 清空选择：确保新图层加到场景顶层而不是用户选中的嵌套组
@@ -388,52 +378,9 @@
                         + info.nodes.length + " 闭合=" + info.closed);
                 }
             }
-
-            // CEP 语义：生成成功后隐藏引导路径层（保留以便再次调整）
-            var guide = scene.layer("划线引导路径");
-            if (guide && guide.visible) {
-                guide.visible = false;
-                log("引导路径层已隐藏（需要再调整时在时间轴重新点亮小眼睛）");
-            }
         } catch (e) {
             log("生成失败: " + e);
             alert("生成失败: " + e);
-        } finally {
-            app.endUndoGroup();
-        }
-    }
-
-    // 创建引导路径层：生成一条可编辑的 S 形线，节点调整后直接点生成
-    // （路径来源自动规则：选中路径层 > 引导路径层 > 内置样条，无需切换）
-    function createGuideLayer() {
-        var scene = app.activeScene;
-        if (!scene) { alert("请先打开一个场景"); return; }
-        app.beginUndoGroup("创建引导路径层");
-        try {
-            // 清选：保证新图层落在场景顶层
-            var selClear = scene.selectedLayers();
-            if (selClear) {
-                for (var si = 0; si < selClear.length; si++) {
-                    selClear[si].selected = false;
-                }
-            }
-            var old = scene.layer("划线引导路径");
-            if (old) {
-                // 已存在：不删除（保留用户调整过的形状），重新显示（静默）
-                old.visible = true;
-                log("引导路径层已存在，已重新显示——节点模式调整形状后直接点生成");
-                return;
-            }
-            var nodes = buildSampleNodes(scene);
-            var layer = scene.addPath("划线引导路径", nodes, false);
-            if (!layer) { throw "创建失败"; }
-            // 引导线预览样式：细虚线
-            layer.setStroke({ width: 3, color: "#4da6ff", cap: "round" });
-            layer.addPathEffect("dash", { dash: 10, gap: 8, offset: 0 });
-            log("已创建引导路径层（静默）——节点模式调整形状后直接点「生成地图划线」");
-        } catch (e) {
-            log("创建引导层失败: " + e);
-            alert("创建失败: " + e);
         } finally {
             app.endUndoGroup();
         }
@@ -499,10 +446,9 @@
               onChange: function (v) { state.tailSize = v; } }
         ],
         extraButtons: [
-            { label: "▶ 生成地图划线", tooltip: "按当前参数生成（重复生成会先删除旧结果）",
-              onClick: generate },
-            { label: "✎ 创建引导路径层", tooltip: "生成一条可编辑的示例线，用节点工具调整后作为路径来源",
-              onClick: createGuideLayer }
+            { label: "▶ 生成地图划线",
+              tooltip: "选中「绘制路径」工具画的路径层后生成=按你的路线；未选中=内置样条（重复生成会先删除旧结果）",
+              onClick: generate }
         ]
     });
 })();
