@@ -29,10 +29,16 @@
 #include <QDebug>
 
 #include "textanimdebug.h"
+#include "hittestdebug.h"
 
 int main(int argc, char **argv)
 {
     QGuiApplication app(argc, argv);
+    if (argc > 1 && qstrcmp(argv[1], "--hittest") == 0) {
+        const bool ok = mapLineHitTestDebug();
+        qWarning() << "[textanimtest] hittest" << (ok ? "done" : "failed");
+        return ok ? 0 : 1;
+    }
     QString outDir = QString::fromUtf8("textanim_frames");
     if (argc > 1) { outDir = QString::fromLocal8Bit(argv[1]); }
     const bool ok = textAnimDebugDumpFrames(outDir);

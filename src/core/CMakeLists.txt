@@ -379,6 +379,7 @@ set(
     switchablecontext.cpp
     swt_abstraction.cpp
     swt_rulescollection.cpp
+    hittestdebug.cpp
     layeranimpresets.cpp
     textanimpresets.cpp
     texteffect.cpp

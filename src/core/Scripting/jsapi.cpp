@@ -196,6 +196,24 @@ namespace Friction
                     }
                 }
             }
+
+            // All C++ objects handed to JS (layers, scenes, paint
+            // proxies, the host itself) are owned and lifetime-managed
+            // on the C++ side. QJSEngine::newQObject defaults to
+            // JavaScriptOwnership, which lets the JS GC delete the
+            // wrapped object - for per-frame wraps like the preview
+            // paint proxy that meant the GC collected a widget member
+            // and corrupted the heap (crash ~1min after generating).
+            // Always pin to CppOwnership before wrapping (the flag
+            // lives on the QObject itself via the static QQmlEngine
+            // setter, honored by plain QJSEngine too).
+            QJSValue wrapOwnedQObject(QJSEngine * const engine,
+                                      QObject * const object)
+            {
+                QQmlEngine::setObjectOwnership(object,
+                                               QQmlEngine::CppOwnership);
+                return engine->newQObject(object);
+            }
         }
 
         //---------------------------- JsPropertyProxy ----------------------------
@@ -539,7 +557,7 @@ namespace Friction
             if (!prop) { return QJSValue(QJSValue::NullValue); }
             const auto proxy = new JsPropertyProxy(QPointer<Property>(prop),
                                                    kind, nullptr);
-            return mEngine->newQObject(proxy);
+            return wrapOwnedQObject(mEngine.data(), proxy);
         }
 
         QJSValue JsLayerProxy::property(const QString &name)
@@ -761,7 +779,7 @@ namespace Friction
             const auto proxy = new JsPropertyProxy(
                         QPointer<Property>(prop),
                         JsPropertyProxy::Kind::Scalar, nullptr);
-            return mEngine->newQObject(proxy);
+            return wrapOwnedQObject(mEngine.data(), proxy);
         }
 
         bool JsLayerProxy::isCamera()
@@ -790,7 +808,7 @@ namespace Friction
             const auto proxy = new JsPropertyProxy(
                         QPointer<Property>(prop),
                         JsPropertyProxy::Kind::Scalar, nullptr);
-            return mEngine->newQObject(proxy);
+            return wrapOwnedQObject(mEngine.data(), proxy);
         }
 
         QJSValue JsLayerProxy::paths()
@@ -811,7 +829,7 @@ namespace Friction
                 const auto proxy = new JsPathProxy(
                             QPointer<SmartPathAnimator>(anim),
                             mEngine.data(), nullptr);
-                arr.setProperty(count++, mEngine->newQObject(proxy));
+                arr.setProperty(count++, wrapOwnedQObject(mEngine.data(), proxy));
             }
             return arr;
         }
@@ -1206,7 +1224,7 @@ namespace Friction
             finishAction();
             const auto proxy = new JsLayerProxy(QPointer<BoundingBox>(copy),
                                                 mEngine.data(), nullptr);
-            return mEngine->newQObject(proxy);
+            return wrapOwnedQObject(mEngine.data(), proxy);
         }
 
         //---------------------------- JsSceneProxy ----------------------------
@@ -1310,7 +1328,7 @@ namespace Friction
             if (!box || !mEngine) { return QJSValue(QJSValue::NullValue); }
             const auto proxy = new JsLayerProxy(QPointer<BoundingBox>(box),
                                                 mEngine.data(), nullptr);
-            return mEngine->newQObject(proxy);
+            return wrapOwnedQObject(mEngine.data(), proxy);
         }
 
         QJSValue JsSceneProxy::layer(const QJSValue &indexOrName)
@@ -1644,7 +1662,7 @@ namespace Friction
 
         void JsHost::installApi()
         {
-            const auto hostObj = mEngine->newQObject(this);
+            const auto hostObj = wrapOwnedQObject(mEngine.get(), this);
             // CppOwnership: the host must survive GC
             QQmlEngine::setObjectOwnership(this, QQmlEngine::CppOwnership);
             mEngine->globalObject().setProperty(QStringLiteral("__host"),
@@ -1652,8 +1670,8 @@ namespace Friction
 
             const auto appProxy = new JsAppProxy(this, this);
             const auto projProxy = new JsProjectProxy(this, this);
-            mAppObj = mEngine->newQObject(appProxy);
-            mProjectObj = mEngine->newQObject(projProxy);
+            mAppObj = wrapOwnedQObject(mEngine.get(), appProxy);
+            mProjectObj = wrapOwnedQObject(mEngine.get(), projProxy);
 
             // AE-flavored globals (app / $ / print / alert / confirm)
             mEngine->evaluate(QStringLiteral(
@@ -1879,7 +1897,7 @@ namespace Friction
             const auto &fn = mPanelDesc.preview.onPaint;
             if (!fn.isCallable() || !paintProxy || !mEngine) { return; }
             QJSValueList args;
-            args << mEngine->newQObject(paintProxy);
+            args << wrapOwnedQObject(mEngine.get(), paintProxy);
             auto f = fn;
             const auto result = f.call(args);
             if (result.isError()) {
@@ -1983,7 +2001,7 @@ namespace Friction
                 const auto proxy = new JsSceneProxy(QPointer<Canvas>(scene),
                                                     mEngine.get(), this);
                 mSceneProxy = proxy;
-                mSceneObj = mEngine->newQObject(proxy);
+                mSceneObj = wrapOwnedQObject(mEngine.get(), proxy);
             }
             return mSceneObj;
         }
