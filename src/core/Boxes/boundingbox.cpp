@@ -25,6 +25,7 @@
 
 #include "Boxes/boundingbox.h"
 #include "Boxes/bone.h"
+#include "Boxes/cameralayer.h"
 #include "Animators/motionpathhandler.h"
 #include "Boxes/containerbox.h"
 #include "TransformEffects/followpatheffect.h"
@@ -1519,18 +1520,33 @@ void BoundingBox::setupWithoutRasterEffects(const qreal relFrame,
     // switch enabled are affected - plain 2D layers live in screen
     // space; the canvas itself is skipped too - its own render data
     // composites the already-camera-mapped children)
+    // per-layer 2.5D camera: the matrix is built for THIS layer's
+    // depth (Parallaxer semantics - identity at the default camera,
+    // each layer peels apart by its own z when the camera moves,
+    // zooms or orbits) and un-does the billboard shrink around the
+    // layer's world pivot so the depth is expressed purely through
+    // the camera
     data->fSceneCameraT.reset();
     data->fHasSceneCamera = false;
     if(mType != eBoxType::canvas && mTransformAnimator->is3DEnabled()) {
-        const SkMatrix cam = scene->getCameraTransformAtFrame(relFrame);
-        if(!cam.isIdentity()) {
-            data->fSceneCameraT = cam;
-            data->fHasSceneCamera = true;
-            // a camera with tilt has perspective terms: reuse the
-            // fHasPerspective convention so direct-draw paths fall
-            // back to offscreen rasterization
-            if(scene->cameraHasPerspectiveAtFrame(relFrame)) {
-                data->fHasPerspective = true;
+        if(scene->getCameraLayer()) {
+            const qreal camZ =
+                    mTransformAnimator->get3DZPosAtFrame(relFrame);
+            const qreal camF =
+                    mTransformAnimator->getPerspectiveAtFrame(relFrame);
+            const QPointF pivotW = (thisRelM*parentM).map(
+                        mTransformAnimator->getPivot());
+            const SkMatrix cam = scene->getCameraPerLayerTransformAtFrame(
+                        relFrame, camZ, camF, pivotW);
+            if(!CameraLayer::isEffectivelyIdentity(cam)) {
+                data->fSceneCameraT = cam;
+                data->fHasSceneCamera = true;
+                // a camera with tilt has perspective terms: reuse the
+                // fHasPerspective convention so direct-draw paths fall
+                // back to offscreen rasterization
+                if(scene->cameraHasPerspectiveAtFrame(relFrame)) {
+                    data->fHasPerspective = true;
+                }
             }
         }
     }
@@ -1621,9 +1637,21 @@ void BoundingBox::updateDrawRenderContainerTransform() {
                             mTransformAnimator->get3DTransformAtFrame(relFrame));
             }
             const auto scene = getParentScene();
-            if(scene) {
-                const SkMatrix cam = scene->getCameraTransformAtFrame(relFrame);
-                if(!cam.isIdentity()) full = SkMatrix::Concat(cam, full);
+            if(scene && scene->getCameraLayer()) {
+                // same per-layer camera family as the render data
+                // (depth-aware, billboard shrink undone)
+                const qreal camZ =
+                        mTransformAnimator->get3DZPosAtFrame(relFrame);
+                const qreal camF =
+                        mTransformAnimator->getPerspectiveAtFrame(relFrame);
+                SkPoint pivotPt = toSkPoint(mTransformAnimator->getPivot());
+                full.mapPoints(&pivotPt, &pivotPt, 1);
+                const QPointF pivotW = toQPointF(pivotPt);
+                const SkMatrix cam = scene->getCameraPerLayerTransformAtFrame(
+                            relFrame, camZ, camF, pivotW);
+                if(!CameraLayer::isEffectivelyIdentity(cam)) {
+                    full = SkMatrix::Concat(cam, full);
+                }
             }
         }
         mDrawRenderContainer.updatePaintTransformGivenNewTotalTransform(full);

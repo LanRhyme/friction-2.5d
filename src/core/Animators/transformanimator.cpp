@@ -572,6 +572,12 @@ bool AdvancedTransformAnimator::has3DTransformAtFrame(
     return false;
 }
 
+qreal AdvancedTransformAnimator::getPerspectiveAtFrame(
+        const qreal relFrame) const {
+    qreal p = mPerspectiveAnimator->getEffectiveValue(relFrame);
+    return p > 1. ? p : 800.;
+}
+
 qreal AdvancedTransformAnimator::get3DZPosAtFrame(
         const qreal relFrame) const {
     return mZPosAnimator->getEffectiveValue(relFrame);

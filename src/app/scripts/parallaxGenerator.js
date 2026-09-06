@@ -1,13 +1,13 @@
 // parallaxGenerator.js — 视差生成器（AE CEP "Parallaxer" 移植）
 //
-// 一键搭建 2.5D 视差场景：内容层沿 Z 轴分布 + 每层挂补偿表达式。
-// 相机直接用 Friction 原生摄像机图层：动画摄像机的 平移X/Y 与 缩放
-// （=推拉）即产生真实景深视差（近层动得多、远层动得少）。
+// 一键搭建 2.5D 视差场景：内容层沿 Z 轴分布 + 场景摄像机。
+// 视差由引擎逐层相机矩阵直接渲染（Parallaxer 语义）：
+// - 相机在默认位置时，画面与原始平铺完全一致（图层大小不变）
+// - 相机平移 / 推拉（缩放）/ 轨道旋转时，各层按自身 Z 深度
+//   错开 —— 近层动得多、远层动得少，旋转也错层
 //
-// 原理：Friction 相机本身是画布级统一变换（无视差），每层表达式
-// 负责 ① 抵消统一变换 ② 按本层 Z 深度做针孔投影。默认相机参数下
-// 画面与原始平铺完全一致。旋转/倾斜未做抵消——视差模式请只用
-// 平移与缩放操作相机。
+// 相机操作：摄像机工具下 Shift+左键=平移、Ctrl+左键=推拉、
+// 左键=轨道旋转，或在时间线 K 摄像机图层的动画器关键帧。
 (function () {
     var debugLog = [];
     function log(msg) {
@@ -17,15 +17,13 @@
     }
 
     var WARN_TEXT = "视差已激活 - 完成后请烘焙";
-    // 旧版控制器方案的空对象层名（AE 原版同款 "- CAM CTRL -" 机制
-    // 已弃用：Friction 版直接动画原生摄像机，无父级绑定）
+    // 旧版控制器方案的空对象层名（已弃用：视差由引擎相机直接渲染）
     var LEGACY_CTRL_NAME = "CAM CTRL";
 
     // AE 原版校准常量（按 1920x1080 标定，随画布比例缩放）
-    var CAM_ZOOM = 1493.3;
-    var SIZE_DIV = 4820;
     var Z_START = 35;
     var Z_END = 4285;
+    var SIZE_DIV = 4820;
 
     function getScene() {
         var scene = app.activeScene;
@@ -38,20 +36,6 @@
                layer.name === LEGACY_CTRL_NAME ||
                layer.name === WARN_TEXT ||
                layer.name.indexOf("视差已激活") === 0;
-    }
-
-    // 旧版（控制器方案）残留的 CAM CTRL 空对象层：应用视差时
-    // 自动删除——原生摄像机方案不需要任何父级空对象
-    function removeLegacyCtrl(scene) {
-        var ls = scene.layers();
-        for (var i = 0; i < ls.length; i++) {
-            if (ls[i].name === LEGACY_CTRL_NAME) {
-                ls[i].remove();
-                log("已删除旧版残留的控制器层: " + LEGACY_CTRL_NAME);
-                return true;
-            }
-        }
-        return false;
     }
 
     function findCamera(scene) {
@@ -83,67 +67,17 @@
         return out;
     }
 
-    function sizeFactor(scene) {
-        return (scene.width + scene.height) / SIZE_DIV;
-    }
-
-    // ---- 每层补偿表达式 -------------------------------------------------
-    // 绑定：$value(基值)/$scene/本层 Z 与透视/$camera().panX/.panY/.zoom
-    // 铁律：必须绑 frame=$frame（否则换帧冻结）；常量烤进 script 体
-    //
-    // Friction 相机统一变换 cam(q) = C + zoom*(q - C - pan)，
-    // 针孔投影（zoom 解释为推近倍率，相机距离 d = Z0/zoom）：
-    //   X = C + k*(L - C - pan)，k = Z0*zoom/(Z0 + z*zoom)
-    // 抵消 + 投影（令 t = Z0/(Z0 + z*zoom)，u = 层中心偏画布中心）：
-    //   新位置 = v + pan + t*((Z0+z)/Z0*u - pan) - u
-    //   新缩放 = s * (Z0+z)/(Z0 + z*zoom) * (f+z)/f   ← 末项抵消 billboard
-    // 默认（pan=0, zoom=1）：t*(Z0+z)/Z0 = 1，位置/缩放还原原画面
-    function bindLayer(layer, Z0, cX, cY, sw, sh) {
-        var z0Lit = Z0.toFixed(2);
-
-        var posBindingsX =
-            "frame = $frame;\n" +
-            "v = $value;\n" +
-            "sw = $scene.width;\n" +
-            "z = transform.3D position Z;\n" +
-            "px = $camera().panX;\n" +
-            "zm = $camera().zoom;\n";
-        var posBindingsY =
-            "frame = $frame;\n" +
-            "v = $value;\n" +
-            "sh = $scene.height;\n" +
-            "z = transform.3D position Z;\n" +
-            "py = $camera().panY;\n" +
-            "zm = $camera().zoom;\n";
-
-        var err = layer.property("positionx").setExpression(
-            posBindingsX,
-            "var u = v + " + cX.toFixed(2) + " - sw/2;\n" +
-            "var t = " + z0Lit + "/(" + z0Lit + " + z*zm);\n" +
-            "return v + px + t*((" + z0Lit + " + z)/" + z0Lit + "*u - px) - u;");
-        if (err) { return "位置X: " + err; }
-
-        err = layer.property("positiony").setExpression(
-            posBindingsY,
-            "var u = v + " + cY.toFixed(2) + " - sh/2;\n" +
-            "var t = " + z0Lit + "/(" + z0Lit + " + z*zm);\n" +
-            "return v + py + t*((" + z0Lit + " + z)/" + z0Lit + "*u - py) - u;");
-        if (err) { return "位置Y: " + err; }
-
-        var scaleBindings =
-            "frame = $frame;\n" +
-            "s = $value;\n" +
-            "z = transform.3D position Z;\n" +
-            "f = transform.3D perspective;\n" +
-            "zm = $camera().zoom;\n";
-        var scaleScript =
-            "return s*(" + z0Lit + " + z)/(" + z0Lit + " + z*zm)*(f + z)/f;";
-
-        err = layer.property("scalex").setExpression(scaleBindings, scaleScript);
-        if (err) { return "缩放X: " + err; }
-        err = layer.property("scaley").setExpression(scaleBindings, scaleScript);
-        if (err) { return "缩放Y: " + err; }
-        return "";
+    // 旧版残留的控制器空对象：自动删除
+    function removeLegacyCtrl(scene) {
+        var ls = scene.layers();
+        for (var i = 0; i < ls.length; i++) {
+            if (ls[i].name === LEGACY_CTRL_NAME) {
+                ls[i].remove();
+                log("已删除旧版残留的控制器层: " + LEGACY_CTRL_NAME);
+                return true;
+            }
+        }
+        return false;
     }
 
     // ---- 1. 应用视差 ----------------------------------------------------
@@ -151,29 +85,20 @@
         var scene = getScene();
         if (!scene) { return; }
 
-        var layers = contentLayers(scene);
-        if (layers.length === 0) { alert("场景中没有可处理的图层。"); return; }
-
-        // 已应用检测：任一内容层位置带表达式
-        var applied = false;
-        for (var i = 0; i < layers.length; i++) {
-            if (layers[i].property("positionx").hasExpression()) {
-                applied = true; break;
-            }
-        }
-        if (applied) {
+        if (findWarningLayer(scene)) {
             alert("视差生成器已应用于此场景。\n如需重新生成，请先「烘焙」。");
             return;
         }
 
-        var sf = sizeFactor(scene);
-        var Z0 = +(CAM_ZOOM * sf).toFixed(2);
+        var layers = contentLayers(scene);
+        if (layers.length === 0) { alert("场景中没有可处理的图层。"); return; }
+
+        var sf = (scene.width + scene.height) / SIZE_DIV;
         var zStart = Z_START * sf;
         var zEnd = Z_END * sf;
 
         app.beginUndoGroup("应用视差");
         try {
-            // 清理旧版残留的控制器空对象
             removeLegacyCtrl(scene);
 
             // 相机：直接用/建 Friction 原生摄像机图层
@@ -186,30 +111,14 @@
             if (!cam) { throw "无法创建摄像机图层"; }
 
             var n = layers.length;
-            var errs = [];
             for (var i = 0; i < n; i++) {
                 var L = layers[i];
-                // 3D 开关必须先开：3D 子轴 SWT 可见后表达式绑定才能解析
+                // 3D 开关打开后 zPos 才参与相机投影
                 if (!L.is3DEnabled()) { L.set3DEnabled(true); }
-
                 // AE 版分布：顶层(索引0=最前景)拿最小 z
                 var z = zStart + (zEnd - zStart) * i / Math.max(n - 1, 1);
                 L.zPosition().setValue(+z.toFixed(2));
-
-                // 轴心归一到内容中心（billboard 缩放中心 = 投影参考点）
-                var cX = 0, cY = 0;
-                var b = L.bounds();
-                if (b && isFinite(b.width) && isFinite(b.height)) {
-                    cX = b.left + b.width / 2;
-                    cY = b.top + b.height / 2;
-                    L.setAnchorPoint([cX, cY]);
-                }
-
-                var err = bindLayer(L, Z0, cX, cY, scene.width, scene.height);
-                if (err) { errs.push("[" + L.name + "] " + err); }
-                log("已设置: " + L.name + "  z=" + z.toFixed(1) +
-                    "  轴心=(" + cX.toFixed(0) + "," + cY.toFixed(0) + ")" +
-                    (err ? "  表达式错误: " + err : ""));
+                log("已设置: " + L.name + "  z=" + z.toFixed(1));
             }
 
             // 警告层（AE 版同款提示）
@@ -219,15 +128,10 @@
                     [scene.width / 2, (scene.width + scene.height) / 60]);
             }
 
-            // 静默成功：不打扰，结果进日志
+            // 静默成功：结果进日志
             log("应用视差完成: 层数=" + n + " 相机=" +
                 (camCreated ? "新建" : "沿用现有") +
-                " Z0=" + Z0 + " z=" + zStart.toFixed(1) + "→" + zEnd.toFixed(1));
-
-            if (errs.length > 0) {
-                alert("应用完成，但 " + errs.length + " 个图层表达式失败：\n" +
-                      errs.join("\n"));
-            }
+                " z=" + zStart.toFixed(1) + "→" + zEnd.toFixed(1));
         } catch (e) {
             alert("应用视差出错: " + e);
             log("setup 异常: " + e);
@@ -236,7 +140,7 @@
         }
     }
 
-    // ---- 2. 间距调节（AE 版：围绕中位面 Z 缩放，直接数学实现） -----------
+    // ---- 2. 间距调节（AE 版：围绕中位面 Z 缩放） -------------------------
     function adjustSpacing(factor, label) {
         var scene = getScene();
         if (!scene) { return; }
@@ -331,9 +235,7 @@
     }
 
     // ---- 5. 预览视差 ----------------------------------------------------
-    // 默认视角下画面恒=原始平铺（补偿设计，AE 同款），深度只在相机
-    // 参数变化时显现。一键推近 25% 让近/远层差异立刻可见，再点恢复。
-    // 同时是端到端自检：读表达式生效值与基值对比写日志。
+    // 默认视角画面=原始平铺（设计行为），一键推近 25% 立见层次效果
     var previewOn = false;
     function togglePreview() {
         var scene = getScene();
@@ -348,19 +250,8 @@
             if (!previewOn) {
                 cam.cameraProperty("zoom").setValue(1.25);
                 previewOn = true;
-                // 自检：表达式生效值应偏离基值且近层偏差>远层
-                var layers = contentLayers(scene);
-                for (var i = 0; i < layers.length; i++) {
-                    var p = layers[i].property("positionx");
-                    var s = layers[i].property("scalex");
-                    log("预览自检: " + layers[i].name +
-                        " 位置X 基值=" + p.value +
-                        " 生效值=" + p.effectiveValue() +
-                        " 缩放X 基值=" + s.value +
-                        " 生效值=" + s.effectiveValue());
-                }
                 log("预览视差已开启（推近 25%）：近景层放大明显、远景层几乎不动；" +
-                    "再点一次恢复。若画面仍无层次差异=表达式未生效，请反馈日志。");
+                    "再点一次恢复");
             } else {
                 resetCamera(cam);
                 previewOn = false;
@@ -375,18 +266,11 @@
     }
 
     // ---- 6. 烘焙 --------------------------------------------------------
-    // AE 版语义：删警告层 + 重置相机 + 表达式值固化 + 删全部键。
-    // Friction 要点：
-    // - 相机 pan/zoom/rotZ 的关键帧必须清掉：表达式删除后相机的
-    //   统一变换仍会作用于全部层，残留动画会污染静态画面
-    // - 位置表达式在默认相机下输出=基值，clearExpression 即还原
-    // - 缩放固化 s*(f+z)/f：zPos 保留时 billboard 透视仍在，固化值
-    //   内含抵消因子，画面严格保持 flat 原样
+    // AE 版语义：删警告层 + 重置相机 + 清相机动画关键帧。
+    // 图层保持 3D 与 Z 分布（AE 同款，之后仍可继续用相机运镜）。
     function doBake() {
         var scene = getScene();
         if (!scene) { return; }
-        // 旧版（控制器方案）场景可能没有摄像机：跳过相机清理，
-        // 照常固化图层（兼容旧工程迁移）
         var cam = findCamera(scene);
 
         app.beginUndoGroup("烘焙");
@@ -395,7 +279,7 @@
             if (warn) { warn.remove(); }
             removeLegacyCtrl(scene);
 
-            // 清相机动画 + 归零（统一变换必须消失）
+            // 清相机动画 + 归零
             if (cam) {
                 var keys = ["panX", "panY", "zoom", "rotZ"];
                 for (var k = 0; k < keys.length; k++) {
@@ -405,45 +289,11 @@
                 resetCamera(cam);
             }
 
-            var layers = contentLayers(scene);
-            var done = 0;
-            for (var i = 0; i < layers.length; i++) {
-                var L = layers[i];
-                try {
-                    var z = L.zPosition().value;
-                    var f = L.perspective().value;
-                    if (!isFinite(f) || f < 1) { f = 800; }
-                    var comp = (f + z) / f;
-
-                    var sx = L.property("scalex");
-                    var sy = L.property("scaley");
-                    if (sx.hasExpression()) {
-                        var sv = sx.value * comp;
-                        sx.clearExpression();
-                        sx.setValue(+sv.toFixed(4));
-                    }
-                    if (sy.hasExpression()) {
-                        var sv2 = sy.value * comp;
-                        sy.clearExpression();
-                        sy.setValue(+sv2.toFixed(4));
-                    }
-                    var px = L.property("positionx");
-                    var py = L.property("positiony");
-                    if (px.hasExpression()) { px.clearExpression(); }
-                    if (py.hasExpression()) { py.clearExpression(); }
-                    done++;
-                    log("已烘焙: " + L.name + " z=" + z.toFixed(1) +
-                        " 缩放补偿=" + comp.toFixed(3));
-                } catch (e) {
-                    log("烘焙失败 [" + L.name + "]: " + e);
-                }
-            }
-
             // 取消全部选中（AE 版行为）
             var ls2 = scene.layers();
             for (var i = 0; i < ls2.length; i++) { ls2[i].selected = false; }
 
-            log("烘焙完成: " + done + "/" + layers.length + " 层");
+            log("烘焙完成（相机动画已清除）");
         } catch (e) {
             alert("出错: " + e);
             log("bake 异常: " + e);
@@ -469,9 +319,9 @@
               onClick: function () { set3DBatch(false); } },
             { label: "预览视差", tooltip: "相机推近 25% 立即查看层次效果（再点恢复）。默认视角画面=原始平铺，深度只在相机变化时显现",
               onClick: togglePreview },
-            { label: "重置相机", tooltip: "相机平移/缩放归零（画面=原始平铺）",
+            { label: "重置相机", tooltip: "相机平移/缩放/旋转归零（画面=原始平铺）",
               onClick: doResetCamera },
-            { label: "烘焙", tooltip: "移除表达式与相机动画，固化画面",
+            { label: "烘焙", tooltip: "删除提示层并清除相机动画关键帧（图层保持 3D 深度）",
               onClick: doBake }
         ],
         extraButtons: [

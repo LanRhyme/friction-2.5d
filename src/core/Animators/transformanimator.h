@@ -210,6 +210,9 @@ public:
     SkMatrix get3DTransformAtFrame(const qreal relFrame) const;
     bool has3DTransformAtFrame(const qreal relFrame) const;
     qreal get3DZPosAtFrame(const qreal relFrame) const;
+    // the billboard focal actually used by get3DTransformAtFrame
+    // (values <= 1 fall back to 800 there)
+    qreal getPerspectiveAtFrame(const qreal relFrame) const;
 
     // after reading a saved transform, re-enable 2.5D when the file
     // carries non-default 3D values (the enabled flag itself is not

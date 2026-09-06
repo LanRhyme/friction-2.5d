@@ -119,3 +119,97 @@ bool CameraLayer::hasPerspectiveAtFrame(const qreal relFrame) const {
     return qAbs(mRotX->getEffectiveValue(relFrame)) > 0.001 ||
            qAbs(mRotY->getEffectiveValue(relFrame)) > 0.001;
 }
+
+bool CameraLayer::isEffectivelyIdentity(const SkMatrix& m) {
+    return qAbs(qreal(m[0]) - 1.) < 1e-4 &&
+           qAbs(qreal(m[4]) - 1.) < 1e-4 &&
+           qAbs(qreal(m[8]) - 1.) < 1e-4 &&
+           qAbs(qreal(m[1])) < 1e-4 && qAbs(qreal(m[3])) < 1e-4 &&
+           qAbs(qreal(m[2])) < 1e-4 && qAbs(qreal(m[5])) < 1e-4 &&
+           qAbs(qreal(m[6])) < 1e-4 && qAbs(qreal(m[7])) < 1e-4;
+}
+
+// model (canvas coords, q = point - canvas center):
+//   comp = (F + z) / F                     Parallaxer compensation
+//   k    = F / zoom                        camera distance to the
+//                                          focus point O (canvas center)
+//   camera attitude R = Ry(rotY) * Rx(rotX) (rigid orbit around O)
+//   camera center  C = R * (0,0,-k) + (panX, panY, 0)
+//   layer point    p = (comp*qx, comp*qy, z)
+//   view = R^T * (p - C),  screen = center + F * view.xy / view.z
+// Default camera: C = (pan 0, -F), p - C = (comp*q, comp*F) = comp*(q,F)
+// -> screen = q for EVERY depth (the flat look). As soon as the
+// camera orbits (C.x/C.y leave the view axis) or pans/zooms, the
+// layers peel apart by their own depth - the C.x/C.y orbit terms are
+// what make ROTATION parallax work (a pure attitude spin cannot
+// separate comp-compensated layers: their view vectors stay parallel).
+SkMatrix CameraLayer::getCameraPerLayerTransformAtFrame(
+        const qreal relFrame, const qreal canvasW, const qreal canvasH,
+        const qreal layerZ, const qreal layerFocal,
+        const QPointF& pivotW) const {
+    const qreal panX = mPanX->getEffectiveValue(relFrame);
+    const qreal panY = mPanY->getEffectiveValue(relFrame);
+    const qreal zoom = mZoom->getEffectiveValue(relFrame);
+    const qreal rotZ = mRotZ->getEffectiveValue(relFrame);
+    const qreal rotX = mRotX->getEffectiveValue(relFrame);
+    const qreal rotY = mRotY->getEffectiveValue(relFrame);
+    qreal f = mFocal->getEffectiveValue(relFrame);
+    if(f < 1.) f = 800.;
+    const qreal cx = canvasW * 0.5;
+    const qreal cy = canvasH * 0.5;
+    const qreal rx = qDegreesToRadians(rotX);
+    const qreal ry = qDegreesToRadians(rotY);
+    const qreal crx = std::cos(rx);
+    const qreal srx = std::sin(rx);
+    const qreal cry = std::cos(ry);
+    const qreal sry = std::sin(ry);
+    const qreal comp = (f + layerZ) / f;
+    const qreal k = f / qMax(zoom, 0.01);
+    // v = p - C, C = (panX - k*sry*crx, panY + k*srx, -k*cry*crx)
+    const qreal b0 = -panX + k * sry * crx;   // v0 = comp*qx + b0
+    const qreal b1 = -panY - k * srx;         // v1 = comp*qy + b1
+    // keep the depth term away from 0 (layer at/behind the camera)
+    const qreal v2 = qMax(layerZ + k * cry * crx, 1.);
+
+    // homography on centered coords q: screen - center = Hc(q)
+    //   N_x = F*(cry*v0 - sry*v2)
+    //   N_y = F*(srx*sry*v0 + crx*v1 + cry*srx*v2)
+    //   D   = sry*crx*v0 - srx*v1 + cry*crx*v2
+    SkMatrix hc;
+    hc.setAll(toSkScalar(f * cry * comp), 0.,
+              toSkScalar(f * (cry * b0 - sry * v2)),
+              toSkScalar(f * srx * sry * comp),
+              toSkScalar(f * crx * comp),
+              toSkScalar(f * (srx * sry * b0 + crx * b1 + cry * srx * v2)),
+              toSkScalar(sry * crx * comp), toSkScalar(-srx * comp),
+              toSkScalar(sry * crx * b0 - srx * b1 + cry * crx * v2));
+
+    // back to canvas coords: T(center) * Hc * T(-center)
+    SkMatrix pre;  pre.setTranslate(toSkScalar(-cx), toSkScalar(-cy));
+    SkMatrix post; post.setTranslate(toSkScalar(cx), toSkScalar(cy));
+    SkMatrix result = SkMatrix::Concat(post, SkMatrix::Concat(hc, pre));
+
+    // camera roll around the canvas center, after the projection
+    if(qAbs(rotZ) > 0.001) {
+        SkMatrix r;
+        r.setRotate(toSkScalar(rotZ));
+        result = SkMatrix::Concat(post, SkMatrix::Concat(r,
+                SkMatrix::Concat(pre, result)));
+    }
+
+    // undo the layer billboard shrink f/(f+z) around its world pivot
+    // so the depth is expressed purely through the camera (the input
+    // content has already been billboarded by the render pipeline)
+    const qreal fl = qMax(layerFocal, 1.);
+    const qreal kk = (fl + layerZ) / fl;
+    if(qAbs(kk - 1.) > 1e-6) {
+        SkMatrix toPivot;   toPivot.setTranslate(toSkScalar(pivotW.x()),
+                                                 toSkScalar(pivotW.y()));
+        SkMatrix scl;       scl.setScale(toSkScalar(kk), toSkScalar(kk));
+        SkMatrix fromPivot; fromPivot.setTranslate(toSkScalar(-pivotW.x()),
+                                                   toSkScalar(-pivotW.y()));
+        result = SkMatrix::Concat(result,
+                SkMatrix::Concat(toPivot, SkMatrix::Concat(scl, fromPivot)));
+    }
+    return result;
+}
