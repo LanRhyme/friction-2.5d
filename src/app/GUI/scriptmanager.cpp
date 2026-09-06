@@ -344,10 +344,11 @@ void ScriptManager::createPanel(Friction::Core::JsHost * const host)
 
     const auto dock = new QDockWidget(mMainWindow);
     // unique objectName from the script title (stable across reloads
-    // for saveState persistence); renamed from "dockScriptPanel_" so
-    // layouts saved with the old docked default stop pinning these
-    // panels back into the dock area - script panels open floating now
-    dock->setObjectName(QStringLiteral("dockScriptFloat_%1")
+    // for saveState persistence) - must stay "dockScriptPanel_" so a
+    // saved layout keeps restoring panels the user docked on purpose;
+    // panels with no saved entry (newly installed scripts) simply stay
+    // in the floating state set below
+    dock->setObjectName(QStringLiteral("dockScriptPanel_%1")
                         .arg(QString::fromUtf8(desc.title.toUtf8()
                                                .toBase64(
                                                    QByteArray::Base64UrlEncoding |
