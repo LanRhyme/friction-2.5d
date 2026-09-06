@@ -94,6 +94,8 @@
 
     // 平台挂到秤杆：变换父级继承（AE pick whip 语义，任意图层类型可用），
     // 记录世界位置绑定后补偿，再加反向旋转表达式（平台始终水平）
+    // $frame 生死线：表达式引擎对"静态"表达式会按恒值缓存，
+    // 不绑 $frame 拖动滑杆值变了画面不动（cardScale/轮播同款铁律）
     function parentPlatform(platform, beam, label) {
         var world = platform.worldPosition();
         if (!world) { throw label + " 读取世界位置失败"; }
@@ -107,7 +109,9 @@
             throw label + " 位置补偿失败";
         }
         var err = platform.rotation().setExpression(
-            "rot = " + beam.name + ".transform.rotation;", "return -rot;");
+            "frame = $frame;\n"
+            + "rot = " + beam.name + ".transform.rotation;",
+            "return -rot;");
         if (err) { throw label + " 反向旋转表达式失败: " + err; }
         log(label + " 已挂到秤杆 + 反向旋转表达式");
     }
@@ -167,10 +171,12 @@
             }
 
             // 3. 秤杆旋转表达式 <- 控制器角度
+            //    （$frame 生死线：不绑会被当恒值缓存，拖滑杆画面不动）
             var beamRot = beam.rotation();
             if (!beamRot) { throw "秤杆无旋转属性"; }
             var err = beamRot.setExpression(
-                "ang = " + CTRL_LAYER_NAME + ".properties."
+                "frame = $frame;\n"
+                + "ang = " + CTRL_LAYER_NAME + ".properties."
                 + CTRL_PROP_NAME + ";", "return ang;");
             if (err) { throw "秤杆表达式失败: " + err; }
             log("秤杆旋转已绑定 " + CTRL_LAYER_NAME + "."
@@ -202,8 +208,10 @@
         try {
             if (slider.numKeys > 0) {
                 slider.setValueAtFrame(scene.currentFrame, v);
+                log("天平角度 " + v + "° -> 第 " + scene.currentFrame + " 帧关键帧");
             } else {
                 slider.setValue(v);
+                log("天平角度 -> " + v + "°");
             }
         } catch (e) {
             log("更新角度失败: " + e);
