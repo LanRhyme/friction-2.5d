@@ -25,6 +25,10 @@
 #include "efiltersettings.h"
 #include "Boxes/smartvectorpath.h"
 #include "Boxes/containerbox.h"
+#include "MovablePoints/smartnodepoint.h"
+#include "MovablePoints/pointshandler.h"
+#include "Animators/SmartPath/smartpathanimator.h"
+#include "simpletask.h"
 #include "canvas.h"
 
 #define HT_BCRUMB(what) \
@@ -146,6 +150,107 @@ bool mapLineHitTestDebug()
                group->getPointAtAbsPos(probe, CanvasMode::pointTransform, 1.0));
     } else {
         HT_BCRUMB("case C SKIPPED (HT_RUN_C not set)")
+    }
+
+    // --- case E: anchor VALIDITY - rebuild the full map-line layer
+    // structure (center line + outline layer whose local path is
+    // emptied by the path-source link), then drag the first node the
+    // way a canvas node drag does. A dead anchor leaves the path
+    // data unchanged; a live anchor moves it. Gated behind HT_RUN_E
+    // so a headless crash in the transform flow cannot take down the
+    // rest of the matrix.
+    if (qEnvironmentVariableIsSet("HT_RUN_E")) {
+        HT_BCRUMB("case E begin")
+        auto center2 = enve::make_shared<SmartVectorPath>();
+        center2->loadSkPath(path);
+        auto outline2 = enve::make_shared<SmartVectorPath>();
+        outline2->loadSkPath(path);
+        outline2->setPathSource(center2.get());
+        HT_BCRUMB("E structure built")
+
+        // E1: point inventory. the outline's local nodes must be gone
+        // (setPathToEmpty); the center keeps all of them
+        const auto centerColl = center2->getPathAnimator();
+        const auto outlineColl = outline2->getPathAnimator();
+        auto centerChild = centerColl
+                ? centerColl->ca_getChildAt<SmartPathAnimator>(0) : nullptr;
+        auto outlineChild = outlineColl
+                ? outlineColl->ca_getChildAt<SmartPathAnimator>(0) : nullptr;
+        const auto centerHandler = centerChild
+                ? centerChild->getPointsHandler() : nullptr;
+        const auto outlineHandler = outlineChild
+                ? outlineChild->getPointsHandler() : nullptr;
+        fprintf(stderr, "[HIT-TEST] E1 inventory center nodes=%d outline nodes=%d\n",
+                centerHandler ? centerHandler->count() : -1,
+                outlineHandler ? outlineHandler->count() : -1);
+        fflush(stderr);
+
+        // E2: drag the center's first node 40/25 px and see whether
+        // the path data follows (this is what "useless anchor" means
+        // when the user drags one: data does not move)
+        auto dragPt = centerHandler
+                ? centerHandler->getPointWithId<SmartNodePoint>(0) : nullptr;
+        const SkPoint beforePt = center2->getRelativePath(0).getPoint(0);
+        if (dragPt) {
+            dragPt->startTransform();
+            dragPt->setAbsolutePos(QPointF(140, 125));
+            dragPt->finishTransform();
+        }
+        const SkPoint afterPt = center2->getRelativePath(0).getPoint(0);
+        const bool moved = qAbs(afterPt.x() - beforePt.x()) > 1.f ||
+                           qAbs(afterPt.y() - beforePt.y()) > 1.f;
+        fprintf(stderr, "[HIT-TEST] E2 node-drag (%.1f,%.1f) -> (%.1f,%.1f) : %s\n",
+                beforePt.x(), beforePt.y(), afterPt.x(), afterPt.y(),
+                dragPt ? (moved ? "LIVE (data moved)" : "DEAD (data unchanged)")
+                       : "no drag point");
+        fflush(stderr);
+
+        // E3: the outline (linked geometry) must reflect the dragged
+        // center immediately at the data level
+        const SkPoint followPt = outline2->getRelativePath(0).getPoint(0);
+        fprintf(stderr, "[HIT-TEST] E3 outline follow (%.1f,%.1f) expected (140.0,125.0) : %s\n",
+                followPt.x(), followPt.y(),
+                (qAbs(followPt.x() - 140.f) < 1.f &&
+                 qAbs(followPt.y() - 125.f) < 1.f)
+                    ? "FOLLOWED" : "STALE");
+        fflush(stderr);
+
+        // E4: the outline must expose no draggable node of its own
+        report("E4 outline own-node target",
+               outlineHandler
+                   ? outlineHandler->getPointWithId<SmartNodePoint>(0) : nullptr);
+
+        // E5: repaint wiring - dragging the center must notify the
+        // outline (the linked layer refreshes through the source
+        // collection's prp_currentFrameChanged, the only signal the
+        // path-source link connects). Count signals fired by a
+        // SECOND drag so the connect is the production one.
+        int frameSigs = 0;
+        if (centerColl) {
+            QObject::connect(centerColl, &Property::prp_currentFrameChanged,
+                             [&frameSigs](UpdateReason) { frameSigs++; });
+        }
+        auto dragPt2 = centerHandler
+                ? centerHandler->getPointWithId<SmartNodePoint>(1) : nullptr;
+        if (dragPt2) {
+            dragPt2->startTransform();
+            dragPt2->setAbsolutePos(QPointF(300, 200));
+            dragPt2->finishTransform();
+        }
+        // the drag notifies through SimpleTaskScheduler (deferred);
+        // flush the queue the way the GUI event loop would
+        SimpleTask::sProcessAll();
+        fprintf(stderr, "[HIT-TEST] E5 drag signals frame=%d : %s\n",
+                frameSigs,
+                (frameSigs > 0)
+                    ? "NOTIFIED (linked layer repaints)" : "SILENT (stale until frame change)");
+        fflush(stderr);
+
+        outline2->removeFromParent_k();
+        center2->removeFromParent_k();
+        HT_BCRUMB("E done")
+    } else {
+        HT_BCRUMB("case E SKIPPED (HT_RUN_E not set)")
     }
 
     // --- case D: full canvas-level path (what hover actually calls).
