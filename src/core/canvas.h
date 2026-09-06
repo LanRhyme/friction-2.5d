@@ -48,6 +48,8 @@
 #include <QSizeF>
 #include <QVector>
 #include <QTransform>
+#include <QPointer>
+#include <QSet>
 #include <vector>
 
 #include "gizmos.h"
@@ -425,6 +427,16 @@ public:
     void renderGizmos(SkCanvas* const canvas,
                       const qreal qInvZoom,
                       const float invZoom);
+
+    // temporary canvas mode: while active, position edits are treated as
+    // a scratch layout for organizing (grouping/reordering); switching it
+    // off moves every touched layer back to its snapshotted scene
+    // position, keeping all structural edits
+    void setTempLayoutActive(const bool active);
+    bool tempLayoutActive() const
+    {
+        return mTempLayoutActive;
+    }
 
     void setCanvasSize(const int width,
                        const int height);
@@ -958,6 +970,22 @@ private:
     // bookkeeping (enforceTrack, forEachSelectedSound) stays inert so
     // the teardown never performs active cross-object updates
     bool mDestructing = false;
+
+    // temporary canvas mode state: world-position snapshot of every
+    // layer taken on activation, plus the set of layers whose transform
+    // was touched since (only those are written back on deactivation)
+    struct TempLayoutRec {
+        QPointer<BoundingBox> box;
+        QPointF worldPos;
+    };
+    void tempLayoutCollect(ContainerBox* const container,
+                           QList<TempLayoutRec>& recs);
+    void tempLayoutRestore();
+    int tempLayoutDepth(BoundingBox* const box) const;
+    bool mTempLayoutActive = false;
+    QList<TempLayoutRec> mTempLayoutSnaps;
+    QSet<BoundingBox*> mTempLayoutMoved;
+    QList<QMetaObject::Connection> mTempLayoutConns;
 
     void addGradient(const qsptr<SceneBoundGradient> &grad);
 

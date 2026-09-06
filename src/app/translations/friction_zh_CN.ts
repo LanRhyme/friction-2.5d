@@ -9875,6 +9875,14 @@ Select the layers you want to import:</source>
         <source>Click visible pixels on the canvas to select and jump to the layer that owns them (Photoshop auto-select)</source>
         <translation>对象模式下点击画布上的可见像素，自动选中并跳转到所属图层（PS 语义）</translation>
     </message>
+    <message>
+        <source>Temporary Canvas</source>
+        <translation>临时画布</translation>
+    </message>
+    <message>
+        <source>While on, freely move layers apart to organize them (group/reorder); switching it off returns every moved layer to its original position, keeping all grouping edits</source>
+        <translation>开启后可自由摆开图层进行分组整理；关闭时所有移动过的图层自动回到原位，分组与顺序等操作全部保留</translation>
+    </message>
 </context>
 <context>
     <name>TimelineDockWidget</name>

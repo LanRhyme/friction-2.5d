@@ -32,6 +32,7 @@
 #include <QCheckBox>
 
 #include "Private/document.h"
+#include "conncontextptr.h"
 
 #include "widgets/toolbar.h"
 #include "widgets/toolboxtoolbar.h"
@@ -104,6 +105,8 @@ namespace Friction
             QToolButton *mColorPickerButton;
             QLabel *mColorPickerLabel;
             QCheckBox *mAutoSelectLayer;
+            QToolButton *mTempCanvasButton;
+            ConnContextQPtr<Canvas> mTempCanvasTarget;
 
             void setupToolBox(QWidget *parent);
             void setupDocument();

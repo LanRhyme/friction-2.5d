@@ -456,6 +456,110 @@ void Canvas::drawWorkspaceBackdrop(SkCanvas* const canvas,
     canvas->restore();
 }
 
+void Canvas::tempLayoutCollect(ContainerBox* const container,
+                               QList<TempLayoutRec>& recs)
+{
+    for (const auto box : container->getContainedBoxes()) {
+        const auto trans = box->getBoxTransformAnimator();
+        if (trans) {
+            TempLayoutRec rec;
+            rec.box = box;
+            rec.worldPos = trans->getPivotAbs();
+            recs.append(rec);
+        }
+        const auto cont = enve_cast<ContainerBox*>(box);
+        // links render another scene's content; their children belong to
+        // that scene and are covered by its own snapshot
+        if (cont && !cont->isLink()) { tempLayoutCollect(cont, recs); }
+    }
+}
+
+int Canvas::tempLayoutDepth(BoundingBox* const box) const
+{
+    int depth = 0;
+    auto parent = box->getParentGroup();
+    while (parent) {
+        depth++;
+        parent = parent->getParentGroup();
+    }
+    return depth;
+}
+
+void Canvas::tempLayoutRestore()
+{
+    if (mTempLayoutMoved.isEmpty()) { return; }
+    struct TempLayoutItem {
+        BoundingBox* box;
+        QPointF worldPos;
+        int depth;
+    };
+    QList<TempLayoutItem> items;
+    for (const auto& rec : mTempLayoutSnaps) {
+        if (rec.box.isNull()) { continue; }
+        auto* const box = rec.box.data();
+        if (!mTempLayoutMoved.contains(box)) { continue; }
+        TempLayoutItem item;
+        item.box = box;
+        item.worldPos = rec.worldPos;
+        item.depth = tempLayoutDepth(box);
+        items.append(item);
+    }
+    if (items.isEmpty()) { return; }
+    // shallow-to-deep: outer containers go back first so nested layers
+    // convert their target scene position against the restored parents
+    std::stable_sort(items.begin(), items.end(),
+                     [](const TempLayoutItem& a, const TempLayoutItem& b)
+    { return a.depth < b.depth; });
+
+    pushUndoRedoName(QStringLiteral("Temporary canvas restore"));
+    for (const auto& item : items) {
+        const auto trans = item.box->getBoxTransformAnimator();
+        if (!trans) { continue; }
+        // same world-position write as the script bridge: translate by
+        // the relative delta so the pivot lands on the snapshotted scene
+        // position regardless of the parent chain reorganized meanwhile
+        item.box->startPivotTransform();
+        const QPointF absPos = trans->getPivotAbs();
+        const QPointF relDelta = trans->mapAbsPosToRel(item.worldPos) -
+                                 trans->mapAbsPosToRel(absPos);
+        trans->translate(relDelta.x(), relDelta.y());
+        item.box->finishPivotTransform();
+    }
+}
+
+void Canvas::setTempLayoutActive(const bool active)
+{
+    if (mTempLayoutActive == active) { return; }
+    mTempLayoutActive = active;
+    if (active) {
+        mTempLayoutSnaps.clear();
+        mTempLayoutMoved.clear();
+        tempLayoutCollect(this, mTempLayoutSnaps);
+        // dirty tracking: any layer whose own transform is edited during
+        // the session gets written back on deactivation; layers left
+        // untouched (e.g. animated ones scrubbed past their keys) are
+        // never written to
+        for (const auto& rec : mTempLayoutSnaps) {
+            if (rec.box.isNull()) { continue; }
+            const auto box = rec.box;
+            const auto trans = box->getBoxTransformAnimator();
+            if (!trans) { continue; }
+            mTempLayoutConns << connect(
+                        trans, &BasicTransformAnimator::totalTransformChanged,
+                        this, [this, box](const UpdateReason) {
+                if (!box.isNull()) { mTempLayoutMoved.insert(box.data()); }
+            });
+        }
+    } else {
+        for (const auto& conn : mTempLayoutConns) { disconnect(conn); }
+        mTempLayoutConns.clear();
+        tempLayoutRestore();
+        mTempLayoutSnaps.clear();
+        mTempLayoutMoved.clear();
+        mDocument.actionFinished();
+    }
+}
+
 void Canvas::renderSk(SkCanvas* const canvas,
                       const QRect& drawRect,
                       const QMatrix& viewTrans,

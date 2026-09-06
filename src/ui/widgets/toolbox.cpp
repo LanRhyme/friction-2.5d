@@ -21,6 +21,7 @@
 */
 
 #include "toolbox.h"
+#include "canvas.h"
 #include <QSvgRenderer>
 #include "themesupport.h"
 
@@ -51,6 +52,7 @@ ToolBox::ToolBox(Actions &actions,
     , mColorPickerButton(nullptr)
     , mColorPickerLabel(nullptr)
     , mAutoSelectLayer(nullptr)
+    , mTempCanvasButton(nullptr)
 {
     setupToolBox(parent);
 }
@@ -714,6 +716,29 @@ void ToolBox::setupAutoSelectActions()
     mGroupAutoSelect->addAction(mControls->addSpacer(true, true));
     mGroupAutoSelect->addAction(mControls->addWidget(mAutoSelectLayer));
 
+    // temporary canvas toggle: scratch layout for organizing layers;
+    // labels translated via friction_zh_CN.ts (target has no /utf-8)
+    mTempCanvasButton = new QToolButton(mControls);
+    mTempCanvasButton->setObjectName("FlatButton");
+    mTempCanvasButton->setText(tr("Temporary Canvas"));
+    mTempCanvasButton->setCheckable(true);
+    mTempCanvasButton->setToolTip(
+                tr("While on, freely move layers apart to organize them "
+                   "(group/reorder); switching it off returns every moved "
+                   "layer to its original position, keeping all grouping "
+                   "edits"));
+    connect(mTempCanvasButton, &QToolButton::toggled,
+            this, [this](const bool checked) {
+        const auto canvas = mTempCanvasTarget.data();
+        if (!canvas) {
+            QSignalBlocker block(mTempCanvasButton);
+            mTempCanvasButton->setChecked(false);
+            return;
+        }
+        canvas->setTempLayoutActive(checked);
+    });
+    mGroupAutoSelect->addAction(mControls->addWidget(mTempCanvasButton));
+
     mGroupAutoSelect->setEnabled(false);
     mGroupAutoSelect->setVisible(false);
 }
@@ -722,6 +747,12 @@ void ToolBox::setCurrentCanvas(Canvas * const target)
 {
     mControls->setCurrentCanvas(target);
     if (mExtra) { mExtra->setCurrentCanvas(target); }
+    mTempCanvasTarget.assign(target);
+    if (mTempCanvasButton) {
+        QSignalBlocker block(mTempCanvasButton);
+        mTempCanvasButton->setChecked(target ? target->tempLayoutActive()
+                                             : false);
+    }
 }
 
 void ToolBox::setCanvasMode(const CanvasMode &mode)
