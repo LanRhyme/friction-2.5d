@@ -44,6 +44,10 @@
 #include <QDoubleSpinBox>
 #include <QComboBox>
 #include <QColorDialog>
+#include <QDateTime>
+#include <QPainter>
+#include <QPen>
+#include <QPolygonF>
 #include <QStyle>
 
 ScriptManager::ScriptManager(MainWindow * const parent)
@@ -100,6 +104,185 @@ void ScriptManager::output(const QString &message)
 {
     if (mConsole) { mConsole->appendOutput(message); }
     qWarning() << "[script]" << message;
+}
+
+//---------------------------- ScriptPaintProxy ----------------------------
+
+ScriptPaintProxy::ScriptPaintProxy(QObject * const parent)
+    : QObject(parent)
+    , mEpoch(QDateTime::currentMSecsSinceEpoch())
+{}
+
+void ScriptPaintProxy::begin(QPainter * const p)
+{
+    mPainter = p;
+}
+
+void ScriptPaintProxy::end()
+{
+    mPainter = nullptr;
+}
+
+void ScriptPaintProxy::clear(const QString &color)
+{
+    if (!mPainter) { return; }
+    mPainter->fillRect(mPainter->viewport(), QColor(color));
+}
+
+void ScriptPaintProxy::grid(qreal cell, const QString &color)
+{
+    if (!mPainter || cell < 1) { return; }
+    QPen pen{QColor(color)};
+    pen.setWidthF(0.5);
+    mPainter->setPen(pen);
+    const auto r = mPainter->viewport();
+    for (qreal x = 0; x <= r.width(); x += cell) {
+        mPainter->drawLine(QPointF(x, 0), QPointF(x, r.height()));
+    }
+    for (qreal y = 0; y <= r.height(); y += cell) {
+        mPainter->drawLine(QPointF(0, y), QPointF(r.width(), y));
+    }
+}
+
+void ScriptPaintProxy::setStroke(const QString &color, qreal width)
+{
+    if (!mPainter) { return; }
+    QPen pen{QColor(color)};
+    pen.setWidthF(qMax(0.1, width));
+    pen.setCapStyle(Qt::RoundCap);
+    pen.setJoinStyle(Qt::RoundJoin);
+    mPainter->setPen(pen);
+}
+
+void ScriptPaintProxy::setCap(const QString &cap)
+{
+    if (!mPainter) { return; }
+    auto pen = mPainter->pen();
+    if (cap == QLatin1String("butt")) { pen.setCapStyle(Qt::FlatCap); }
+    else if (cap == QLatin1String("square")) {
+        pen.setCapStyle(Qt::SquareCap);
+    } else { pen.setCapStyle(Qt::RoundCap); }
+    pen.setJoinStyle(cap == QLatin1String("miter") ?
+                         Qt::MiterJoin : Qt::RoundJoin);
+    mPainter->setPen(pen);
+}
+
+void ScriptPaintProxy::setDash(qreal dash, qreal gap, qreal offset)
+{
+    if (!mPainter) { return; }
+    auto pen = mPainter->pen();
+    QVector<qreal> pattern;
+    pattern << qMax(0.1, dash) << qMax(0.1, gap);
+    pen.setDashPattern(pattern);
+    pen.setDashOffset(offset);
+    mPainter->setPen(pen);
+}
+
+void ScriptPaintProxy::noDash()
+{
+    if (!mPainter) { return; }
+    auto pen = mPainter->pen();
+    pen.setStyle(Qt::SolidLine);
+    mPainter->setPen(pen);
+}
+
+void ScriptPaintProxy::beginPath()
+{
+    if (!mPainter) { return; }
+    mPath = QPainterPath();
+    mPathStarted = false;
+}
+
+void ScriptPaintProxy::moveTo(qreal x, qreal y)
+{
+    if (!mPainter) { return; }
+    mPath.moveTo(x, y);
+    mPathStarted = true;
+}
+
+void ScriptPaintProxy::lineTo(qreal x, qreal y)
+{
+    if (!mPainter || !mPathStarted) { return; }
+    mPath.lineTo(x, y);
+}
+
+void ScriptPaintProxy::cubicTo(qreal c1x, qreal c1y,
+                               qreal c2x, qreal c2y,
+                               qreal x, qreal y)
+{
+    if (!mPainter || !mPathStarted) { return; }
+    mPath.cubicTo(c1x, c1y, c2x, c2y, x, y);
+}
+
+void ScriptPaintProxy::closePath()
+{
+    if (!mPainter) { return; }
+    mPath.closeSubpath();
+}
+
+void ScriptPaintProxy::stroke()
+{
+    if (!mPainter) { return; }
+    mPainter->setBrush(Qt::NoBrush);
+    mPainter->drawPath(mPath);
+}
+
+void ScriptPaintProxy::fillPoly(const QList<qreal> &xy,
+                                const QString &color)
+{
+    if (!mPainter || xy.count() < 4) { return; }
+    QPolygonF poly;
+    for (int i = 0; i + 1 < xy.count(); i += 2) {
+        poly << QPointF(xy.at(i), xy.at(i + 1));
+    }
+    mPainter->setPen(Qt::NoPen);
+    mPainter->setBrush(QColor(color));
+    mPainter->drawPolygon(poly);
+}
+
+void ScriptPaintProxy::fillCircle(qreal x, qreal y, qreal r,
+                                  const QString &color)
+{
+    if (!mPainter) { return; }
+    mPainter->setPen(Qt::NoPen);
+    mPainter->setBrush(QColor(color));
+    mPainter->drawEllipse(QPointF(x, y), r, r);
+}
+
+double ScriptPaintProxy::now()
+{
+    return double(QDateTime::currentMSecsSinceEpoch() - mEpoch);
+}
+
+//---------------------------- ScriptPreviewWidget ----------------------------
+
+ScriptPreviewWidget::ScriptPreviewWidget(
+        Friction::Core::JsHost * const host,
+        const int width, const int height,
+        const bool animated,
+        QWidget * const parent)
+    : QWidget(parent)
+    , mHost(host)
+{
+    setMinimumSize(width, height);
+    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    if (animated) {
+        mTimer = new QTimer(this);
+        mTimer->setInterval(33);
+        connect(mTimer, &QTimer::timeout, this,
+                QOverload<>::of(&QWidget::update));
+        mTimer->start();
+    }
+}
+
+void ScriptPreviewWidget::paintEvent(QPaintEvent * const event)
+{
+    Q_UNUSED(event)
+    QPainter painter(this);
+    painter.setRenderHint(QPainter::Antialiasing, true);
+    mProxy.begin(&painter);
+    mHost->invokePreviewPaint(&mProxy);
+    mProxy.end();
 }
 
 void ScriptManager::loadScripts()
@@ -175,6 +358,16 @@ void ScriptManager::createPanel(Friction::Core::JsHost * const host)
     const auto layout = new QVBoxLayout(content);
     layout->setContentsMargins(4, 4, 4, 4);
     layout->setSpacing(4);
+
+    // live preview canvas (on top): paints via the script's
+    // onPaint callback through a paint proxy; the internal timer
+    // repaints for animations (flowing dashes)
+    if (desc.preview.valid) {
+        const auto preview = new ScriptPreviewWidget(
+                    host, desc.preview.width, desc.preview.height,
+                    desc.preview.animated, content);
+        layout->addWidget(preview);
+    }
 
     // color swatch row (on top): native color dialog per button
     if (!desc.colors.isEmpty()) {

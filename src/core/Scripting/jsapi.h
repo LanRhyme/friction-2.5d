@@ -505,6 +505,18 @@ namespace Friction
                 QString tooltip;
                 QJSValue onChange;
             };
+            // live preview canvas: an onPaint(g) callback receives a
+            // paint proxy object (grid/stroke/dash/path/fill drawing
+            // commands); re-rendered automatically when any panel
+            // control fires and, when animated, by an internal timer
+            struct PanelPreview
+            {
+                int width = 200;
+                int height = 160;
+                bool animated = true;
+                QJSValue onPaint;
+                bool valid = false;
+            };
             struct PanelDesc
             {
                 QString title;
@@ -515,6 +527,7 @@ namespace Friction
                 QList<PanelSlider> sliders;      // above the grid
                 QList<PanelCombo> combos;        // above the grid
                 QList<PanelColor> colors;        // swatch row on top
+                PanelPreview preview;            // canvas on top
                 bool valid = false;
             };
             const PanelDesc& panelDesc() const { return mPanelDesc; }
@@ -524,6 +537,9 @@ namespace Friction
             // combo index; text: selected combo option text)
             void invokePanelValue(const int kind, const QString &id,
                                   const qreal value, const QString &text);
+            // invoke the preview canvas paint callback; the paint
+            // proxy is a UI-layer QObject of drawing commands
+            void invokePreviewPaint(QObject * const paintProxy);
 
         private:
             PanelDesc mPanelDesc;

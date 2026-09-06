@@ -404,11 +404,182 @@
         }
     }
 
+    // ---------------- 实时预览（CEP preview.js 平移，200×170 视口） ----------------
+
+    function pvCubicPoint(t, p0, c1, c2, p3) {
+        var u = 1 - t;
+        return [u * u * u * p0[0] + 3 * u * u * t * c1[0] + 3 * u * t * t * c2[0] + t * t * t * p3[0],
+                u * u * u * p0[1] + 3 * u * u * t * c1[1] + 3 * u * t * t * c2[1] + t * t * t * p3[1]];
+    }
+
+    function pvCubicTangent(t, p0, c1, c2, p3) {
+        var u = 1 - t;
+        return [3 * u * u * (c1[0] - p0[0]) + 6 * u * t * (c2[0] - c1[0]) + 3 * t * t * (p3[0] - c2[0]),
+                3 * u * u * (c1[1] - p0[1]) + 6 * u * t * (c2[1] - c1[1]) + 3 * t * t * (p3[1] - c2[1])];
+    }
+
+    // 视口 S 形路径的端点/切线/控制点（CEP buildSamplePath 同款坐标）
+    function pvPathGeom() {
+        var p0 = [20, 130];
+        var p2 = [180, 40];
+        if (state.mode === 3) {
+            var mid = [(p0[0] + p2[0]) / 2, (p0[1] + p2[1]) / 2];
+            return { line: [p0, mid, p2],
+                     start: p0, end: p2,
+                     startTan: [p2[0] - p0[0], p2[1] - p0[1]],
+                     endTan: [p2[0] - p0[0], p2[1] - p0[1]] };
+        }
+        if (state.corner) {
+            var c = [100, 130];
+            return { line: [p0, c, p2],
+                     start: p0, end: p2,
+                     startTan: [c[0] - p0[0], c[1] - p0[1]],
+                     endTan: [p2[0] - c[0], p2[1] - c[1]] };
+        }
+        var cp1 = [60, 30];
+        var cp2 = [140, 130];
+        return { cubic: [p0, cp1, cp2, p2],
+                 start: p0, end: p2,
+                 startTan: [cp1[0] - p0[0], cp1[1] - p0[1]],
+                 endTan: [p2[0] - cp2[0], p2[1] - cp2[1]] };
+    }
+
+    function pvStrokePath(g, geom) {
+        g.beginPath();
+        g.moveTo(geom.start[0], geom.start[1]);
+        if (geom.cubic) {
+            g.cubicTo(geom.cubic[1][0], geom.cubic[1][1],
+                      geom.cubic[2][0], geom.cubic[2][1],
+                      geom.cubic[3][0], geom.cubic[3][1]);
+        } else {
+            for (var i = 1; i < geom.line.length; i++) {
+                g.lineTo(geom.line[i][0], geom.line[i][1]);
+            }
+        }
+        g.stroke();
+    }
+
+    // 道路框：沿路径采样法线偏移的闭合多边形（preview.js buildRoadRect）
+    function pvRoadOutline(g, geom, gap) {
+        var top = [];
+        var bot = [];
+        var samples = 12;
+        for (var i = 0; i < samples; i++) {
+            var t = i / (samples - 1);
+            var p;
+            var tan;
+            if (geom.cubic) {
+                p = pvCubicPoint(t, geom.cubic[0], geom.cubic[1],
+                                 geom.cubic[2], geom.cubic[3]);
+                tan = pvCubicTangent(t, geom.cubic[0], geom.cubic[1],
+                                     geom.cubic[2], geom.cubic[3]);
+            } else {
+                var seg = (geom.line.length - 1) * t;
+                var si = Math.min(Math.floor(seg), geom.line.length - 2);
+                var st = seg - si;
+                var a = geom.line[si];
+                var b = geom.line[si + 1];
+                p = [a[0] + (b[0] - a[0]) * st, a[1] + (b[1] - a[1]) * st];
+                tan = [b[0] - a[0], b[1] - a[1]];
+            }
+            var len = Math.sqrt(tan[0] * tan[0] + tan[1] * tan[1]);
+            if (len < 0.001) { continue; }
+            var nx = -tan[1] / len * gap;
+            var ny = tan[0] / len * gap;
+            top.push([p[0] + nx, p[1] + ny]);
+            bot.push([p[0] - nx, p[1] - ny]);
+        }
+        if (top.length < 2) { return; }
+        g.beginPath();
+        g.moveTo(top[0][0], top[0][1]);
+        for (var j = 1; j < top.length; j++) { g.lineTo(top[j][0], top[j][1]); }
+        for (var k = bot.length - 1; k >= 0; k--) { g.lineTo(bot[k][0], bot[k][1]); }
+        g.closePath();
+        g.stroke();
+    }
+
+    // 端点形状（预览版：三角/圆/方块，贴端点沿切线旋转）
+    function pvEndpointShape(g, at, tan, kind, size, color) {
+        var ang = Math.atan2(tan[1], tan[0]);
+        var c = Math.cos(ang);
+        var s = Math.sin(ang);
+        function place(p) {
+            return [p[0] * c - p[1] * s + at[0],
+                    p[0] * s + p[1] * c + at[1]];
+        }
+        var s2 = size;
+        if (kind === "circle") {
+            g.fillCircle(at[0], at[1], s2, color);
+        } else if (kind === "rect") {
+            var r = [place([-s2 / 2, -s2 / 2]), place([s2 / 2, -s2 / 2]),
+                     place([s2 / 2, s2 / 2]), place([-s2 / 2, s2 / 2])];
+            var xy = [];
+            for (var i = 0; i < r.length; i++) {
+                xy.push(r[i][0], r[i][1]);
+            }
+            g.fillPoly(xy, color);
+        } else { // arrow：圆角近似用同色粗描边三角（与生成版一致）
+            var tri = [place([s2 + s2 / 3, 0]), place([-s2 + s2 / 3, -s2]),
+                       place([-s2 + s2 / 3, s2])];
+            var xy2 = [];
+            for (var m = 0; m < tri.length; m++) {
+                xy2.push(tri[m][0], tri[m][1]);
+            }
+            g.fillPoly(xy2, color);
+        }
+    }
+
+    function pvOnPaint(g) {
+        g.clear("#1e1e1e");
+        g.grid(20, "#2a2a2a");
+
+        var geom = pvPathGeom();
+        var v1 = state.v1;
+        var v2 = state.v2;
+        var gap = state.gap;
+        var dash = Math.max(2, state.density);
+        var flow = (g.now() * 0.05) % ((dash + dash * 0.8) || 1); // ≈50px/s
+
+        // 底层（模式1=宽底线；模式2=实线底；模式3=道路框）
+        g.setStroke(state.c2, state.mode === 1 ? v1 + gap * 2 + v2 * 2 : v2);
+        if (state.mode === 3) {
+            g.setCap("butt");
+            pvRoadOutline(g, geom, gap);
+        } else {
+            pvStrokePath(g, geom);
+        }
+
+        // 中线流动虚线
+        g.setStroke(state.c1, v1);
+        g.setDash(dash, dash * 0.8, flow);
+        pvStrokePath(g, geom);
+        g.noDash();
+
+        // 端点形状
+        var tailShape = state.link ? state.headShape : state.tailShape;
+        var tailSize = state.link ? state.headSize : state.tailSize;
+        var tailColor = state.link ? state.headColor : state.tailColor;
+        if (state.endpoint === 1 && tailShape !== "none") {
+            pvEndpointShape(g, geom.start, geom.startTan,
+                            tailShape, tailSize * 0.5, tailColor);
+        }
+        if (state.headShape !== "none") {
+            pvEndpointShape(g, geom.end, geom.endTan,
+                            state.headShape, state.headSize * 0.5,
+                            state.headColor);
+        }
+    }
+
     // ---------------- 面板 ----------------
 
     registerPanel({
         title: "地图划线",
         columns: 4,
+        preview: {
+            width: 200, height: 170,
+            animated: true,
+            onPaint: pvOnPaint
+        },
         combos: [
             { label: "预设", id: "mode",
               options: ["经典路感", "科技样条", "双层叠压", "道路标识"], index: 0,

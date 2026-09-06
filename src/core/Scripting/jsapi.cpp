@@ -1769,12 +1769,58 @@ namespace Friction
                 }
             }
 
+            // preview canvas: {width, height, animated, onPaint(g)}
+            const auto preview = config.property(
+                        QStringLiteral("preview"));
+            if (preview.isObject()) {
+                const auto fn = preview.property(
+                            QStringLiteral("onPaint"));
+                if (fn.isCallable()) {
+                    PanelPreview pp;
+                    pp.width = preview.property(
+                                QStringLiteral("width")).toInt();
+                    if (pp.width < 20 || pp.width > 2000) {
+                        pp.width = 200;
+                    }
+                    pp.height = preview.property(
+                                QStringLiteral("height")).toInt();
+                    if (pp.height < 20 || pp.height > 2000) {
+                        pp.height = 160;
+                    }
+                    const auto animatedVal = preview.property(
+                                QStringLiteral("animated"));
+                    pp.animated = animatedVal.isUndefined() ?
+                                true : animatedVal.toBool();
+                    pp.onPaint = fn;
+                    pp.valid = true;
+                    desc.preview = pp;
+                }
+            }
+
             desc.valid = !desc.buttons.isEmpty() ||
                          !desc.extraButtons.isEmpty() ||
                          !desc.sliders.isEmpty() ||
                          !desc.combos.isEmpty() ||
-                         !desc.colors.isEmpty();
+                         !desc.colors.isEmpty() ||
+                         desc.preview.valid;
             mPanelDesc = desc;
+        }
+
+        void JsHost::invokePreviewPaint(QObject * const paintProxy)
+        {
+            const auto &fn = mPanelDesc.preview.onPaint;
+            if (!fn.isCallable() || !paintProxy || !mEngine) { return; }
+            QJSValueList args;
+            args << mEngine->newQObject(paintProxy);
+            auto f = fn;
+            const auto result = f.call(args);
+            if (result.isError()) {
+                print(QStringLiteral(
+                          "Preview onPaint error at line %1: %2")
+                      .arg(result.property("lineNumber").toString(),
+                           result.toString()));
+            }
+            forceCloseUndoGroup();
         }
 
         void JsHost::invokePanelValue(const int kind, const QString &id,

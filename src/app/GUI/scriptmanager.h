@@ -27,6 +27,8 @@
 #include <QObject>
 #include <QMap>
 #include <QList>
+#include <QWidget>
+#include <QPainterPath>
 
 class QMenu;
 class QAction;
@@ -36,6 +38,7 @@ class QGridLayout;
 class QVBoxLayout;
 class QWidget;
 class QTimer;
+class QPainter;
 class MainWindow;
 class ScriptConsoleDock;
 
@@ -46,6 +49,63 @@ namespace Friction
         class JsHost;
     }
 }
+
+// Paint proxy handed to a script panel's preview onPaint(g) callback.
+// Valid only inside the paint callback; every method forwards to the
+// internal QPainter (canvas-style API kept deliberately small).
+class ScriptPaintProxy : public QObject
+{
+    Q_OBJECT
+public:
+    explicit ScriptPaintProxy(QObject * const parent = nullptr);
+
+    void begin(QPainter * const p);
+    void end();
+
+    Q_INVOKABLE void clear(const QString &color);
+    Q_INVOKABLE void grid(qreal cell, const QString &color);
+    Q_INVOKABLE void setStroke(const QString &color, qreal width);
+    Q_INVOKABLE void setCap(const QString &cap); // "round"/"butt"/"square"
+    Q_INVOKABLE void setDash(qreal dash, qreal gap, qreal offset);
+    Q_INVOKABLE void noDash();
+    Q_INVOKABLE void beginPath();
+    Q_INVOKABLE void moveTo(qreal x, qreal y);
+    Q_INVOKABLE void lineTo(qreal x, qreal y);
+    Q_INVOKABLE void cubicTo(qreal c1x, qreal c1y,
+                             qreal c2x, qreal c2y,
+                             qreal x, qreal y);
+    Q_INVOKABLE void closePath();
+    Q_INVOKABLE void stroke();
+    Q_INVOKABLE void fillPoly(const QList<qreal> &xy,
+                              const QString &color);
+    Q_INVOKABLE void fillCircle(qreal x, qreal y, qreal r,
+                                const QString &color);
+    Q_INVOKABLE double now(); // ms timestamp for animation phase
+private:
+    QPainter *mPainter = nullptr;
+    QPainterPath mPath;
+    bool mPathStarted = false;
+    qint64 mEpoch = 0;
+};
+
+// Live preview canvas for script panels: paints by invoking the
+// script's onPaint callback with a ScriptPaintProxy; repaints on an
+// internal timer when animated, or on requestUpdate() otherwise.
+class ScriptPreviewWidget : public QWidget
+{
+    Q_OBJECT
+public:
+    ScriptPreviewWidget(Friction::Core::JsHost * const host,
+                        const int width, const int height,
+                        const bool animated,
+                        QWidget * const parent);
+protected:
+    void paintEvent(QPaintEvent * const event) override;
+private:
+    Friction::Core::JsHost *mHost;
+    ScriptPaintProxy mProxy;
+    QTimer *mTimer = nullptr;
+};
 
 // Loads JS plugins from the user scripts folder, exposes their
 // registered commands in the "Scripts" menu and owns the script
