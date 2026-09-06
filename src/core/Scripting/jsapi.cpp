@@ -1626,6 +1626,9 @@ namespace Friction
                 "};"
                 "this.registerPanel = function(config) {"
                 "    __host.registerPanel(config);"
+                "};"
+                "this.updateCombo = function(id, options, index) {"
+                "    __host.setComboOptions(id, options, index);"
                 "};"));
         }
 
@@ -1804,6 +1807,30 @@ namespace Friction
                          !desc.colors.isEmpty() ||
                          desc.preview.valid;
             mPanelDesc = desc;
+        }
+
+        void JsHost::setComboOptions(const QString &id,
+                                     const QJSValue &options,
+                                     const int index)
+        {
+            if (id.isEmpty() || !options.isArray()) { return; }
+            QStringList list;
+            const int n = options.property(QStringLiteral("length")).toInt();
+            for (int i = 0; i < n; i++) {
+                const auto opt = options.property(i).toString();
+                if (!opt.isEmpty()) { list << opt; }
+            }
+            if (list.isEmpty()) { return; }
+            // keep the desc in sync so a later createPanel (reload)
+            // starts from the updated list; the signal drives the
+            // live combo repopulation in the UI layer
+            for (auto &c : mPanelDesc.combos) {
+                if (c.id != id) { continue; }
+                c.options = list;
+                c.index = qBound(0, index, list.count() - 1);
+                break;
+            }
+            emit panelComboChanged(id, list, index);
         }
 
         void JsHost::invokePreviewPaint(QObject * const paintProxy)

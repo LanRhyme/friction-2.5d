@@ -445,11 +445,25 @@ namespace Friction
             // dockable panel (replaces any earlier panel of the
             // script)
             Q_INVOKABLE void registerPanel(const QJSValue &config);
+            // runtime refresh of a combo's option list: id must match
+            // a combos[] entry of registerPanel; options is a JS
+            // array of strings, index the initial selection. The UI
+            // layer repopulates the matching QComboBox without
+            // firing its onChange (panelDesc stays in sync so a
+            // later createPanel starts from the updated list)
+            Q_INVOKABLE void setComboOptions(const QString &id,
+                                             const QJSValue &options,
+                                             const int index);
             Q_INVOKABLE QJSValue appObject();
             Q_INVOKABLE QJSValue projectObject();
 
             // used by the UI layer to invoke stored panel callbacks
             void invokePanelButton(const int index);
+
+        signals:
+            void panelComboChanged(const QString &id,
+                                   const QStringList &options,
+                                   const int index);
 
         private:
             void installApi();
