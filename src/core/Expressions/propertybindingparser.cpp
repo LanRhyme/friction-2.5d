@@ -130,6 +130,8 @@ bool parsePathPoint(const QString& exp, int& pos,
                     QString& layerName, bool& end, int& component) {
     int newPos = pos;
     if(!parse(exp, newPos, "$path(")) return false;
+    if(newPos >= exp.count() || exp.at(newPos) != '"') return false;
+    newPos++; // skip the opening quote
     QString raw;
     while(newPos < exp.count()) {
         const auto& c = exp.at(newPos);

@@ -165,7 +165,9 @@
             throw "路径有效节点不足（至少 2 个）";
         }
         // 路径坐标是图层局部坐标：补偿图层位移，对齐场景坐标
-        var pos = layer.property("position").value();
+        // （.value 被 Q_PROPERTY 遮蔽成属性，不能用 .value() 调用）
+        var pv = layer.property("position");
+        var pos = (pv && typeof pv.value === "function") ? pv.value() : pv.value;
         if (pos && (Math.abs(pos[0]) > 0.01 || Math.abs(pos[1]) > 0.01)) {
             for (var j = 0; j < nodes.length; j++) {
                 nodes[j].point[0] += pos[0];
