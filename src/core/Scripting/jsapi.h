@@ -192,6 +192,22 @@ namespace Friction
             // returns an array of JsPathProxy, empty for other types
             Q_INVOKABLE QJSValue paths();
 
+            // paint settings for PathBox layers (rect/circle/path/vector).
+            // stroke: {width, color:"#rrggbb"|[r,g,b], cap:"butt|round|square",
+            //          join:"miter|round|bevel", enabled}
+            // fill:   {color, enabled}
+            // No-ops on non-path layers. Values are undoable.
+            Q_INVOKABLE void setStroke(const QJSValue &settings);
+            Q_INVOKABLE void setFill(const QJSValue &settings);
+
+            // add a path effect to a PathBox layer.
+            // type "dash": settings {dash, gap, offset,
+            //                        offsetKeys:[[frame,value],...]}
+            // (offsetKeys keyframes the offset for a flowing dash).
+            // Returns true on success.
+            Q_INVOKABLE bool addPathEffect(const QString &type,
+                                           const QJSValue &settings);
+
             // motion-path keys of the position animator (AE spatial
             // keyframes): {keys:[{frame, point:[x,y],
             // inTan:[dx,dy], outTan:[dx,dy]}]} in canvas coordinates;
@@ -278,6 +294,15 @@ namespace Friction
             // equivalent of an AE null used as a parent controller;
             // NullObject itself is a leaf and cannot have children)
             Q_INVOKABLE QJSValue addLayer(const QString &name);
+            // free-form bezier path layer (AE pen-tool shape).
+            // nodes: [{point:[x,y], inTan:[dx,dy], outTan:[dx,dy]},...]
+            // tangents are offsets relative to the vertex (AE shape
+            // semantics); closed controls whether the path closes.
+            // Coordinates are scene coordinates (a fresh layer's
+            // transform is identity). Returns the layer proxy or null.
+            Q_INVOKABLE QJSValue addPath(const QString &name,
+                                         const QJSValue &nodes,
+                                         const bool closed);
 
             QString name() const;
             void setName(const QString &name);
@@ -443,6 +468,16 @@ namespace Friction
                 int index = 0;
                 QJSValue onChange; // called with (index, optionText)
             };
+            // color swatch button: opens the native color dialog;
+            // onChange is called with the chosen "#rrggbb" string
+            struct PanelColor
+            {
+                QString label;
+                QString id;
+                QString value; // initial "#rrggbb"
+                QString tooltip;
+                QJSValue onChange;
+            };
             struct PanelDesc
             {
                 QString title;
@@ -452,6 +487,7 @@ namespace Friction
                 QList<PanelButton> extraButtons; // full-width below
                 QList<PanelSlider> sliders;      // above the grid
                 QList<PanelCombo> combos;        // above the grid
+                QList<PanelColor> colors;        // swatch row on top
                 bool valid = false;
             };
             const PanelDesc& panelDesc() const { return mPanelDesc; }

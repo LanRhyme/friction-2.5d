@@ -34,8 +34,18 @@ protected:
 public:
     stdsptr<PathEffectCaller> getEffectCaller(
             const qreal relFrame, const qreal influence) const;
+
+    // scripting/one-shot setup: dash length, gap length, phase offset
+    void setDashValues(const qreal dash, const qreal gap,
+                       const qreal offset);
+    // animator access for scripted keyframing (dash offset flow)
+    QrealAnimator *dashAnimator() const { return mSize.get(); }
+    QrealAnimator *gapAnimator() const { return mGap.get(); }
+    QrealAnimator *offsetAnimator() const { return mOffset.get(); }
 private:
     qsptr<QrealAnimator> mSize;
+    qsptr<QrealAnimator> mGap;
+    qsptr<QrealAnimator> mOffset;
 };
 
 #endif // DASHPATHEFFECT_H

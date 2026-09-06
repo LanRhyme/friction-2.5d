@@ -33,6 +33,12 @@
 #include "Boxes/textbox.h"
 #include "Boxes/nullobject.h"
 #include "Boxes/smartvectorpath.h"
+#include "Boxes/pathbox.h"
+#include "Boxes/boxwithpatheffects.h"
+#include "Animators/paintsettingsanimator.h"
+#include "Animators/outlinesettingsanimator.h"
+#include "PathEffects/dashpatheffect.h"
+#include "PathEffects/patheffectcollection.h"
 #include "Animators/SmartPath/smartpathcollection.h"
 #include "Animators/SmartPath/smartpathanimator.h"
 #include "Animators/SmartPath/node.h"
@@ -116,6 +122,22 @@ namespace Friction
                     return true;
                 }
                 return false;
+            }
+
+            // color from "#rrggbb" string or [r,g,b] (0..1) array;
+            // invalid QColor when the value is absent/malformed
+            QColor readColor(const QJSValue &v)
+            {
+                if (v.isString()) {
+                    const QColor c(v.toString());
+                    if (c.isValid()) { return c; }
+                } else if (v.isArray()) {
+                    return QColor::fromRgbF(
+                                qBound(0., v.property(0).toNumber(), 1.),
+                                qBound(0., v.property(1).toNumber(), 1.),
+                                qBound(0., v.property(2).toNumber(), 1.));
+                }
+                return QColor();
             }
 
             // standard enve undo-able value change on a scalar animator
@@ -696,6 +718,130 @@ namespace Friction
             return arr;
         }
 
+        void JsLayerProxy::setStroke(const QJSValue &settings)
+        {
+            if (!mBox || !settings.isObject()) { return; }
+            const auto pathBox = enve_cast<PathBox*>(mBox.data());
+            if (!pathBox) { return; }
+            const auto stroke = pathBox->getStrokeSettings();
+            if (!stroke) { return; }
+
+            const QColor color = readColor(
+                        settings.property(QStringLiteral("color")));
+            const bool enabled = settings.property(
+                        QStringLiteral("enabled")).toBool(true);
+            stroke->setPaintType(enabled && color.isValid() ?
+                                     PaintType::FLATPAINT :
+                                     PaintType::NOPAINT);
+            if (color.isValid()) {
+                const auto colorAnim = stroke->getColorAnimator();
+                if (colorAnim) {
+                    colorAnim->prp_startTransform();
+                    colorAnim->setColor(color);
+                    colorAnim->prp_finishTransform();
+                }
+            }
+            if (settings.hasProperty(QStringLiteral("width"))) {
+                setScalarValue(stroke->getStrokeWidthAnimator(),
+                               qMax(0., settings.property(
+                                        QStringLiteral("width")).toNumber()));
+            }
+            const auto cap = settings.property(
+                        QStringLiteral("cap")).toString();
+            if (cap == QLatin1String("butt")) {
+                stroke->setCapStyle(SkPaint::kButt_Cap);
+            } else if (cap == QLatin1String("round")) {
+                stroke->setCapStyle(SkPaint::kRound_Cap);
+            } else if (cap == QLatin1String("square")) {
+                stroke->setCapStyle(SkPaint::kSquare_Cap);
+            }
+            const auto join = settings.property(
+                        QStringLiteral("join")).toString();
+            if (join == QLatin1String("miter")) {
+                stroke->setJoinStyle(SkPaint::kMiter_Join);
+            } else if (join == QLatin1String("round")) {
+                stroke->setJoinStyle(SkPaint::kRound_Join);
+            } else if (join == QLatin1String("bevel")) {
+                stroke->setJoinStyle(SkPaint::kBevel_Join);
+            }
+        }
+
+        void JsLayerProxy::setFill(const QJSValue &settings)
+        {
+            if (!mBox || !settings.isObject()) { return; }
+            const auto pathBox = enve_cast<PathBox*>(mBox.data());
+            if (!pathBox) { return; }
+            const auto fill = pathBox->getFillSettings();
+            if (!fill) { return; }
+
+            const QColor color = readColor(
+                        settings.property(QStringLiteral("color")));
+            const bool enabled = settings.property(
+                        QStringLiteral("enabled")).toBool(true);
+            fill->setPaintType(enabled && color.isValid() ?
+                                   PaintType::FLATPAINT :
+                                   PaintType::NOPAINT);
+            if (color.isValid()) {
+                const auto colorAnim = fill->getColorAnimator();
+                if (colorAnim) {
+                    colorAnim->prp_startTransform();
+                    colorAnim->setColor(color);
+                    colorAnim->prp_finishTransform();
+                }
+            }
+        }
+
+        bool JsLayerProxy::addPathEffect(const QString &type,
+                                         const QJSValue &settings)
+        {
+            if (!mBox) { return false; }
+            const auto pathBox = enve_cast<PathBox*>(mBox.data());
+            if (!pathBox) { return false; }
+            const auto collection = pathBox->getPathEffectsAnimators();
+            if (!collection) { return false; }
+
+            if (type == QLatin1String("dash")) {
+                const auto effect = enve::make_shared<DashPathEffect>();
+                qreal dash = 5.;
+                qreal gap = 5.;
+                qreal offset = 0.;
+                if (settings.isObject()) {
+                    if (settings.hasProperty(QStringLiteral("dash"))) {
+                        dash = settings.property(
+                                    QStringLiteral("dash")).toNumber();
+                    }
+                    if (settings.hasProperty(QStringLiteral("gap"))) {
+                        gap = settings.property(
+                                    QStringLiteral("gap")).toNumber();
+                    }
+                    if (settings.hasProperty(QStringLiteral("offset"))) {
+                        offset = settings.property(
+                                    QStringLiteral("offset")).toNumber();
+                    }
+                }
+                effect->setDashValues(dash, gap, offset);
+                collection->addChild(effect);
+                // dash flow: keyframe pairs [[frame, offset], ...]
+                const auto keys = settings.property(
+                            QStringLiteral("offsetKeys"));
+                if (keys.isArray()) {
+                    const auto offsetAnim = effect->offsetAnimator();
+                    const int n = keys.property(
+                                QStringLiteral("length")).toInt();
+                    for (int i = 0; i < n; i++) {
+                        const auto pair = keys.property(i);
+                        if (!pair.isArray()) { continue; }
+                        offsetAnim->saveValueToKey(
+                                    pair.property(0).toInt(),
+                                    pair.property(1).toNumber());
+                    }
+                }
+                finishAction();
+                return true;
+            }
+            return false;
+        }
+
         //---------------------------- JsPathProxy ----------------------------
 
         JsPathProxy::JsPathProxy(const QPointer<SmartPathAnimator> &anim,
@@ -1141,6 +1287,9 @@ namespace Friction
                 case eBoxType::layer:
                     box = enve::make_shared<ContainerBox>(eBoxType::layer);
                     break;
+                case eBoxType::vectorPath:
+                    box = enve::make_shared<SmartVectorPath>();
+                    break;
                 default:
                     return QJSValue(QJSValue::NullValue);
             }
@@ -1214,6 +1363,68 @@ namespace Friction
         QJSValue JsSceneProxy::addLayer(const QString &name)
         {
             return addBox(int(eBoxType::layer), name);
+        }
+
+        QJSValue JsSceneProxy::addPath(const QString &name,
+                                       const QJSValue &nodes,
+                                       const bool closed)
+        {
+            if (!mScene || !mEngine) {
+                return QJSValue(QJSValue::NullValue);
+            }
+            if (!nodes.isArray()) {
+                return QJSValue(QJSValue::NullValue);
+            }
+            const int n = nodes.property(QStringLiteral("length")).toInt();
+            if (n < 2) { return QJSValue(QJSValue::NullValue); }
+
+            // collect vertices + relative tangents (AE shape semantics)
+            std::vector<QPointF> pts;
+            std::vector<QPointF> inT;
+            std::vector<QPointF> outT;
+            pts.reserve(n); inT.reserve(n); outT.reserve(n);
+            for (int i = 0; i < n; i++) {
+                const auto nd = nodes.property(i);
+                if (!nd.isObject()) { continue; }
+                qreal x = 0.;
+                qreal y = 0.;
+                if (!readPoint(nd.property(QStringLiteral("point")), x, y)) {
+                    continue;
+                }
+                pts.emplace_back(x, y);
+                qreal ix = 0.;
+                qreal iy = 0.;
+                qreal ox = 0.;
+                qreal oy = 0.;
+                readPoint(nd.property(QStringLiteral("inTan")), ix, iy);
+                readPoint(nd.property(QStringLiteral("outTan")), ox, oy);
+                inT.emplace_back(ix, iy);
+                outT.emplace_back(ox, oy);
+            }
+            if (pts.size() < 2) { return QJSValue(QJSValue::NullValue); }
+
+            SkPath path;
+            path.moveTo(toSkScalar(pts[0].x()), toSkScalar(pts[0].y()));
+            for (size_t i = 1; i < pts.size(); i++) {
+                const QPointF c1 = pts[i - 1] + outT[i - 1];
+                const QPointF c2 = pts[i] + inT[i];
+                path.cubicTo(toSkScalar(c1.x()), toSkScalar(c1.y()),
+                             toSkScalar(c2.x()), toSkScalar(c2.y()),
+                             toSkScalar(pts[i].x()), toSkScalar(pts[i].y()));
+            }
+            if (closed) { path.close(); }
+
+            const auto result = addBox(int(eBoxType::vectorPath), name);
+            if (result.isNull()) { return result; }
+            const auto proxy = qobject_cast<JsLayerProxy*>(
+                        result.toQObject());
+            const auto svp = enve_cast<SmartVectorPath*>(
+                        proxy ? proxy->box() : nullptr);
+            if (svp) {
+                const auto collection = svp->getPathAnimator();
+                if (collection) { collection->createNewPath(path); }
+            }
+            return result;
         }
 
         //---------------------------- JsProjectProxy ----------------------------
@@ -1434,9 +1645,35 @@ namespace Friction
                 }
             }
 
+            // colors: {label, id, value:"#rrggbb", tooltip,
+            //          onChange(colorHex)} - swatch row on top
+            const auto colors = config.property(QStringLiteral("colors"));
+            if (colors.isArray()) {
+                const int n = colors.property(
+                            QStringLiteral("length")).toInt();
+                for (int i = 0; i < n; i++) {
+                    const auto c = colors.property(i);
+                    if (!c.isObject()) { continue; }
+                    PanelColor pc;
+                    pc.label = c.property(QStringLiteral("label")).toString();
+                    pc.id = c.property(QStringLiteral("id")).toString();
+                    pc.value = c.property(
+                                QStringLiteral("value")).toString();
+                    pc.tooltip = c.property(
+                                QStringLiteral("tooltip")).toString();
+                    pc.onChange = c.property(QStringLiteral("onChange"));
+                    const QColor check(pc.value);
+                    if (!pc.id.isEmpty() && check.isValid()) {
+                        desc.colors.append(pc);
+                    }
+                }
+            }
+
             desc.valid = !desc.buttons.isEmpty() ||
                          !desc.extraButtons.isEmpty() ||
-                         !desc.sliders.isEmpty() || !desc.combos.isEmpty();
+                         !desc.sliders.isEmpty() ||
+                         !desc.combos.isEmpty() ||
+                         !desc.colors.isEmpty();
             mPanelDesc = desc;
         }
 
@@ -1468,6 +1705,12 @@ namespace Friction
             for (const auto &c : mPanelDesc.combos) {
                 if (c.id != id) { continue; }
                 call(c.onChange, value, text);
+                return;
+            }
+            // color swatches deliver the chosen hex in `text`
+            for (const auto &c : mPanelDesc.colors) {
+                if (c.id != id) { continue; }
+                call(c.onChange, 0, text);
                 return;
             }
         }

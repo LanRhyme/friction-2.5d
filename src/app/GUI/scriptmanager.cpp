@@ -43,6 +43,7 @@
 #include <QSlider>
 #include <QDoubleSpinBox>
 #include <QComboBox>
+#include <QColorDialog>
 #include <QStyle>
 
 ScriptManager::ScriptManager(MainWindow * const parent)
@@ -174,6 +175,42 @@ void ScriptManager::createPanel(Friction::Core::JsHost * const host)
     const auto layout = new QVBoxLayout(content);
     layout->setContentsMargins(4, 4, 4, 4);
     layout->setSpacing(4);
+
+    // color swatch row (on top): native color dialog per button
+    if (!desc.colors.isEmpty()) {
+        const auto row = new QHBoxLayout();
+        row->setSpacing(4);
+        for (const auto &c : desc.colors) {
+            if (!c.label.isEmpty()) {
+                row->addWidget(new QLabel(c.label, content));
+            }
+            const auto pb = new QPushButton(content);
+            pb->setFixedSize(44, 22);
+            pb->setFocusPolicy(Qt::NoFocus);
+            pb->setCursor(Qt::PointingHandCursor);
+            pb->setToolTip(c.tooltip.isEmpty() ? c.label : c.tooltip);
+            const auto applyColor = [pb](const QString &hex) {
+                pb->setStyleSheet(
+                            QStringLiteral(
+                                "background-color: %1;"
+                                "border: 1px solid #666666;"
+                                "border-radius: 2px;").arg(hex));
+            };
+            applyColor(c.value);
+            connect(pb, &QPushButton::clicked, this,
+                    [this, host, &c, pb, applyColor]() {
+                const QColor chosen = QColorDialog::getColor(
+                            QColor(c.value), pb, tr("选择颜色"));
+                if (!chosen.isValid()) { return; }
+                const QString hex = chosen.name();
+                applyColor(hex);
+                host->invokePanelValue(1, c.id, 0, hex);
+            });
+            row->addWidget(pb);
+        }
+        row->addStretch();
+        layout->addLayout(row);
+    }
 
     // slider rows (above the grid)
     for (const auto &s : desc.sliders) {
