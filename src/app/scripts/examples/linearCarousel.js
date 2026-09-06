@@ -120,6 +120,10 @@
     }
 
     // ---- 环形（控制器：轮播控制器）--------------------------------
+    // 性能铁律：每条表达式只绑它用到的属性——拖任何一个参数时
+    // 失效扇出最小化（全量绑定会让一次拖参=全部35条表达式失效=
+    // 5张大图每步全量重栅格化，画布极卡）；纯静态输入(缩放/透明度)
+    // 不绑 $frame，消除换帧空转
 
     function bindRing(layer, orderIdx, n, uni, isY) {
         var C = CTRL_RING;
@@ -128,36 +132,41 @@
         var centerIdx = (n - 1) / 2;
         var idx = orderIdx - centerIdx;   // 对称偏移，烤入表达式
 
-        var bind =
-            "frame = $frame;\n" +
-            "rot = " + C + ".transform.rotation;\n" +
-            "cp = " + C + ".transform.translation;\n" +
-            "cz = " + C + ".transform.3D position Z;\n" +
-            "rd = " + C + ".properties.直径;\n" +
-            "sp = " + C + ".properties.间隔;\n" +
-            "dr = " + C + ".properties.缩放衰减;\n" +
-            "en = " + C + ".properties.朝向增强;\n" +
-            "am = " + C + ".properties.波浪振幅;\n" +
-            "fq = " + C + ".properties.波浪频率;\n" +
-            "fd = " + C + ".properties.透明度衰减;";
+        var B = {
+            frame: "frame = $frame;\n",
+            rot:   "rot = " + C + ".transform.rotation;\n",
+            cp:    "cp = " + C + ".transform.translation;\n",
+            cz:    "cz = " + C + ".transform.3D position Z;\n",
+            rd:    "rd = " + C + ".properties.直径;\n",
+            sp:    "sp = " + C + ".properties.间隔;\n",
+            dr:    "dr = " + C + ".properties.缩放衰减;\n",
+            en:    "en = " + C + ".properties.朝向增强;\n",
+            am:    "am = " + C + ".properties.波浪振幅;\n",
+            fq:    "fq = " + C + ".properties.波浪频率;\n",
+            fd:    "fd = " + C + ".properties.透明度衰减;"
+        };
 
         // 角度 = 对称序号×间隔 + 旋转；z = -R·cos：圆心=控制器、弧朝镜头
-        var ring =
+        var ringXY =
             "var a = (rot + (" + idx.toFixed(4) + ") * sp) * Math.PI / 180;\n" +
-            "var s = (rd / 2) * Math.sin(a);\n" +
-            "var w = am * Math.sin((" + idx.toFixed(4) + ") * fq);\n";
+            "var s = (rd / 2) * Math.sin(a);\n";
+        var wave = "var w = am * Math.sin((" + idx.toFixed(4) + ") * fq);\n";
 
-        var err = layer.property("positionx").setExpression(bind,
-            isY ? ring + "return cp[0] + s - " + pivX + ";"
-                : ring + "return cp[0] + w - " + pivX + ";");
+        // 水平环: X=环(R·sin)、Y=波浪；竖直环: X=波浪、Y=环
+        err = layer.property("positionx").setExpression(
+            B.frame + (isY ? (B.rot + B.rd + B.sp) : (B.am + B.fq)) + B.cp,
+            (isY ? ringXY : wave) +
+            "return cp[0] + " + (isY ? "s" : "w") + " - " + pivX + ";");
         if (err) return "位置X: " + err;
 
-        err = layer.property("positiony").setExpression(bind,
-            isY ? ring + "return cp[1] + w - " + pivY + ";"
-                : ring + "return cp[1] + s - " + pivY + ";");
+        err = layer.property("positiony").setExpression(
+            B.frame + (isY ? (B.am + B.fq) : (B.rot + B.rd + B.sp)) + B.cp,
+            (isY ? wave : ringXY) +
+            "return cp[1] + " + (isY ? "w" : "s") + " - " + pivY + ";");
         if (err) return "位置Y: " + err;
 
-        err = layer.property("zposition").setExpression(bind,
+        err = layer.property("zposition").setExpression(
+            B.frame + B.rot + B.cz + B.rd + B.sp,
             "var a = (rot + (" + idx.toFixed(4) + ") * sp) * Math.PI / 180;\n" +
             "return cz - (rd / 2) * Math.cos(a);");
         if (err) return "位置Z: " + err;
@@ -167,21 +176,21 @@
         // 水平环(绕Y) rotY=-a；竖直环(绕X) rotX=+a
         var rotSign = isY ? "-" : "";
         err = layer.property(isY ? "rotationy" : "rotationx")
-                  .setExpression(bind,
+                  .setExpression(B.frame + B.rot + B.sp + B.en,
             "return " + rotSign + "(rot + (" + idx.toFixed(4) + ") * sp) * en / 100;");
         if (err) return "朝向: " + err;
 
-        // 缩放衰减：100 - |对称序号|×衰减%
+        // 缩放衰减：100 - |对称序号|×衰减%（静态输入，不绑frame）
         var scaleScript =
             "var v = 100 - Math.abs(" + idx.toFixed(4) + ") * dr;\n" +
             "return v / 100;";
-        err = layer.property("scalex").setExpression(bind, scaleScript);
+        err = layer.property("scalex").setExpression(B.dr, scaleScript);
         if (err) return "缩放X: " + err;
-        err = layer.property("scaley").setExpression(bind, scaleScript);
+        err = layer.property("scaley").setExpression(B.dr, scaleScript);
         if (err) return "缩放Y: " + err;
 
-        // 透明度衰减（0=关闭；animator 范围 0..100）
-        err = layer.property("opacity").setExpression(bind,
+        // 透明度衰减（0=关闭；animator 范围 0..100；静态输入，不绑frame）
+        err = layer.property("opacity").setExpression(B.fd,
             "var v = 100 - Math.abs(" + idx.toFixed(4) + ") * fd;\n" +
             "return v < 0 ? 0 : v;");
         if (err) return "透明度: " + err;
