@@ -429,10 +429,8 @@ void Canvas::drawWorkspaceBackdrop(SkCanvas* const canvas,
             linePaint.setStyle(SkPaint::kStroke_Style);
             linePaint.setStrokeWidth(1.0f);
             linePaint.setAntiAlias(false);
-            // fixed #161616 grid line color (user preference): slightly
-            // lighter than the dark top of the gradient, slightly darker
-            // than the grey bottom, keeping the contrast subtle either way
-            linePaint.setColor(SkColorSetARGB(255, 0x16, 0x16, 0x16));
+            // fixed #262626 grid line color (user preference)
+            linePaint.setColor(SkColorSetARGB(255, 0x26, 0x26, 0x26));
 
             const QRectF view = mScreenToWorld.mapRect(
                         QRectF(qreal(dx), qreal(dy), qreal(dw), qreal(dh))).normalized();
