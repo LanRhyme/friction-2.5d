@@ -4,16 +4,28 @@ Friction 2.5D AI Connection Helper
 -----------------------------------
 运行此脚本，自动生成一段可以直接粘贴给任意 AI 的连接提示词（含当前场景实时状态）
 
-用法：python3 tools/mcp/friction_connect_prompt.py
-     python3 tools/mcp/friction_connect_prompt.py --copy   # 自动复制到剪贴板
+用法：python3 tools/mcp/friction_connect_prompt.py [--token <令牌>] [--copy]
+     令牌也可用环境变量 FRICTION_MCP_TOKEN 提供（设置 → AI Agent → 访问令牌 中查看）
+     --copy 自动复制到剪贴板
 """
 import json
+import os
 import sys
 import urllib.request
 from pathlib import Path
 
 MCP_URL = "http://127.0.0.1:9527/mcp"
 PROMPT_FILE = Path(__file__).parent / "FRICTION_AI_CONNECT.md"
+
+
+def get_token():
+    for i, a in enumerate(sys.argv):
+        if a == "--token" and i + 1 < len(sys.argv):
+            return sys.argv[i + 1]
+    return os.environ.get("FRICTION_MCP_TOKEN", "")
+
+
+TOKEN = get_token()
 
 
 def call_tool(name, args=None):
@@ -23,8 +35,10 @@ def call_tool(name, args=None):
         "params": {"name": name, "arguments": args or {}}
     }
     data = json.dumps(payload).encode("utf-8")
-    req = urllib.request.Request(MCP_URL, data=data,
-                                  headers={"Content-Type": "application/json"})
+    headers = {"Content-Type": "application/json"}
+    if TOKEN:
+        headers["X-Friction-Token"] = TOKEN
+    req = urllib.request.Request(MCP_URL, data=data, headers=headers)
     try:
         with urllib.request.urlopen(req, timeout=5) as r:
             return json.loads(r.read().decode("utf-8"))
@@ -86,20 +100,31 @@ Friction 正在运行，可以直接开始操作
     full_prompt = base_prompt + status_block
 
     if copy_mode:
+        copied = False
         try:
             import subprocess
-            subprocess.run(["wl-copy"], input=full_prompt.encode("utf-8"), check=True)
-            print("已复制到剪贴板 (Wayland wl-copy)")
+            if sys.platform == "win32":
+                # clip.exe expects the locale encoding-safe bytes; utf-8
+                # with a BOM-less pipe is usually fine for AI consumption
+                proc = subprocess.Popen(["clip"], stdin=subprocess.PIPE)
+                proc.communicate(input=full_prompt.encode("utf-8", errors="replace"))
+                copied = True
+            else:
+                subprocess.run(["wl-copy"], input=full_prompt.encode("utf-8"), check=True)
+                copied = True
         except Exception:
             try:
                 import subprocess
                 proc = subprocess.Popen(["xclip", "-selection", "clipboard"],
                                         stdin=subprocess.PIPE)
                 proc.communicate(input=full_prompt.encode("utf-8"))
-                print("已复制到剪贴板 (xclip)")
+                copied = True
             except Exception as e:
                 print(f"复制失败: {e}")
-                print("---\n" + full_prompt)
+        if copied:
+            print("已复制到剪贴板")
+        else:
+            print("---\n" + full_prompt)
     else:
         print(full_prompt)
 

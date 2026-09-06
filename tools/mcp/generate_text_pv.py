@@ -12,10 +12,27 @@ Designed with Swiss Graphic & Editorial Motion Typography principles:
 import urllib.request
 import json
 import base64
+import os
+import sys
 import time
 
 FRICTION_PORT = 9527
 API_URL = f"http://127.0.0.1:{FRICTION_PORT}"
+
+# token from --token <value> or FRICTION_MCP_TOKEN env
+# (Settings -> AI Agent -> Access Token)
+TOKEN = ""
+for _i, _a in enumerate(sys.argv):
+    if _a == "--token" and _i + 1 < len(sys.argv):
+        TOKEN = sys.argv[_i + 1]
+if not TOKEN:
+    TOKEN = os.environ.get("FRICTION_MCP_TOKEN", "")
+
+def _headers():
+    h = {"Content-Type": "application/json"}
+    if TOKEN:
+        h["X-Friction-Token"] = TOKEN
+    return h
 
 def call_eval(script: str, undo_name: str = "Minimalist White Text PV") -> dict:
     url = f"{API_URL}/api/eval"
@@ -23,14 +40,14 @@ def call_eval(script: str, undo_name: str = "Minimalist White Text PV") -> dict:
         "script": script,
         "undoGroupName": undo_name
     }).encode("utf-8")
-    req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"})
+    req = urllib.request.Request(url, data=data, headers=_headers())
     with urllib.request.urlopen(req) as resp:
         return json.loads(resp.read().decode("utf-8"))
 
 def call_tool(tool_name: str, args: dict = None) -> dict:
     url = f"{API_URL}/api/tool/{tool_name}"
     data = json.dumps(args or {}).encode("utf-8")
-    req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"})
+    req = urllib.request.Request(url, data=data, headers=_headers())
     with urllib.request.urlopen(req) as resp:
         return json.loads(resp.read().decode("utf-8"))
 

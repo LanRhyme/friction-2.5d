@@ -426,6 +426,9 @@ void AIAgentSettingsWidget::copyAiPrompt()
             "你现在是 Friction 2.5D 矢量动画与运动设计软件的专属 AI 助手\n"
             "Friction 2.5D 正在本机运行并开放了实时控制接口：\n"
             "- **MCP / JSON-RPC 接口**：http://127.0.0.1:%1/mcp\n"
+            "- **访问令牌**：请求须携带 Authorization: Bearer 头、X-Friction-Token 头或 ?token= 参数（本页\"访问令牌\"即令牌值）\n"
+            "- **图层寻址**：行号为主（1-based 时间轴行序），折叠组内行号与组外重复须用组路径（如 path:\"2/1\" = 顶层第2行的子第1行）；名称仅兜底。先 friction_list_layers 看树再操作\n"
+            "- **默认动效流**：无详细要求时用 friction_list_anim_presets 取预设 → friction_apply_anim_preset scope:\"all\" 按行序错开（默认 staggerFrames=8，MG 节奏）；打关键帧后用 friction_list_easing_presets + friction_set_keyframe_easing 套缓动面板\n"
             "- **项目技能规范**：若处于项目中，请查阅技能文件 `.agents/skills/friction-2.5d/SKILL.md`\n\n"
             "--------------------------------------------------------------------------------\n\n"
             "## 推荐创作方式：声明式 HTML 动效引擎\n\n"
@@ -452,7 +455,7 @@ void AIAgentSettingsWidget::copyAiPrompt()
             "```bash\n"
             "python3 tools/mcp/friction_markup.py my_scene.html\n"
             "```\n\n"
-            "也可使用 HTTP POST 到 `http://127.0.0.1:%1/mcp` 调用 `friction_eval_script` 执行 JavaScript 脚本\n"
+            "也可使用 HTTP POST 到 `http://127.0.0.1:%1/mcp` 调用 `friction_eval_script` 执行 JavaScript 脚本（请求头带 `X-Friction-Token: <访问令牌>`）\n"
         ).arg(mPort->value());
     }
 

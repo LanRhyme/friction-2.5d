@@ -76,24 +76,44 @@ Friction 2.5D 正在本机运行并开放了实时控制接口：
 python3 tools/mcp/friction_markup.py my_scene.html
 ```
 
-### 方式 2：通过 HTTP JSON-RPC 调用
+### 方式 2：通过 HTTP JSON-RPC 调用（须携带访问令牌）
 ```python
 import urllib.request, json
 
-def eval_script(js_code):
+# 令牌在 Friction 的 设置 → AI Agent → 访问令牌 中查看
+TOKEN = "<你的令牌>"
+
+def call_tool(name, arguments):
     req = {
         "jsonrpc": "2.0", "id": 1,
         "method": "tools/call",
-        "params": {
-            "name": "friction_eval_script",
-            "arguments": {"script": js_code, "undoGroupName": "AI Action"}
-        }
+        "params": {"name": name, "arguments": arguments}
     }
     data = json.dumps(req).encode("utf-8")
-    r = urllib.request.Request("http://127.0.0.1:9527/mcp", data=data, headers={"Content-Type": "application/json"})
+    r = urllib.request.Request("http://127.0.0.1:9527/mcp", data=data,
+                               headers={"Content-Type": "application/json",
+                                        "X-Friction-Token": TOKEN})
     with urllib.request.urlopen(r, timeout=10) as resp:
         return json.loads(resp.read().decode("utf-8"))
+
+# 例：执行一段 JS 动效脚本
+call_tool("friction_eval_script",
+          {"script": "app.activeScene.addRect('Box', 0, 0, 200, 200); return 'OK';",
+           "undoGroupName": "AI Action"})
 ```
+令牌也可用 `Authorization: Bearer <token>` 头或 `?token=` 查询参数传递；探活接口 `GET /api/status` 不需要令牌。
+
+--------------------------------------------------------------------------------
+
+## 图层寻址规范（先读这个）
+
+图层一律**以行号寻址为主、名称为辅**。行号 = 时间轴上显示的 1-based 行序；**折叠组内的行号与组外行号会重复，嵌套图层必须用组路径**：
+
+- `index: 3` — 顶层第 3 行
+- `path: "2/1"`（或 `index: "2/1"` / `index: [2, 1]`）— 顶层第 2 行的子第 1 行，更深路径依次串联
+- `name: "标题"` — 兜底（重名时有歧义，不作主寻址）
+
+操作前先 `friction_list_layers`：返回递归树，每层带 `row`（容器内行号）、`path`（全路径）、`depth`、`isGroup`、`numChildren`。
 
 --------------------------------------------------------------------------------
 
@@ -102,21 +122,27 @@ def eval_script(js_code):
 | 工具名 | 说明 | 关键参数 |
 |:---|:---|:---|
 | `friction_render_markup` | 声明式编译并渲染 XML 动效工程，支持全量替换或增量追加 | `markup`, `mode` (`replace`/`append`), `timeOffset` |
-| `friction_update_layer` | 非破坏性就地修改已有图层文字/字号/颜色/位置/缩放/出入点 | `index`/`name`, `text`, `fontSize`, `fillColor`, `position`, `inPoint`, `outPoint` 等 |
-| `friction_animate_layer` | 高阶宏动画生成器（弹跳/上滑/下滑/缩放/淡入/2.5D翻转）并自动匹配物理缓动 | `index`/`name`, `preset`, `startFrame`, `durationFrames`, `easing`, `distance`, `isOut` |
+| `friction_apply_anim_preset` | **默认 MG 流程**：应用动效预设面板的预设；单层或 `scope:"all"` 全场按行序错开（默认 8 帧/层），入/出/双向，整批单步撤销 | `preset`, `kind` (`layer`/`text`), `scope`, `direction`, `staggerFrames`, `order`, `index`/`path`/`name` |
+| `friction_list_anim_presets` | 枚举动效预设面板全部预设（图层动效 + 逐字/词/行文字动效）的 id 与说明 | `kind` 过滤 |
+| `friction_list_easing_presets` | 枚举缓动面板全部缓动 id（与 `friction_set_keyframe_easing` 配套 = 先打关键帧再套缓动面板） | - |
+| `friction_update_layer` | 非破坏性就地修改已有图层文字/字号/颜色/位置/缩放/出入点 | `index`/`path`/`name`, `text`, `fontSize`, `fillColor`, `position`, `inPoint`, `outPoint` 等 |
+| `friction_animate_layer` | 逐属性宏动画（弹跳/滑动/缩放/淡入/2.5D翻转）自动匹配物理缓动 | `index`/`path`/`name`, `preset`, `startFrame`, `durationFrames`, `easing`, `distance`, `isOut` |
 | `friction_get_storyboard` | 沿时间轴多点采样生成 Base64 审片故事板条带进行视觉复核 | `numFrames` (2-8), `frames`, `width`, `format` (jpeg/png), `quality` |
 | `friction_get_scene_info` | 查询当前场景分辨率/帧率/时长/图层数 | - |
+| `friction_list_layers` | 递归列出图层树（行号/组路径/深度/父子结构） | - |
+| `friction_get_layer_properties` | 读取图层变换属性/边界/关键帧计数 | `index`/`path`/`name` |
+| `friction_get_keyframes` | 逐键读取某属性的 frame/time/value | `index`/`path`/`name`, `property` |
+| `friction_set_expression` | 给属性挂 JS 表达式（AE 表达式等价） | `property`, `bindings`, `script` |
 | `friction_seek_timeline` | 跳转播放头 | `frame` 或 `time` |
-| `friction_play_pause` | 切换播放/暂停 | - |
-| `friction_capture_viewport` | 截取视口画面 Base64 图片进行视觉检查 | `format` (png/jpeg) |
+| `friction_play_pause` | 切换播放/暂停并回报播放状态 | - |
+| `friction_capture_viewport` | 截取视口画面 Base64 图片（自动隐藏选框与标尺取净帧） | `format` (png/jpeg) |
 | `friction_eval_script` | 执行原生 JavaScript 动效脚本 | `script`, `undoGroupName` |
-| `friction_list_layers` | 列出当前所有图层 | - |
-| `friction_set_3d_mode` | 开关图层 2.5D 空间模式 | `index`/`name`, `enabled` |
-| `friction_set_keyframe` | 属性关键帧设置，支持平滑物理缓动 | `property`, `value`, `frame`/`time`, `easing` |
-| `friction_set_keyframe_easing` | 为指定属性关键帧区间应用物理缓动曲线 | `property`, `easing`, `startFrame`, `endFrame` |
-| `friction_set_in_out_point` | 设定图层时间轴出入点裁切区间 | `index`/`name`, `inFrame`/`outFrame`, `inTime`/`outTime` |
-| `friction_set_layer_order` | 调整图层上下层级顺序 | `index`/`name`, `order` (`top`/`bottom`/`up`/`down`) |
-| `friction_set_parent_layer` | 绑定父子图层关系实现群组联动 | `index`/`name`, `parentIndex`/`parentName` |
+| `friction_set_3d_mode` | 开关图层 2.5D 空间模式 | `index`/`path`/`name`, `enabled` |
+| `friction_set_keyframe` | 属性关键帧设置，支持物理缓动 | `property`, `value`, `frame`/`time`, `easing` |
+| `friction_set_keyframe_easing` | 为指定属性关键帧区间应用缓动面板同源缓动曲线 | `property`, `easing`, `startFrame`, `endFrame` |
+| `friction_set_in_out_point` | 设定图层时间轴出入点裁切区间 | `index`/`path`/`name`, `inFrame`/`outFrame`, `inTime`/`outTime` |
+| `friction_set_layer_order` | 调整图层上下层级顺序 | `index`/`path`/`name`, `order` (`top`/`bottom`/`up`/`down`) |
+| `friction_set_parent_layer` | 绑定父子图层关系实现群组联动 | `index`/`path`/`name`, `parentIndex`/`parentName`/`parent` |
 | `friction_undo` / `friction_redo` | 撤销与重做 | - |
 
 --------------------------------------------------------------------------------
@@ -136,6 +162,6 @@ AI 创作必须遵循以下动效质量准则，杜绝生硬机械的低质效�
 - **缓动优先（Easing Over Linear）**：严禁使用纯线性插值；位移、缩放与三维旋转必须搭配缓动（`easeOutCubic`、`easeOutBack`、`easeInOutQuad`）
 - **空间父子绑定（Spatial Parenting）**：复合 3D 卡片与文字必须绑定至容器 Group，确保三维旋转与透视变换完全同步不穿帮
 - **Z 轴空间层次（Z-Depth Offset）**：文字图层在卡片基础上保持微小 Z 偏移（+8px），产生真实空间视差与悬浮感
-- **节奏错峰出场（Staggered Timing）**：并列元素出场时间交错 0.05s - 0.15s，杜绝全场元素整齐划一同时运动
+- **节奏错峰出场（Staggered Timing）**：并列元素出场时间交错 0.05s - 0.15s，杜绝全场元素整齐划一同时运动——直接用 `friction_apply_anim_preset` 的 `staggerFrames`（默认 8 帧）按行序错开即可，无详细要求时默认走 `scope:"all"` 全场套预设+错峰的 MG 流程
 - **字符预设独立性（Preset Independence）**：启用打字机或上浮等逐字动画时，禁止施加全局透明度淡入遮蔽字效
 - **莫兰迪配色体系（Morandi Harmony）**：主体文字采用高反差（`#ffffff`），次要信息降饱和（`#94a3b8`），辅以克制点缀色（`#00f2fe`、`#ff2a6d`）

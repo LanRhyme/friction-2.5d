@@ -4,10 +4,26 @@ Generate a stylish Kinetic Typography PV in Friction 2.5D via MCP
 """
 
 import json
+import os
 import urllib.request
 import sys
 
 MCP_URL = "http://127.0.0.1:9527/mcp"
+
+# token from --token <value> or FRICTION_MCP_TOKEN env
+# (Settings -> AI Agent -> Access Token)
+TOKEN = ""
+for _i, _a in enumerate(sys.argv):
+    if _a == "--token" and _i + 1 < len(sys.argv):
+        TOKEN = sys.argv[_i + 1]
+if not TOKEN:
+    TOKEN = os.environ.get("FRICTION_MCP_TOKEN", "")
+
+def _headers():
+    h = {"Content-Type": "application/json"}
+    if TOKEN:
+        h["X-Friction-Token"] = TOKEN
+    return h
 
 def eval_friction_js(script: str, group_name: str = "Generate Kinetic Typography PV") -> dict:
     req = {
@@ -26,7 +42,7 @@ def eval_friction_js(script: str, group_name: str = "Generate Kinetic Typography
     req_obj = urllib.request.Request(
         MCP_URL,
         data=data,
-        headers={"Content-Type": "application/json"}
+        headers=_headers()
     )
     with urllib.request.urlopen(req_obj, timeout=15) as resp:
         return json.loads(resp.read().decode("utf-8"))
@@ -43,7 +59,7 @@ def seek_and_play(frame: int = 0) -> None:
         }
     }
     urllib.request.urlopen(
-        urllib.request.Request(MCP_URL, data=json.dumps(req_seek).encode("utf-8"), headers={"Content-Type": "application/json"}),
+        urllib.request.Request(MCP_URL, data=json.dumps(req_seek).encode("utf-8"), headers=_headers()),
         timeout=5
     )
 

@@ -11,9 +11,26 @@ Demonstrates real-time control of Friction 2.5D:
 import urllib.request
 import json
 import base64
+import os
+import sys
 import time
 
 URL = "http://127.0.0.1:9527"
+
+# token from --token <value> or FRICTION_MCP_TOKEN env
+# (Settings -> AI Agent -> Access Token)
+TOKEN = ""
+for _i, _a in enumerate(sys.argv):
+    if _a == "--token" and _i + 1 < len(sys.argv):
+        TOKEN = sys.argv[_i + 1]
+if not TOKEN:
+    TOKEN = os.environ.get("FRICTION_MCP_TOKEN", "")
+
+def _headers():
+    h = {"Content-Type": "application/json"}
+    if TOKEN:
+        h["X-Friction-Token"] = TOKEN
+    return h
 
 def call_tool(tool_name: str, args: dict = None) -> dict:
     req_body = {
@@ -28,7 +45,7 @@ def call_tool(tool_name: str, args: dict = None) -> dict:
     req = urllib.request.Request(
         f"{URL}/mcp",
         data=json.dumps(req_body).encode("utf-8"),
-        headers={"Content-Type": "application/json"}
+        headers=_headers()
     )
     with urllib.request.urlopen(req) as r:
         return json.loads(r.read().decode("utf-8"))
@@ -37,7 +54,7 @@ def eval_script(script: str) -> dict:
     req = urllib.request.Request(
         f"{URL}/api/eval",
         data=json.dumps({"script": script, "undoGroupName": "AI Demo Generator"}).encode("utf-8"),
-        headers={"Content-Type": "application/json"}
+        headers=_headers()
     )
     with urllib.request.urlopen(req) as r:
         return json.loads(r.read().decode("utf-8"))
