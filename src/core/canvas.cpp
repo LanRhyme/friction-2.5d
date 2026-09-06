@@ -41,6 +41,7 @@
 #include "Boxes/videobox.h"
 #include "MovablePoints/pathpivot.h"
 #include "Boxes/imagebox.h"
+#include "Animators/eboxorsound.h"
 #include "Sound/soundcomposition.h"
 #include "Boxes/textbox.h"
 #include "GUI/global.h"
@@ -285,6 +286,38 @@ void Canvas::updateHoveredBox(const eMouseEvent &e)
 void Canvas::updateHoveredPoint(const eMouseEvent &e)
 {
     mHoveredPoint_d = getPointAtAbsPos(e.fPos, mCurrentMode, 1/e.fScale);
+    // POINT-PROBE: throttled hover report (type + coarse pos)
+    if(mHoveredPoint_d) {
+        static int lastType = -1;
+        static int lastX = 0x7FFFFFFF;
+        static int lastY = 0x7FFFFFFF;
+        const auto abs = mHoveredPoint_d->getAbsolutePos();
+        const int gx = static_cast<int>(abs.x() / 4);
+        const int gy = static_cast<int>(abs.y() / 4);
+        const int tp = static_cast<int>(mHoveredPoint_d->getMovablePointType());
+        if(tp != lastType || gx != lastX || gy != lastY) {
+            lastType = tp; lastX = gx; lastY = gy;
+            const char* tn;
+            switch(mHoveredPoint_d->getMovablePointType()) {
+            case TYPE_PATH_POINT: tn = "path_point"; break;
+            case TYPE_SMART_PATH_POINT: tn = "smart_node(节点)"; break;
+            case TYPE_CTRL_POINT: tn = "ctrl_handle(切线手柄)"; break;
+            case TYPE_PIVOT_POINT: tn = "pivot(轴心)"; break;
+            case TYPE_GRADIENT_POINT: tn = "gradient(渐变)"; break;
+            default: tn = "unknown"; break;
+            }
+            QString owner;
+            const auto trans = mHoveredPoint_d->getTransform();
+            if(trans) {
+                if(const auto box = trans->getFirstAncestor<eBoxOrSound>()) {
+                    owner = box->prp_getName();
+                }
+            }
+            qDebug() << "[POINT-PROBE] 悬停:" << tn
+                     << "层:" << (owner.isEmpty() ? QStringLiteral("?") : owner)
+                     << "abs=(" << abs.x() << "," << abs.y() << ")";
+        }
+    }
 }
 
 void Canvas::updateHoveredEdge(const eMouseEvent &e)

@@ -27,6 +27,7 @@
 #include "skia/skqtconversions.h"
 #include "pointhelpers.h"
 #include "Animators/transformanimator.h"
+#include "Animators/eboxorsound.h"
 #include "themesupport.h"
 #include "Private/document.h"
 
@@ -38,8 +39,32 @@ MovablePoint::MovablePoint(BasicTransformAnimator * const trans,
     setTransform(trans);
 }
 
+// POINT-PROBE: identify what the user actually grabbed on canvas
+static const char* sMovablePointTypeName(const MovablePointType type) {
+    switch(type) {
+    case TYPE_PATH_POINT: return "path_point";
+    case TYPE_SMART_PATH_POINT: return "smart_node(节点)";
+    case TYPE_CTRL_POINT: return "ctrl_handle(切线手柄)";
+    case TYPE_PIVOT_POINT: return "pivot(轴心)";
+    case TYPE_GRADIENT_POINT: return "gradient(渐变)";
+    default: return "unknown";
+    }
+}
+
 void MovablePoint::startTransform() {
     mSavedRelPos = getRelativePos();
+    {
+        QString owner;
+        if(mTrans_cv) {
+            if(const auto box = mTrans_cv->getFirstAncestor<eBoxOrSound>()) {
+                owner = box->prp_getName();
+            }
+        }
+        const auto rel = getRelativePos();
+        qDebug() << "[POINT-PROBE] 抓取:" << sMovablePointTypeName(mType)
+                 << "层:" << (owner.isEmpty() ? QStringLiteral("?") : owner)
+                 << "rel=(" << rel.x() << "," << rel.y() << ")";
+    }
 }
 
 const QPointF &MovablePoint::getSavedRelPos() const {

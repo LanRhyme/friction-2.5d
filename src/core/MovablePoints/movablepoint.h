@@ -114,6 +114,8 @@ public:
 
     BasicTransformAnimator *getTransform();
 
+    MovablePointType getMovablePointType() const { return mType; }
+
     bool isContainedInRect(const QRectF &absRect);
 
     void setSelected(const bool selected, const Op &deselect = nullptr);
