@@ -253,7 +253,7 @@
         var zs = [];
         var sum = 0;
         for (var i = 0; i < valid.length; i++) {
-            var z = valid[i].zPosition().value();
+            var z = valid[i].zPosition().value;
             zs.push(z);
             sum += z;
         }
@@ -356,7 +356,7 @@
                 var keys = ["panX", "panY", "zoom", "rotZ"];
                 for (var k = 0; k < keys.length; k++) {
                     var cp = cam.cameraProperty(keys[k]);
-                    while (cp.numKeys() > 0) { cp.removeKeyAtFrame(cp.keyFrame(1)); }
+                    while (cp.numKeys > 0) { cp.removeKeyAtFrame(cp.keyFrame(1)); }
                 }
                 resetCamera(cam);
             }
@@ -366,20 +366,20 @@
             for (var i = 0; i < layers.length; i++) {
                 var L = layers[i];
                 try {
-                    var z = L.zPosition().value();
-                    var f = L.perspective().value();
+                    var z = L.zPosition().value;
+                    var f = L.perspective().value;
                     if (!isFinite(f) || f < 1) { f = 800; }
                     var comp = (f + z) / f;
 
                     var sx = L.property("scalex");
                     var sy = L.property("scaley");
                     if (sx.hasExpression()) {
-                        var sv = sx.value() * comp;
+                        var sv = sx.value * comp;
                         sx.clearExpression();
                         sx.setValue(+sv.toFixed(4));
                     }
                     if (sy.hasExpression()) {
-                        var sv2 = sy.value() * comp;
+                        var sv2 = sy.value * comp;
                         sy.clearExpression();
                         sy.setValue(+sv2.toFixed(4));
                     }
