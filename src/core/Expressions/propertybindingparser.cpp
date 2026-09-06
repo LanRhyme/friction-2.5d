@@ -141,18 +141,15 @@ bool parsePathPoint(const QString& exp, int& pos,
     newPos++; // closing quote
     if(newPos >= exp.count() || exp.at(newPos) != ')') return false;
     newPos++;
-    const auto point = parse(exp, newPos, 6);
-    if(point == "start.") { end = false; }
-    else if(point == "end.") { end = true; }
+    if(!parse(exp, newPos, ".")) return false;
+    if(parse(exp, newPos, "start")) { end = false; }
+    else if(parse(exp, newPos, "end")) { end = true; }
     else return false;
-    const auto comp = parse(exp, newPos, 3);
-    if(comp == "x") { component = 0; }
-    else if(comp == "y") { component = 1; }
-    else {
-        const auto compAngle = parse(exp, newPos, 3);
-        if(comp == "ang" && compAngle == "le") { component = 2; }
-        else return false;
-    }
+    if(!parse(exp, newPos, ".")) return false;
+    if(parse(exp, newPos, "angle")) { component = 2; }
+    else if(parse(exp, newPos, "x")) { component = 0; }
+    else if(parse(exp, newPos, "y")) { component = 1; }
+    else return false;
     if(newPos != exp.count()) return false;
     layerName = raw.trimmed();
     if(layerName.isEmpty()) return false;

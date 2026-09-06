@@ -32,7 +32,6 @@
         tailColor: "#ffffff",
         corner: false,      // false=平滑曲线 true=直角折线
         link: true,         // 头尾联动（尾部跟随头部参数）
-        flow: 0             // 0=内置样条 1=选中路径层
     };
 
     var SHAPE_NAMES = ["无", "箭头", "圆点", "方块"];
@@ -143,16 +142,14 @@
 
     // ---------------- 路径来源 ----------------
 
-    // 从选中的钢笔路径层读取节点（pathInfo 数组按 nodeId 索引可能有洞）
-    function nodesFromSelection(scene) {
-        var sel = scene.selectedLayers();
-        if (!sel || sel.length === 0) {
-            throw "请先选中一个钢笔路径图层（或切回「内置样条」模式）";
+    // 从指定路径层读取节点（pathInfo 数组按 nodeId 索引可能有洞）
+    function nodesFromLayer(layer, label) {
+        if (!layer) {
+            throw label + " 不存在";
         }
-        var layer = sel[0];
         var paths = layer.paths();
         if (!paths || paths.length === 0) {
-            throw "选中图层 \"" + layer.name + "\" 不是矢量路径层（用钢笔工具画的图层才是）";
+            throw "图层 \"" + layer.name + "\" 不是矢量路径层（用钢笔工具画的图层才是）";
         }
         var info = paths[0].pathInfo();
         if (!info || !info.nodes || info.nodes.length < 2) {
@@ -175,6 +172,8 @@
                 nodes[j].point[1] += pos[1];
             }
         }
+        log("路径来源: " + label + " \"" + layer.name
+            + "\" (" + nodes.length + " 节点)");
         return { nodes: nodes, closed: info.closed };
     }
 
@@ -218,14 +217,30 @@
 
         app.beginUndoGroup("生成地图划线");
         try {
-            // 路径来源（须在清选之前读取选中图层）
-            var pathData;
-            if (state.flow === 1) {
-                pathData = nodesFromSelection(scene);
-                log("路径来源: 选中路径层 (" + pathData.nodes.length + " 节点)");
-            } else {
+            // 路径来源三级自动规则（须在清选之前读取选中图层）：
+            // 选中的路径层 > 引导路径层（CEP 按名查找遮罩层同款） > 内置样条
+            var pathData = null;
+            var selLayers = scene.selectedLayers();
+            if (selLayers && selLayers.length > 0) {
+                try {
+                    pathData = nodesFromLayer(selLayers[0], "选中路径层");
+                } catch (e) {
+                    log("选中图层不是可用路径，改用引导层/内置样条 (" + e + ")");
+                }
+            }
+            if (!pathData) {
+                var guideSrc = scene.layer("划线引导路径");
+                if (guideSrc) {
+                    try {
+                        pathData = nodesFromLayer(guideSrc, "引导路径层");
+                    } catch (e) {
+                        log("引导路径层不可用: " + e);
+                    }
+                }
+            }
+            if (!pathData) {
                 pathData = { nodes: buildSampleNodes(scene), closed: false };
-                log("路径来源: 内置样条");
+                log("路径来源: 内置样条（画路径：点「创建引导路径层」用节点工具调整后再生成）");
             }
 
             // 清空选择：确保新图层加到场景顶层而不是用户选中的嵌套组
@@ -379,7 +394,8 @@
         }
     }
 
-    // 创建引导路径层：生成一条可编辑的 S 形线，供钢笔工具调整后按「选中路径层」生成
+    // 创建引导路径层：生成一条可编辑的 S 形线，节点调整后直接点生成
+    // （路径来源自动规则：选中路径层 > 引导路径层 > 内置样条，无需切换）
     function createGuideLayer() {
         var scene = app.activeScene;
         if (!scene) { alert("请先打开一个场景"); return; }
@@ -398,7 +414,7 @@
                 old.visible = true;
                 log("引导路径层已存在，已重新显示");
                 alert("「划线引导路径」图层已重新显示\n"
-                      + "继续用节点工具调整形状，调整完选中它再点生成");
+                      + "用节点工具调整形状后，直接点「生成地图划线」");
                 return;
             }
             var nodes = buildSampleNodes(scene);
@@ -409,8 +425,9 @@
             layer.addPathEffect("dash", { dash: 10, gap: 8, offset: 0 });
             log("已创建引导路径层");
             alert("已创建「划线引导路径」图层\n"
-                  + "用节点编辑工具调整形状后，\n"
-                  + "把「路径来源」切到「选中路径层」并选中它，再点生成");
+                  + "① 用节点编辑工具调整成你想要的路线\n"
+                  + "② 直接点「生成地图划线」（无需任何切换）\n"
+                  + "之后想改路线：时间轴点亮引导层小眼睛→调节点→再生成");
         } catch (e) {
             log("创建引导层失败: " + e);
             alert("创建失败: " + e);
@@ -429,10 +446,6 @@
               options: ["经典路感", "科技样条", "双层叠压", "道路标识"], index: 0,
               tooltip: "每个预设=CEP原版整套参数组合（切到科技样条试试长虚线）",
               onChange: function (i) { applyPreset(i); } },
-            { label: "路径来源", id: "flow",
-              options: ["内置样条", "选中路径层"], index: 0,
-              tooltip: "选中路径层=读取钢笔工具画的矢量路径图层（可先点下方「创建引导路径层」）",
-              onChange: function (i) { state.flow = i; } },
             { label: "端点", id: "endpoint",
               options: ["单端（仅终点）", "头尾双端"], index: 0,
               onChange: function (i) { state.endpoint = i; } },
