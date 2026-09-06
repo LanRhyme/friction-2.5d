@@ -386,12 +386,10 @@
             if (pathSourceLayer) {
                 try {
                     var srcName = pathSourceLayer.name;
-                    if (pathSourceLayer.valid()) {
-                        pathSourceLayer.remove();
-                        log("已自动删除源路径层 \"" + srcName
-                            + "\"（想改路线：Ctrl+Z 撤销后重新画，或直接编辑"
-                            + "「中线虚线」层的锚点）");
-                    }
+                    pathSourceLayer.remove();
+                    log("已自动删除源路径层 \"" + srcName
+                        + "\"（想改路线：Ctrl+Z 撤销后重新画，或直接编辑"
+                        + "「中线虚线」层的锚点）");
                 } catch (delE) {
                     log("源路径层删除失败（可手动删除）: " + delE);
                 }
