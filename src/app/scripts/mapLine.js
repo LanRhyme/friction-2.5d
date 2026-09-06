@@ -95,31 +95,44 @@
         ];
     }
 
-    // 端点形状节点集，以图层原点为中心（箭头=三角+圆角描边，圆=8点贝塞尔，方块）。
-    // 定位/旋转由 positionx/positiony/rotation 三表达式驱动
-    // （$path("中线虚线").end.x 等），拖动路径端点锚点实时跟随
-    function shapeNodes(kind, size) {
-        var s = size;
-        var raw = [];
-        var k = 4 * Math.tan(Math.PI / 16) / 3; // 8 点圆最优手柄系数
-
-        if (kind === "arrow") {
-            // 圆角等腰三角形，尖点朝 +x（行进方向），CEP 同款几何
-            raw = [node([s + s / 3, 0]),
-                   node([-s + s / 3, -s]),
-                   node([-s + s / 3, s])];
-        } else if (kind === "circle") {
-            for (var a = 0; a < 8; a++) {
-                var ang = a * Math.PI / 4;
-                raw.push(node([s * Math.cos(ang), s * Math.sin(ang)],
-                              [ s * k * Math.sin(ang), -s * k * Math.cos(ang)],
-                              [-s * k * Math.sin(ang),  s * k * Math.cos(ang)]));
+    // 端点形状：直接用现有图形工具（圆=椭圆层/方=矩形层/箭头=路径层）。
+    // 层几何以自身原点为中心，初始 position=端点；再挂三表达式
+    // （$path("中线虚线").end.x 等）实时跟随端点
+    function makeShapeLayer(scene, group, name, kind, size, color, atPoint) {
+        var layer = null;
+        if (kind === "circle") {
+            layer = scene.addEllipse(name + "圆点", atPoint[0], atPoint[1], size);
+            if (layer) {
+                layer.setFill({ color: color });
+                layer.setStroke({ enabled: false });
             }
-        } else { // rect
-            raw = [node([-s / 2, -s / 2]), node([s / 2, -s / 2]),
-                   node([s / 2, s / 2]), node([-s / 2, s / 2])];
+        } else if (kind === "rect") {
+            // 矩形几何以 (0,0) 为中心：层原点=矩形中心，position 表达式即中心位置
+            layer = scene.addRect(name + "方块", -size / 2, -size / 2,
+                                  size, size);
+            if (layer) {
+                layer.setFill({ color: color });
+                layer.setStroke({ enabled: false });
+                layer.property("position").setValue(atPoint);
+            }
+        } else { // arrow：圆角三角=原点中心路径+同色粗描边（CEP 同款技巧）
+            var s = size;
+            var tri = [node([s + s / 3, 0]),
+                       node([-s + s / 3, -s]),
+                       node([-s + s / 3, s])];
+            layer = scene.addPath(name + "箭头", tri, true);
+            if (layer) {
+                layer.setFill({ color: color });
+                layer.setStroke({ width: size * 0.3, color: color,
+                                  cap: "round", join: "round" });
+                layer.property("position").setValue(atPoint);
+                layer.setParentLayer(group);
+            }
         }
-        return { nodes: raw, closed: true, roundJoin: kind === "arrow" };
+        if (!layer) { throw "创建端点形状失败: " + name; }
+        if (kind !== "arrow") { layer.setParentLayer(group); }
+        bindShapeToPath(layer, "中线虚线", name.indexOf("尾") === 0 ? false : true);
+        return layer;
     }
 
     // 端点形状三表达式绑定（AE 同款：位置=路径端点，旋转=切线方向）
@@ -324,41 +337,35 @@
                     + (state.mode === 3 ? " (法线偏移 " + state.gap + ")" : ""));
             }
 
-            // 端点形状（最上层）：原点中心几何 + 三表达式绑定路径端点
+            // 端点形状（最上层）：现有图形工具生成（圆=椭圆层/方=矩形层/箭头=路径层），
+            // 初始位置直接设到端点（表达式接管前的保底位置），再挂端点表达式
             var tailShape = state.link ? state.headShape : state.tailShape;
             var tailSize = state.link ? state.headSize : state.tailSize;
             var tailColor = state.link ? state.headColor : state.tailColor;
             if (state.endpoint === 1 && tailShape !== "none") {
-                var tlShape = shapeNodes(tailShape, tailSize);
-                var tl = makeLayer(scene, group, "尾部形状",
-                                   tlShape.nodes, tlShape.closed);
-                tl.setFill({ color: tailColor });
-                if (tlShape.roundJoin) {
-                    tl.setStroke({ width: tailSize * 0.3, color: tailColor,
-                                   cap: "round", join: "round" });
-                }
-                bindShapeToPath(tl, "中线虚线", false);
-                created.push("尾部形状");
+                var tl = makeShapeLayer(scene, group, "尾部形状",
+                                        tailShape, tailSize, tailColor,
+                                        nodes[0].point);
+                created.push("尾部形状(" + tl.name + ")");
             }
             if (state.headShape !== "none") {
-                var headShape = shapeNodes(state.headShape, state.headSize);
-                var hl = makeLayer(scene, group, "头部形状",
-                                   headShape.nodes, headShape.closed);
-                hl.setFill({ color: state.headColor });
-                if (headShape.roundJoin) {
-                    // 箭头圆角：同色粗描边 + 圆角连接（CEP 同款技巧）
-                    hl.setStroke({ width: state.headSize * 0.3,
-                                   color: state.headColor,
-                                   cap: "round", join: "round" });
-                }
-                bindShapeToPath(hl, "中线虚线", true);
-                created.push("头部形状");
+                var hl = makeShapeLayer(scene, group, "头部形状",
+                                        state.headShape, state.headSize,
+                                        state.headColor,
+                                        nodes[nodes.length - 1].point);
+                created.push("头部形状(" + hl.name + ")");
             }
+
+            // 踢一脚：换帧再换回，强制所有新挂的表达式立即求值出正确初值
+            var curFrame = scene.currentFrame;
+            scene.currentFrame = curFrame + 1;
+            scene.currentFrame = curFrame;
 
             log("生成完成: " + created.join(" + ")
                 + " | 模式" + state.mode
                 + " | 中线宽" + state.v1 + " 边线宽" + state.v2
-                + " 间距" + state.gap + " 密度" + Math.max(2, state.density));
+                + " 间距" + state.gap + " 密度" + Math.max(2, state.density)
+                + "（拖锚点请选中「中线虚线」层）");
 
             // 几何读回（animator 原始数据，可靠）：打印中线首尾顶点，
             // 供与 AE 成品逐点对照（AE 视口 200×170 + 居中偏移）
@@ -412,11 +419,9 @@
             }
             var old = scene.layer("划线引导路径");
             if (old) {
-                // 已存在：不删除（保留用户调整过的形状），重新显示
+                // 已存在：不删除（保留用户调整过的形状），重新显示（静默）
                 old.visible = true;
-                log("引导路径层已存在，已重新显示");
-                alert("「划线引导路径」图层已重新显示\n"
-                      + "用节点工具调整形状后，直接点「生成地图划线」");
+                log("引导路径层已存在，已重新显示——节点模式调整形状后直接点生成");
                 return;
             }
             var nodes = buildSampleNodes(scene);
@@ -425,11 +430,7 @@
             // 引导线预览样式：细虚线
             layer.setStroke({ width: 3, color: "#4da6ff", cap: "round" });
             layer.addPathEffect("dash", { dash: 10, gap: 8, offset: 0 });
-            log("已创建引导路径层");
-            alert("已创建「划线引导路径」图层\n"
-                  + "① 用节点编辑工具调整成你想要的路线\n"
-                  + "② 直接点「生成地图划线」（无需任何切换）\n"
-                  + "之后想改路线：时间轴点亮引导层小眼睛→调节点→再生成");
+            log("已创建引导路径层（静默）——节点模式调整形状后直接点「生成地图划线」");
         } catch (e) {
             log("创建引导层失败: " + e);
             alert("创建失败: " + e);

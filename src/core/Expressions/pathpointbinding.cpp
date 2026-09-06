@@ -100,12 +100,19 @@ void PathPointBinding::resolveSource()
     if (!src || src == box) { return; }
     mSource = src;
     // live re-evaluation: any path change in the source layer (node
-    // drags, keyframe changes) re-runs every expression bound to it
+    // drags, keyframe changes) re-runs every expression bound to it;
+    // three trigger surfaces so no change kind is missed
     const auto anim = src->getPathAnimator();
     if (anim) {
         connect(anim, &Property::prp_currentFrameChanged,
                 this, &PathPointBinding::currentValueChanged);
+        connect(anim, &Property::prp_afterChangedRelRange,
+                this, [this](const FrameRange&) {
+            emit currentValueChanged();
+        });
     }
+    connect(src, &Property::prp_currentFrameChanged,
+            this, &PathPointBinding::currentValueChanged);
     connect(src, &QObject::destroyed,
             this, &PathPointBinding::currentValueChanged);
 }
