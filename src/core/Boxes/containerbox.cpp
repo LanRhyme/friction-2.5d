@@ -1465,12 +1465,19 @@ void ContainerBox::addContainedBoxesToSelection(const QRectF &rect) {
     const auto pScene = getParentScene();
     const auto minMax = getContainedMinMax();
     const bool soloActive = childrenSoloActive();
+    // the drag may end up-left of its start: normalize so the rectangle
+    // is valid, otherwise intersects() never matches (same as the node
+    // marquee does with its rect)
+    const QRectF normRect = rect.normalized();
     for(int i = minMax.fMin; i <= minMax.fMax; i++) {
         const auto& box = mContainedBoxes.at(i);
         if(box->isVisibleAndUnlocked() &&
                 box->isVisibleAndInVisibleDurationRect() &&
                 (!soloActive || box->soloAffectsDraw())) {
-            if(box->isContainedIn(rect)) {
+            // AE marquee semantics: any overlap with the layer bounds
+            // selects it; the old full-containment test made layers
+            // larger than the marquee impossible to select
+            if(box->getAbsBoundingRect().intersects(normRect)) {
                 pScene->addBoxToSelection(box);
             }
         }
