@@ -40,6 +40,7 @@
 #include "Animators/qpointfanimator.h"
 #include "Animators/qrealanimator.h"
 #include "Animators/key.h"
+#include "Expressions/expression.h"
 
 #include <QFile>
 #include <QTextStream>
@@ -327,6 +328,56 @@ namespace Friction
             }
         }
 
+        QString JsPropertyProxy::setExpression(const QString &bindings,
+                                               const QString &script)
+        {
+            if (!mProp) { return QStringLiteral("property is no longer valid"); }
+            if (mKind != Kind::Scalar) {
+                return QStringLiteral(
+                            "expressions work on scalar properties only - "
+                            "use property('positionx'/'positiony'/"
+                            "'scalex'/'scaley') sub-animators");
+            }
+            const auto anim = static_cast<QrealAnimator*>(mProp.data());
+            try {
+                const auto expr = Expression::sCreate(
+                            bindings, QString(), script, anim,
+                            Expression::sQrealAnimatorTester);
+                if (!expr) {
+                    return QStringLiteral("could not build expression");
+                }
+                anim->setExpressionAction(expr);
+                return QString();
+            } catch (const std::exception &e) {
+                return QString::fromUtf8(e.what());
+            } catch (...) {
+                return QStringLiteral("unknown expression error");
+            }
+        }
+
+        bool JsPropertyProxy::clearExpression()
+        {
+            if (!mProp || mKind != Kind::Scalar) { return false; }
+            const auto anim = static_cast<QrealAnimator*>(mProp.data());
+            if (!anim->hasExpression()) { return false; }
+            anim->setExpressionAction(nullptr);
+            return true;
+        }
+
+        bool JsPropertyProxy::hasExpression()
+        {
+            if (!mProp || mKind != Kind::Scalar) { return false; }
+            return static_cast<QrealAnimator*>(mProp.data())->hasExpression();
+        }
+
+        QString JsPropertyProxy::bindingPath()
+        {
+            if (!mProp) { return QString(); }
+            QStringList names;
+            mProp->prp_getFullPath(names);
+            return names.join(QLatin1Char('.'));
+        }
+
         //---------------------------- JsLayerProxy ----------------------------
 
         JsLayerProxy::JsLayerProxy(const QPointer<BoundingBox> &box,
@@ -408,6 +459,24 @@ namespace Friction
                 kind = JsPropertyProxy::Kind::Point;
             } else if (n == "rotation" || n == "rot") {
                 prop = transform->getRotAnimator();
+            } else if (n == "positionx" || n == "posx"
+                       || n == "xposition" || n == "x") {
+                const auto pos = transform->getPosAnimator();
+                prop = pos ? pos->getXAnimator() : nullptr;
+            } else if (n == "positiony" || n == "posy"
+                       || n == "yposition" || n == "y") {
+                const auto pos = transform->getPosAnimator();
+                prop = pos ? pos->getYAnimator() : nullptr;
+            } else if (n == "scalex" || n == "sx") {
+                const auto scl = transform->getScaleAnimator();
+                prop = scl ? scl->getXAnimator() : nullptr;
+            } else if (n == "scaley" || n == "sy") {
+                const auto scl = transform->getScaleAnimator();
+                prop = scl ? scl->getYAnimator() : nullptr;
+            } else if (n == "opacity" || n == "alpha") {
+                const auto boxTrans = mBox->getBoxTransformAnimator();
+                if (!boxTrans) { return QJSValue(QJSValue::NullValue); }
+                prop = boxTrans->getOpacityAnimator();
             } else if (n == "rotationx" || n == "rotx"
                        || n == "xrotation" || n == "3drotationx") {
                 const auto boxTrans = mBox->getBoxTransformAnimator();

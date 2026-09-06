@@ -96,6 +96,28 @@ namespace Friction
             Q_INVOKABLE int keyFrame(const int index);
             Q_INVOKABLE void removeKeyAtFrame(const int frame);
 
+            // Expression engine bridge (AE "expression" equivalent).
+            // Only scalar animators can host expressions - for point
+            // properties (position/scale) target the sub-animators
+            // via property("positionx"/"positiony"/"scalex"/"scaley").
+            // bindings: one per line "name = $frame;" /
+            //   "name = $value;" / "name = $scene.width;" /
+            //   "name = <layer>.<transform>.<property>;" (paths as
+            //   shown by bindingPath(), e.g. "ctrl.transform.rotation")
+            // script: JS function body, must `return` a number.
+            // Returns an empty string on success, else the error text.
+            // Undoable (one undo step per call, merges into an open
+            // app.beginUndoGroup batch).
+            Q_INVOKABLE QString setExpression(const QString &bindings,
+                                              const QString &script);
+            // remove the expression (undoable); true when it existed
+            Q_INVOKABLE bool clearExpression();
+            Q_INVOKABLE bool hasExpression();
+            // dot-joined property path usable inside bindings of
+            // OTHER properties that want to read this one
+            // ("" when unavailable)
+            Q_INVOKABLE QString bindingPath();
+
             bool valid() const { return !mProp.isNull(); }
         private:
             qreal fps() const;
