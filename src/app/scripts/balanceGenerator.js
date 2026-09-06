@@ -15,7 +15,7 @@
     var LEFT_KEYWORDS = ["左平台", "左盘", "左托盘", "左", "left"];
     var RIGHT_KEYWORDS = ["右平台", "右盘", "右托盘", "右", "right"];
 
-    var state = { beam: null, left: null, right: null, angle: 0 };
+    var state = { beam: null, left: null, right: null };
 
     function nameMatchesKeywords(name, keywords) {
         var lower = String(name).toLowerCase();
@@ -130,17 +130,12 @@
             }
             if (!ctrl) { throw "无法创建控制器 " + CTRL_LAYER_NAME; }
 
-            // 2. 角度数值属性（AE 滑块效果等价）：
-            //    已有键则当前帧自动 K 帧，否则直接设值
+            // 2. 角度数值属性（AE 滑块效果等价）：仅确保存在——
+            //    已有值/关键帧保持不动（实时调节与 K 帧都在时间轴
+            //    该属性上进行），新建时初始为 0
             //    （numKeys 被 Q_PROPERTY 遮蔽，只能属性形式读取）
             var slider = ctrl.numberProperty(CTRL_PROP_NAME, 0);
             if (!slider) { throw "无法创建数值属性 " + CTRL_PROP_NAME; }
-            var angle = state.angle;
-            if (slider.numKeys > 0) {
-                slider.setValueAtFrame(scene.currentFrame, angle);
-            } else {
-                slider.setValue(angle);
-            }
 
             // 3. 秤杆旋转表达式 <- 控制器角度
             //    （$frame 生死线：不绑会被当恒值缓存，拖滑杆画面不动）
@@ -156,38 +151,13 @@
             parentPlatform(left, beam, "左平台");
             parentPlatform(right, beam, "右平台");
 
-            alert("应用完成！拖动上方滑杆实时预览；对控制器「"
-                + CTRL_PROP_NAME + "」属性 K 帧可记录天平动画");
+            alert("应用完成！在时间轴控制器「" + CTRL_LAYER_NAME
+                + "」的「" + CTRL_PROP_NAME + "」属性上拖动实时预览、K 帧记录天平动画");
         } catch (err) {
             alert("应用失败: " + err);
         } finally {
             app.endUndoGroup();
         }
-    }
-
-    // 面板滑杆 -> 实时写控制器角度（未应用过则静默返回；
-    // 滑块已 K 帧时在当前帧自动打关键帧，AE 原版同款）
-    function updateBeamRotation(v) {
-        var scene = app.activeScene;
-        if (!scene) { return; }
-        var ctrl = scene.layer(CTRL_LAYER_NAME);
-        if (!ctrl) { return; }
-        var slider = ctrl.numberProperty(CTRL_PROP_NAME, v);
-        if (!slider) { return; }
-        try {
-            if (slider.numKeys > 0) {
-                slider.setValueAtFrame(scene.currentFrame, v);
-            } else {
-                slider.setValue(v);
-            }
-        } catch (e) {
-            alert("更新角度失败: " + e);
-        }
-    }
-
-    function setAngle(v) {
-        state.angle = Math.round(v);
-        updateBeamRotation(state.angle);
     }
 
     registerPanel({
@@ -201,14 +171,6 @@
             { label: "右平台:", id: "right", options: [PLACEHOLDER], index: 0,
               onChange: function (i, text) { state.right = text; } }
         ],
-        sliders: [{
-            label: "天平角度(度)", id: "angle",
-            min: -90, max: 90, value: 0, decimals: 0,
-            tooltip: "应用后拖动实时生效；已 K 帧时在当前帧自动打关键帧；"
-                   + "也可直接在时间轴对控制器「" + CTRL_PROP_NAME + "」属性 K 帧",
-            onChanging: setAngle,
-            onChange: setAngle
-        }],
         buttons: [
             { label: "刷新图层列表", tooltip: "重新读取当前场景的图层名称",
               onClick: refreshLayerList }
