@@ -26,6 +26,7 @@
 #include "RasterEffects/rastereffect.h"
 #include "RasterEffects/rastereffectmenucreator.h"
 #include "RasterEffects/blureffect.h"
+#include "Properties/comboboxproperty.h"
 #include "GUI/BoxesList/boxsinglewidget.h"
 #include "themesupport.h"
 #include "Private/document.h"
@@ -1305,5 +1306,42 @@ void AEPropertiesInspector::setupEffectPropertyControl(QGridLayout *grid, int ro
             colorBtn->update();
         });
         grid->addWidget(resetBtn, rowIdx, 3, Qt::AlignCenter);
+    } else if (enve_cast<ComboBoxProperty*>(prop)) {
+        // dropdown parameters (e.g. keying method): combobox bound to
+        // the property; no keyframe diamond (not animatable)
+        const auto comboProp = static_cast<ComboBoxProperty*>(prop);
+        auto lbl = new QLabel(propName);
+        lbl->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+        lbl->setStyleSheet(QStringLiteral("color: #ffffff; font-size: 12px;"));
+        grid->addWidget(lbl, rowIdx, 1);
+
+        auto combo = new QComboBox();
+        combo->setPalette(ThemeSupport::getDefaultPalette());
+        combo->addItems(comboProp->getValueNames());
+        combo->setCurrentIndex(comboProp->getCurrentValue());
+        combo->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+        connect(combo, qOverload<int>(&QComboBox::activated),
+                this, [comboProp](const int index) {
+            comboProp->setCurrentValue(index);
+        });
+        connect(comboProp, &ComboBoxProperty::valueChanged,
+                combo, [combo](const int id) {
+            combo->blockSignals(true);
+            combo->setCurrentIndex(id);
+            combo->blockSignals(false);
+        });
+        grid->addWidget(combo, rowIdx, 2);
+    } else {
+        // other parameter types (int / bool / point / nested groups)
+        // stay visible with a hint instead of silently disappearing
+        auto lbl = new QLabel(propName);
+        lbl->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+        lbl->setStyleSheet(QStringLiteral("color: #ffffff; font-size: 12px;"));
+        grid->addWidget(lbl, rowIdx, 1);
+
+        auto hint = new QLabel(tr("在时间轴对应行内编辑"));
+        hint->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+        hint->setStyleSheet(QStringLiteral("color: #9aa0ab; font-style: italic; font-size: 12px;"));
+        grid->addWidget(hint, rowIdx, 2);
     }
 }

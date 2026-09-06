@@ -25,6 +25,7 @@
 
 #include <QStatusBar>
 
+#include "aepropertiesinspector.h"
 #include "RasterEffects/rastereffectmenucreator.h"
 #include "BlendEffects/blendeffectmenucreator.h"
 #include "TransformEffects/transformeffectmenucreator.h"
@@ -186,6 +187,10 @@ void MainWindow::addRasterEffect(const qsptr<RasterEffect> &effect)
 
     box->addRasterEffect(effect);
     mDocument.actionFinished();
+    // the inspector only listens to selection changes - applying an
+    // effect changes none, refresh it so the pipeline shows the new
+    // effect and its parameters right away
+    if (mPropertiesInspector) { mPropertiesInspector->refreshSelection(); }
 }
 
 void MainWindow::addBlendEffect(const qsptr<BlendEffect> &effect)
@@ -198,6 +203,7 @@ void MainWindow::addBlendEffect(const qsptr<BlendEffect> &effect)
 
     box->addBlendEffect(effect);
     mDocument.actionFinished();
+    if (mPropertiesInspector) { mPropertiesInspector->refreshSelection(); }
 }
 
 void MainWindow::addTransformEffect(const qsptr<TransformEffect> &effect)
@@ -210,6 +216,7 @@ void MainWindow::addTransformEffect(const qsptr<TransformEffect> &effect)
 
     box->addTransformEffect(effect);
     mDocument.actionFinished();
+    if (mPropertiesInspector) { mPropertiesInspector->refreshSelection(); }
 }
 
 void MainWindow::addPathEffect(const qsptr<PathEffect> &effect)
@@ -222,6 +229,7 @@ void MainWindow::addPathEffect(const qsptr<PathEffect> &effect)
 
     box->addPathEffect(effect);
     mDocument.actionFinished();
+    if (mPropertiesInspector) { mPropertiesInspector->refreshSelection(); }
 }
 
 void MainWindow::addFillPathEffect(const qsptr<PathEffect> &effect)
