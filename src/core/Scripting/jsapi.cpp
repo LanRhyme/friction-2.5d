@@ -1125,6 +1125,10 @@ namespace Friction
         void JsLayerProxy::remove()
         {
             if (!mBox) { return; }
+            // leaving a deleted box in the canvas selection keeps
+            // its dead anchors visible in node mode until the user
+            // reselects something else
+            mBox->setSelected(false);
             mBox->removeFromParent_k();
             finishAction();
             mBox.clear();
