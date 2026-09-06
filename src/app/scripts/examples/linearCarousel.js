@@ -1,48 +1,49 @@
-// 轮播 - 移植自 AE CEP「自动化图层工具集」
-// linearCarousel.jsx / xAxisCarousel.jsx / yAxisCarousel.jsx 三合一
+// 轮播 - 移植自 AE「自动化图层工具集」+「轮播卡片.jsx」经验
+// (ae-expert-knowledge-base/common-issues/3d-carousel-arc-layout-pitfalls.md)
 //
 // 排布三模式：
-//   线性     = 图层横向等距排开，拖/K 控制器 X 位置左右滑动，
+//   水平环   = 弧形轮播（AE 轮播卡片）：卡片沿 X-Z 圆弧聚在镜头
+//              前方，中间最近最大、两侧后退内收渐小（默认间隔40°）；
+//              顶视图是圆弧；K 控制器「旋转」整弧绕环转动
+//   竖直环   = 同上，圆弧立在 Y-Z 平面
+//   线性     = 横向等距排开，拖/K 控制器 X 左右滑动，
 //              越靠近画布中心越大（AE 线性轮播）
-//   水平环   = 图层沿水平圆环（X-Z 平面）均布，顶视图是一个
-//              圆圈、有 z 轴空间；K 控制器「旋转」整环转动
-//              （AE Y轴轮播）
-//   竖直环   = 图层沿竖直圆环（Y-Z 平面）均布，正面看是圆圈
-//              （AE X轴轮播）
 //
-// 参数存放（AE 滑块控制特效的 Friction 对应物）：
-//   线性参数（间距/最大缩放/最小缩放/影响范围/衰减）与环形参数
-//   （直径/间隔）都存在控制器「properties」自定义属性上——时间轴
-//   可直接调、可 K 关键帧、面板滑杆拖动实时写入。
-//   每张卡的序号偏移/轴心是生成时烤入的常量。
+// 依知识库经验实现的要点：
+//   - idxFromCenter 对称偏移（orderIdx-centerIdx 烤入表达式），
+//     配方 z=-R·cos(angle)：圆心=控制器位置，弧朝镜头凸出；
+//     中心层靠 rotation 驱动，不存在"乘零冻结"图层
+//   - 缩放衰减 s=100-abs(idx)·drop，透明度衰减同理
+//   - 朝向 = -(角度)×增强%（可调可反可K帧）
+//   - 波浪起伏 y=振幅·sin(idx·频率)
+//   - 间隔给小值(40°)=弧形；360/n=整环均布
 //
-// 引擎适配说明：
-//   - 位置/缩放通过 positionx/scalex 等子动画器挂表达式
-//     （表达式只能挂标量动画器）
-//   - bindings 区只接受属性路径/$frame/$value/$scene.*，常量烤进
-//     script；$frame 绑定=换帧信号生死线，必须带
-//   - AE 原版"平滑时间"低通滤波是 value 误用 bug，未移植
-//   - 缩放单位为分数（1.0=100%），properties 里按 AE 惯例存百分比
-//   - 卡片请放场景顶层（与控制器同层级），勿嵌套在变换过的组内
+// 参数都在控制器「properties」自定义属性上（AE 滑块控制对应物）：
+// 时间轴可调可 K 帧；面板滑杆拖动实时写入。
+// 卡片请放场景顶层；bindings 只接受属性路径/$frame/$value/$scene.*，
+// 常量烤进 script；$frame 绑定=换帧信号生死线。
 
 (function () {
     var SCRIPT_NAME = "轮播";
     var CTRL_NAME = "轮播控制器";
     var P = { SPACING: "间距", MAX: "最大缩放", MIN: "最小缩放",
               RANGE: "影响范围", CURVE: "衰减",
-              DIA: "直径", STEP: "间隔" };
+              DIA: "直径", STEP: "间隔", DROP: "缩放衰减",
+              ENH: "朝向增强", AMP: "波浪振幅", FRQ: "波浪频率",
+              FADE: "透明度衰减" };
 
     var settings = {
-        mode: 1,        // 0=线性 1=水平环(顶视图圆圈) 2=竖直环
-        spacing: 400, maxScale: 150, minScale: 50,
-        range: 600, curve: 1,
-        diameter: 1600, step: 0,   // 间隔 0=自动均分 360/n
-        face: 0        // 0=朝向圆心(外翻) 1=固定朝向
+        mode: 1,        // 0=线性 1=水平环(弧形轮播) 2=竖直环
+        // 线性
+        spacing: 400, maxScale: 150, minScale: 50, range: 600, curve: 1,
+        // 环形（知识库默认：间隔40°=弧形）
+        diameter: 1600, step: 40, drop: 10, enhance: 100,
+        amp: 0, freq: 0.5, fade: 0
     };
 
     var debugLog = [];
     function log(msg) { debugLog.push(msg); print(msg); if (debugLog.length > 300) debugLog.shift(); }
-    var boundNames = [];   // 已绑定卡片名，复查读数用
+    var boundNames = [];
 
     function requireSelection() {
         var scene = app.activeScene;
@@ -57,8 +58,6 @@
         return scene ? scene.layer(CTRL_NAME) : null;
     }
 
-    // 面板滑杆 → 控制器属性实时写入（控制器不存在时静默跳过，
-    // 生成时会用面板值创建）
     function writeProp(name, v) {
         var ctrl = findCtrl();
         if (!ctrl) return;
@@ -78,7 +77,6 @@
         ctrl.property("position").setValue(
             [scene.width / 2, scene.height / 2]);
         if (settings.mode !== 0) ctrl.set3DEnabled(true);
-        // 参数上控制器（存在则用面板值刷新，缺失则按面板值创建）
         for (var i = 0; i < needProps.length; i++) {
             var pr = needProps[i];
             ctrl.numberProperty(pr.name, pr.v).setValue(pr.v);
@@ -86,7 +84,6 @@
         return ctrl;
     }
 
-    // 轴心居中于内容；线性模式顺带统一像素宽为画布短边 25%
     function prepLayer(layer, unify) {
         var b = layer.bounds();
         if (!b || b.width <= 0 || b.height <= 0) return null;
@@ -101,7 +98,7 @@
 
     var sceneW = 0, sceneH = 0;
 
-    // ---- 线性：横向排开 + 中心放大 --------------------------------
+    // ---- 线性 ------------------------------------------------------
 
     function bindLinear(layer, orderIdx, n, uni) {
         var centerOffset = orderIdx - (n - 1) / 2;
@@ -144,46 +141,68 @@
         return "";
     }
 
-    // ---- 环形：X-Z(水平,顶视圆圈) 或 Y-Z(竖直) 圆环 -----------------
+    // ---- 环形（知识库弧形轮播公式）---------------------------------
 
-    function bindRing(layer, orderIdx, uni, isY) {
+    function bindRing(layer, orderIdx, n, uni, isY) {
         var pivX = uni.pivot[0].toFixed(2);
         var pivY = uni.pivot[1].toFixed(2);
-        var faceOut = settings.face === 0;
+        var centerIdx = (n - 1) / 2;
+        var idx = orderIdx - centerIdx;   // 对称偏移，烤入表达式
 
-        // 角度 = 控制器旋转 + 序号*间隔；半径 = 直径/2
         var bind =
             "frame = $frame;\n" +
             "rot = " + CTRL_NAME + ".transform.rotation;\n" +
             "cp = " + CTRL_NAME + ".transform.translation;\n" +
             "cz = " + CTRL_NAME + ".transform.3D position Z;\n" +
             "rd = " + CTRL_NAME + ".properties." + P.DIA + ";\n" +
-            "sp = " + CTRL_NAME + ".properties." + P.STEP + ";";
-        var ringXY =
-            "var a = (rot + " + orderIdx + " * sp) * Math.PI / 180;\n" +
-            "var s = (rd / 2) * Math.sin(a);\n";
+            "sp = " + CTRL_NAME + ".properties." + P.STEP + ";\n" +
+            "dr = " + CTRL_NAME + ".properties." + P.DROP + ";\n" +
+            "en = " + CTRL_NAME + ".properties." + P.ENH + ";\n" +
+            "am = " + CTRL_NAME + ".properties." + P.AMP + ";\n" +
+            "fq = " + CTRL_NAME + ".properties." + P.FRQ + ";\n" +
+            "fd = " + CTRL_NAME + ".properties." + P.FADE + ";";
+
+        // 角度 = 对称序号×间隔 + 旋转；z = -R·cos：圆心=控制器、弧朝镜头
+        var ring =
+            "var a = (rot + (" + idx.toFixed(4) + ") * sp) * Math.PI / 180;\n" +
+            "var s = (rd / 2) * Math.sin(a);\n" +
+            "var w = am * Math.sin((" + idx.toFixed(4) + ") * fq);\n";
 
         var err = layer.property("positionx").setExpression(bind,
-            isY ? ringXY + "return cp[0] + s - " + pivX + ";"
-                : ringXY + "return cp[0] - " + pivX + ";");
+            isY ? ring + "return cp[0] + s - " + pivX + ";"
+                : ring + "return cp[0] + w - " + pivX + ";");
         if (err) return "位置X: " + err;
 
         err = layer.property("positiony").setExpression(bind,
-            isY ? "return cp[1] - " + pivY + ";"
-                : ringXY + "return cp[1] + s - " + pivY + ";");
+            isY ? ring + "return cp[1] + w - " + pivY + ";"
+                : ring + "return cp[1] + s - " + pivY + ";");
         if (err) return "位置Y: " + err;
 
         err = layer.property("zposition").setExpression(bind,
-            "var a = (rot + " + orderIdx + " * sp) * Math.PI / 180;\n" +
+            "var a = (rot + (" + idx.toFixed(4) + ") * sp) * Math.PI / 180;\n" +
             "return cz - (rd / 2) * Math.cos(a);");
         if (err) return "位置Z: " + err;
 
-        var rotExpr = faceOut
-            ? "return rot + " + orderIdx + " * sp;"
-            : "return 0;";
+        // 朝向：-(角度)×增强%（知识库公式，增强可调可反可K帧）
         err = layer.property(isY ? "rotationy" : "rotationx")
-                  .setExpression(bind, rotExpr);
-        if (err) return "旋转: " + err;
+                  .setExpression(bind,
+            "return -(rot + (" + idx.toFixed(4) + ") * sp) * en / 100;");
+        if (err) return "朝向: " + err;
+
+        // 缩放衰减：100 - |对称序号|×衰减%
+        var scaleScript =
+            "var v = 100 - Math.abs(" + idx.toFixed(4) + ") * dr;\n" +
+            "return v / 100;";
+        err = layer.property("scalex").setExpression(bind, scaleScript);
+        if (err) return "缩放X: " + err;
+        err = layer.property("scaley").setExpression(bind, scaleScript);
+        if (err) return "缩放Y: " + err;
+
+        // 透明度衰减（0=关闭；animator 范围 0..100）
+        err = layer.property("opacity").setExpression(bind,
+            "var v = 100 - Math.abs(" + idx.toFixed(4) + ") * fd;\n" +
+            "return v < 0 ? 0 : v;");
+        if (err) return "透明度: " + err;
         return "";
     }
 
@@ -215,7 +234,12 @@
                 { name: P.CURVE, v: settings.curve }
             ] : [
                 { name: P.DIA, v: settings.diameter },
-                { name: P.STEP, v: settings.step > 0 ? settings.step : 360 / n }
+                { name: P.STEP, v: settings.step },
+                { name: P.DROP, v: settings.drop },
+                { name: P.ENH, v: settings.enhance },
+                { name: P.AMP, v: settings.amp },
+                { name: P.FRQ, v: settings.freq },
+                { name: P.FADE, v: settings.fade }
             ];
             var ctrl = ensureController(scene, needProps);
             if (!ctrl) { alert("控制器创建失败"); return; }
@@ -230,7 +254,7 @@
 
                 var err = isLinear
                     ? bindLinear(layer, k, n, uni)
-                    : bindRing(layer, k, uni, settings.mode === 1);
+                    : bindRing(layer, k, n, uni, settings.mode === 1);
                 if (err) { log(layer.name + " 表达式失败 " + err); continue; }
 
                 logReadout(layer, uni, !isLinear);
@@ -238,10 +262,11 @@
                 bound++;
             }
             log("绑定完成: " + bound + "/" + n + " 个图层（" +
-                (isLinear ? "线性" : (settings.mode === 1 ? "水平环" : "竖直环")) + "）");
+                (isLinear ? "线性" : (settings.mode === 1 ? "水平环" : "竖直环")) +
+                (isLinear ? "" : " 间隔=" + settings.step + "°") + "）");
             log(isLinear
                 ? "动画入口：K 控制器 X 位置"
-                : "动画入口：K 控制器旋转；顶视图(水平环)应是一个圆圈");
+                : "动画入口：K 控制器旋转（整弧绕环转动）");
 
             for (var j = 0; j < layers.length; j++) layers[j].selected = false;
             ctrl.selected = true;
@@ -253,7 +278,6 @@
         }
     }
 
-    // 生效值回读（含表达式结果）：验证表达式真的在出数
     function logReadout(layer, uni, withZ) {
         var pv = layer.property("position").effectiveValue();
         var sv = layer.property("scalex").effectiveValue();
@@ -267,8 +291,6 @@
         log(msg);
     }
 
-    // 复查读数：重新读所有已绑定卡片的当前生效值（诊断拖动/调参
-    // 后表达式是否真的跟着变）
     function recheck() {
         var scene = app.activeScene;
         if (!scene || boundNames.length === 0) {
@@ -297,17 +319,21 @@
     function showHelp() {
         alert("使用方法：\n" +
               "1. 选中若干图层（按时间轴顺序）→「生成轮播」\n" +
-              "2. 排布=水平环：顶视图是一个圆圈，有 z 轴空间；\n" +
-              "   K「轮播控制器」的「旋转」→ 整环转动\n" +
-              "3. 排布=竖直环：正面看是圆圈（AE X轴轮播）\n" +
-              "4. 排布=线性：拖/K 控制器 X 位置左右滑动，\n" +
-              "   越靠近画布中心越大（AE 线性轮播）\n" +
-              "5. 环形建议加摄像机图层取景（图层已自动开 3D）\n\n" +
+              "2. 水平环（默认）：弧形轮播——卡片聚在镜头前方，\n" +
+              "   中间最近最大、两侧后退渐小；顶视图是圆弧；\n" +
+              "   K「轮播控制器」的「旋转」→ 整弧绕环转动\n" +
+              "3. 间隔调小(40°)=封面流弧形；360/数量=整环均布\n" +
+              "4. 线性：拖/K 控制器 X 位置左右滑动\n" +
+              "5. 环形建议加摄像机图层取景（卡片已自动开 3D）\n\n" +
               "参数（控制器 properties 行，可 K 帧，面板实时写入）：\n" +
-              "· 直径/间隔：环形圆环尺寸与角度步进（0=均分）\n" +
-              "· 间距/最大%/最小%/范围/衰减：线性模式专用\n" +
-              "· 朝向：圆心=卡片外翻；固定=朝向不变（重新生成生效）\n\n" +
-              "拖面板滑杆实时调参数；「复查读数」回读表达式生效值。\n" +
+              "· 直径：圆环直径像素\n" +
+              "· 间隔：相邻卡片角度（对称分布，中心居中）\n" +
+              "· 缩放衰减%：每偏离中心一档缩放减少的百分比\n" +
+              "· 朝向增强%：卡片随环角转动的强度（负值反向）\n" +
+              "· 波浪振幅/频率：卡片沿自由轴的正弦起伏\n" +
+              "· 透明度衰减%：每档透明度减少（0=关闭）\n" +
+              "· 间距/最大%/最小%/范围/衰减：线性模式专用\n\n" +
+              "拖面板滑杆实时调参；「复查读数」回读表达式生效值；\n" +
               "卡片请放场景顶层（勿嵌套在变换过的组内）。");
     }
 
@@ -318,10 +344,30 @@
               tooltip: "环形：圆环直径像素（实时）",
               onChanging: function (v) { settings.diameter = v; writeProp(P.DIA, v); },
               onChange: function (v) { settings.diameter = v; writeProp(P.DIA, v); } },
-            { label: "间隔°", id: "step", min: 0, max: 360, value: settings.step, decimals: 1,
-              tooltip: "环形：相邻图层角度，0=自动均分（实时）",
-              onChanging: function (v) { settings.step = v; if (v > 0) writeProp(P.STEP, v); },
-              onChange: function (v) { settings.step = v; if (v > 0) writeProp(P.STEP, v); } },
+            { label: "间隔°", id: "step", min: 1, max: 180, value: settings.step, decimals: 1,
+              tooltip: "环形：相邻卡片角度。40=封面流弧形；大值趋近整环（实时）",
+              onChanging: function (v) { settings.step = v; writeProp(P.STEP, v); },
+              onChange: function (v) { settings.step = v; writeProp(P.STEP, v); } },
+            { label: "缩放衰减", id: "drop", min: 0, max: 50, value: settings.drop, decimals: 0,
+              tooltip: "环形：每偏离中心一档的缩放减少%（实时）",
+              onChanging: function (v) { settings.drop = v; writeProp(P.DROP, v); },
+              onChange: function (v) { settings.drop = v; writeProp(P.DROP, v); } },
+            { label: "朝向增强", id: "enh", min: -200, max: 200, value: settings.enhance, decimals: 0,
+              tooltip: "环形：卡片随环角转动强度%，负值反向（实时）",
+              onChanging: function (v) { settings.enhance = v; writeProp(P.ENH, v); },
+              onChange: function (v) { settings.enhance = v; writeProp(P.ENH, v); } },
+            { label: "波浪振幅", id: "amp", min: -500, max: 500, value: settings.amp, decimals: 0,
+              tooltip: "环形：卡片沿自由轴正弦起伏幅度px（实时）",
+              onChanging: function (v) { settings.amp = v; writeProp(P.AMP, v); },
+              onChange: function (v) { settings.amp = v; writeProp(P.AMP, v); } },
+            { label: "波浪频率", id: "freq", min: 0, max: 5, value: settings.freq, decimals: 2,
+              tooltip: "环形：起伏频率（实时）",
+              onChanging: function (v) { settings.freq = v; writeProp(P.FRQ, v); },
+              onChange: function (v) { settings.freq = v; writeProp(P.FRQ, v); } },
+            { label: "透明衰减", id: "fade", min: 0, max: 50, value: settings.fade, decimals: 0,
+              tooltip: "环形：每档透明度减少%，0=关闭（实时）",
+              onChanging: function (v) { settings.fade = v; writeProp(P.FADE, v); },
+              onChange: function (v) { settings.fade = v; writeProp(P.FADE, v); } },
             { label: "间距", id: "spacing", min: 50, max: 2000, value: settings.spacing, decimals: 0,
               tooltip: "线性：相邻图层水平像素间距（实时）",
               onChanging: function (v) { settings.spacing = v; writeProp(P.SPACING, v); },
@@ -340,12 +386,9 @@
               onChange: function (v) { settings.range = v; writeProp(P.RANGE, v); } }
         ],
         combos: [
-            { label: "排布", id: "mode", options: ["线性", "水平环(顶视圆圈)", "竖直环"], index: settings.mode,
-              tooltip: "水平环=X-Z平面圆环（顶视图圆圈）；竖直环=Y-Z平面；线性=横向滑动",
+            { label: "排布", id: "mode", options: ["线性", "水平环(弧形轮播)", "竖直环"], index: settings.mode,
+              tooltip: "水平环=X-Z平面弧形（顶视图圆弧）；竖直环=Y-Z平面；线性=横向滑动",
               onChange: function (i) { settings.mode = i; } },
-            { label: "朝向", id: "face", options: ["圆心(外翻)", "固定"], index: settings.face,
-              tooltip: "环形：圆心=卡片随环角外翻；固定=朝向不变（重新生成生效）",
-              onChange: function (i) { settings.face = i; } },
             { label: "衰减", id: "curve", options: ["线性", "Smoothstep", "Sine"], index: settings.curve,
               tooltip: "线性模式：距离→缩放映射曲线（实时）",
               onChange: function (i) { settings.curve = i; writeProp(P.CURVE, i); } }
