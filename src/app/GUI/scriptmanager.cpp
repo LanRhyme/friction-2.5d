@@ -246,10 +246,11 @@ void ScriptManager::createPanel(Friction::Core::JsHost * const host)
             slider->setValue(qRound(v * scale));
             slider->blockSignals(false);
         });
-        // drag = live preview (onChanging), coalesced by a 100ms
-        // tail-merge timer (raw sliderMoved rates would flood the
-        // undo stack and renderer); release/editing = final, immediate
-        connect(slider, &QSlider::sliderMoved, this,
+        // any value change = live preview (onChanging), coalesced by a
+        // 100ms tail-merge timer (raw rates would flood the undo stack
+        // and renderer); valueChanged (not sliderMoved) so groove
+        // clicks, keyboard arrows and drag all preview live
+        connect(slider, &QSlider::valueChanged, this,
                 [this, host, &s, scale](const int v) {
             mPendingSliderHost = host;
             mPendingSliderId = s.id;
