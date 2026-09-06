@@ -330,7 +330,51 @@
         }
     }
 
-    // ---- 5. 烘焙 --------------------------------------------------------
+    // ---- 5. 预览视差 ----------------------------------------------------
+    // 默认视角下画面恒=原始平铺（补偿设计，AE 同款），深度只在相机
+    // 参数变化时显现。一键推近 25% 让近/远层差异立刻可见，再点恢复。
+    // 同时是端到端自检：读表达式生效值与基值对比写日志。
+    var previewOn = false;
+    function togglePreview() {
+        var scene = getScene();
+        if (!scene) { return; }
+        var cam = findCamera(scene);
+        if (!cam) {
+            alert("未找到摄像机图层，请先点「应用视差」。");
+            return;
+        }
+        app.beginUndoGroup(previewOn ? "结束视差预览" : "预览视差");
+        try {
+            if (!previewOn) {
+                cam.cameraProperty("zoom").setValue(1.25);
+                previewOn = true;
+                // 自检：表达式生效值应偏离基值且近层偏差>远层
+                var layers = contentLayers(scene);
+                for (var i = 0; i < layers.length; i++) {
+                    var p = layers[i].property("positionx");
+                    var s = layers[i].property("scalex");
+                    log("预览自检: " + layers[i].name +
+                        " 位置X 基值=" + p.value +
+                        " 生效值=" + p.effectiveValue() +
+                        " 缩放X 基值=" + s.value +
+                        " 生效值=" + s.effectiveValue());
+                }
+                log("预览视差已开启（推近 25%）：近景层放大明显、远景层几乎不动；" +
+                    "再点一次恢复。若画面仍无层次差异=表达式未生效，请反馈日志。");
+            } else {
+                resetCamera(cam);
+                previewOn = false;
+                log("视差预览已恢复（相机归零）");
+            }
+        } catch (e) {
+            alert("出错: " + e);
+            log("预览异常: " + e);
+        } finally {
+            app.endUndoGroup();
+        }
+    }
+
+    // ---- 6. 烘焙 --------------------------------------------------------
     // AE 版语义：删警告层 + 重置相机 + 表达式值固化 + 删全部键。
     // Friction 要点：
     // - 相机 pan/zoom/rotZ 的关键帧必须清掉：表达式删除后相机的
@@ -423,6 +467,8 @@
               onClick: function () { set3DBatch(true); } },
             { label: "3D关", tooltip: "关闭所选图层的 3D 开关（批量）",
               onClick: function () { set3DBatch(false); } },
+            { label: "预览视差", tooltip: "相机推近 25% 立即查看层次效果（再点恢复）。默认视角画面=原始平铺，深度只在相机变化时显现",
+              onClick: togglePreview },
             { label: "重置相机", tooltip: "相机平移/缩放归零（画面=原始平铺）",
               onClick: doResetCamera },
             { label: "烘焙", tooltip: "移除表达式与相机动画，固化画面",
