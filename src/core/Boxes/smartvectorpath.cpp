@@ -117,9 +117,14 @@ void SmartVectorPath::setPathSource(SmartVectorPath * const source) {
     if (mPathTarget) { mPathTarget->setTargetAction(source); }
     connectPathSource();
     if (source) {
-        // drop the local path: geometry now comes from the source, and
-        // the stale local nodes would show as dead anchors in node mode
-        mPathAnimator->clear();
+        // empty the local path (animator kept: removing it would
+        // keep it alive through undo closures, leaving dead anchors;
+        // an empty path shows no anchors and renders nothing local)
+        const int nPathKids = mPathAnimator->ca_getNumberOfChildren();
+        for (int i = 0; i < nPathKids; i++) {
+            const auto anim = mPathAnimator->ca_getChildAt<SmartPathAnimator>(i);
+            if (anim) { anim->setPathToEmpty(); }
+        }
     }
     setPathsOutdated(UpdateReason::userChange);
 }

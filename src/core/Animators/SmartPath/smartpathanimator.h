@@ -127,6 +127,18 @@ public:
     { mPathColor = color; }
     const QColor& getPathColor() const
     { return mPathColor; }
+
+    // replace the path with an empty one WITHOUT removing the
+    // animator: removal keeps the animator alive through undo-redo
+    // closures, leaving dead (dragged but never rendered) anchors
+    // on the canvas
+    void setPathToEmpty() {
+        baseValue().setPath(SkPath());
+        setResultUpToDate(false);
+        updateAllPoints();
+        prp_afterWholeInfluenceRangeChanged();
+        emit emptied();
+    }
 signals:
     void pathBlendModeChagned(Mode);
     void emptied();
