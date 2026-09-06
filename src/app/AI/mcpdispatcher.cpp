@@ -369,6 +369,43 @@ namespace Friction
             return nullptr;
         }
 
+        // whole-layer timeline shift ("drag the layer later on the
+        // timeline"): with a duration fragment the fragment position
+        // moves and the keys follow through the rel->abs frame
+        // mapping; without one every keyframe is shifted directly -
+        // either way the layer AND its animation land later in time,
+        // as one undoable transform
+        static void shiftBoxInTime(BoundingBox * const box, const int delta)
+        {
+            if (!box || delta == 0) { return; }
+            box->startShiftAllTransform();
+            box->moveShiftAllBy(delta);
+            box->finishShiftAllTransform();
+        }
+
+        // stagger targets by row order: first layer stays put, every
+        // following layer shifts by slot*stagger frames on the
+        // timeline; call inside a undo batch for a single undo step
+        static QJsonArray staggerTargetsInTime(const QVector<BoundingBox*> &targets,
+                                               const int stagger,
+                                               const QString &order)
+        {
+            QJsonArray shifted;
+            const int n = targets.count();
+            for (int i = 0; i < n; ++i) {
+                const int slot = (order == QStringLiteral("bottom")) ?
+                            (n - 1 - i) : i;
+                const int delta = slot * stagger;
+                shiftBoxInTime(targets.at(i), delta);
+                QJsonObject o;
+                o[QStringLiteral("row")] = i + 1;
+                o[QStringLiteral("name")] = targets.at(i)->prp_getName();
+                o[QStringLiteral("shiftedFrames")] = delta;
+                shifted.append(o);
+            }
+            return shifted;
+        }
+
         McpDispatcher::McpDispatcher(QObject *parent)
             : QObject(parent)
         {
@@ -534,6 +571,8 @@ namespace Friction
                 return toolListAnimPresets(arguments);
             } else if (toolName == QStringLiteral("friction_apply_anim_preset")) {
                 return toolApplyAnimPreset(arguments);
+            } else if (toolName == QStringLiteral("friction_stagger_layers")) {
+                return toolStaggerLayers(arguments);
             } else if (toolName == QStringLiteral("friction_list_easing_presets")) {
                 return toolListEasingPresets(arguments);
             } else if (toolName == QStringLiteral("friction_capture_viewport")) {
@@ -2260,9 +2299,15 @@ namespace Friction
                 outBase = qRound(args.value(QStringLiteral("outTime")).toDouble() * fps);
             }
 
-            // rhythm: stagger each subsequent layer row so MG scenes
-            // do not animate all at once; 8 frames is the sane default
+            // rhythm: stagger each subsequent layer so MG scenes do
+            // not animate all at once; 8 frames is the sane default.
+            // timeline mode moves each LAYER later on the timeline
+            // (fragment + keyframes together, the drag gesture
+            // equivalent); preset mode only offsets the animation
+            // start frame
             const QString order = args.value(QStringLiteral("order")).toString(QStringLiteral("top")).toLower();
+            const QString staggerMode = args.value(QStringLiteral("staggerMode"))
+                    .toString(QStringLiteral("timeline")).toLower();
             int stagger = -1;
             if (args.contains(QStringLiteral("staggerFrames"))) {
                 stagger = args.value(QStringLiteral("staggerFrames")).toInt();
@@ -2318,7 +2363,8 @@ namespace Friction
                     auto *box = targets.at(i);
                     const int slot = (order == QStringLiteral("bottom")) ?
                                 (targets.count() - 1 - i) : i;
-                    const int start = baseFrame + slot * stagger;
+                    const int start = (staggerMode == QStringLiteral("preset")) ?
+                                baseFrame + slot * stagger : baseFrame;
                     auto *tb = enve_cast<TextBox*>(box);
                     if (!tb) { skipped++; continue; }
                     const bool ok = TextAnimPresets::apply(tb, *preset, start, fps,
@@ -2328,13 +2374,22 @@ namespace Friction
                         applied.append(QJsonObject{
                             {QStringLiteral("row"), i + 1},
                             {QStringLiteral("name"), box->prp_getName()},
-                            {QStringLiteral("startFrame"), start}});
+                            {QStringLiteral("startFrame"), start + slot * stagger}});
                     } else { skipped++; }
+                }
+                if (staggerMode != QStringLiteral("preset") && stagger > 0) {
+                    staggerTargetsInTime(targets, stagger, order);
+                    if (args.value(QStringLiteral("extendScene")).toBool(true)) {
+                        const auto range = scene->getFrameRange();
+                        scene->setFrameRange({range.fMin,
+                                              range.fMax + (targets.count() - 1) * stagger});
+                    }
                 }
                 Friction::Core::endUndoGroupBatch();
                 resp[QStringLiteral("success")] = true;
                 resp[QStringLiteral("applied")] = applied;
                 resp[QStringLiteral("skipped")] = skipped;
+                resp[QStringLiteral("staggerMode")] = QStringLiteral("timeline");
                 return resp;
             }
 
@@ -2362,7 +2417,8 @@ namespace Friction
                 auto *box = targets.at(i);
                 const int slot = (order == QStringLiteral("bottom")) ?
                             (targets.count() - 1 - i) : i;
-                const int start = baseFrame + slot * stagger;
+                const int start = (staggerMode == QStringLiteral("preset")) ?
+                            baseFrame + slot * stagger : baseFrame;
                 int inS = -1;
                 int outS = -1;
                 if (direction == QStringLiteral("in") || direction == QStringLiteral("both")) {
@@ -2371,18 +2427,27 @@ namespace Friction
                 if (direction == QStringLiteral("out")) {
                     outS = start;
                 } else if (direction == QStringLiteral("both")) {
-                    outS = outBase + slot * stagger;
+                    outS = outBase;
                 }
                 LayerAnimPresets::apply(box, *preset, inS, outS, fps, durationScale,
                                         scene->getCanvasWidth(), scene->getCanvasHeight(), true);
                 applied.append(QJsonObject{
                     {QStringLiteral("row"), i + 1},
                     {QStringLiteral("name"), box->prp_getName()},
-                    {QStringLiteral("startFrame"), start}});
+                    {QStringLiteral("startFrame"), start + slot * stagger}});
+            }
+            if (staggerMode != QStringLiteral("preset") && stagger > 0) {
+                staggerTargetsInTime(targets, stagger, order);
+                if (args.value(QStringLiteral("extendScene")).toBool(true)) {
+                    const auto range = scene->getFrameRange();
+                    scene->setFrameRange({range.fMin,
+                                          range.fMax + (targets.count() - 1) * stagger});
+                }
             }
             Friction::Core::endUndoGroupBatch();
             resp[QStringLiteral("success")] = true;
             resp[QStringLiteral("applied")] = applied;
+            resp[QStringLiteral("staggerMode")] = QStringLiteral("timeline");
             return resp;
         }
 
@@ -2414,6 +2479,69 @@ namespace Friction
             resp[QStringLiteral("easings")] = arr;
             resp[QStringLiteral("usage")] = QStringLiteral(
                         "pass the id to friction_set_keyframe_easing (easing param) - the same engine the easing presets panel applies");
+            return resp;
+        }
+
+        QJsonObject McpDispatcher::toolStaggerLayers(const QJsonObject &args)
+        {
+            QJsonObject resp;
+            auto scene = activeScene();
+            if (!scene) {
+                resp[QStringLiteral("error")] = QStringLiteral("No active scene");
+                resp[QStringLiteral("success")] = false;
+                return resp;
+            }
+            const qreal fps = scene->getFps() > 0 ? scene->getFps() : 60.0;
+            const QString order = args.value(QStringLiteral("order"))
+                    .toString(QStringLiteral("top")).toLower();
+            int stagger = -1;
+            if (args.contains(QStringLiteral("staggerFrames"))) {
+                stagger = args.value(QStringLiteral("staggerFrames")).toInt();
+            } else if (args.contains(QStringLiteral("staggerSeconds"))) {
+                stagger = qRound(args.value(QStringLiteral("staggerSeconds")).toDouble() * fps);
+            } else {
+                stagger = 8;
+            }
+            if (stagger < 0) { stagger = 0; }
+            const bool extendScene = args.value(QStringLiteral("extendScene")).toBool(true);
+
+            // targets: explicit layer refs, or every top-level row
+            QVector<BoundingBox*> targets;
+            if (args.contains(QStringLiteral("layers"))) {
+                const auto arr = args.value(QStringLiteral("layers")).toArray();
+                for (const auto &v : arr) {
+                    if (!v.isObject()) { continue; }
+                    bool ok = false;
+                    const auto box = resolveLayerRefCxx(v.toObject(), scene, QString(), &ok);
+                    if (ok && box && !targets.contains(box)) { targets.append(box); }
+                }
+            }
+            if (targets.isEmpty()) {
+                const auto &contained = scene->getContained();
+                for (const auto &child : contained) {
+                    const auto box = enve_cast<BoundingBox*>(child.get());
+                    if (box) { targets.append(box); }
+                }
+            }
+            if (targets.count() < 2) {
+                resp[QStringLiteral("error")] = QStringLiteral("Need at least two layers to stagger");
+                resp[QStringLiteral("success")] = false;
+                return resp;
+            }
+
+            Friction::Core::beginUndoGroupBatch();
+            const QJsonArray shifted = staggerTargetsInTime(targets, stagger, order);
+            if (extendScene && stagger > 0) {
+                const auto range = scene->getFrameRange();
+                scene->setFrameRange({range.fMin,
+                                      range.fMax + (targets.count() - 1) * stagger});
+            }
+            Friction::Core::endUndoGroupBatch();
+
+            resp[QStringLiteral("success")] = true;
+            resp[QStringLiteral("staggerFrames")] = stagger;
+            resp[QStringLiteral("order")] = order;
+            resp[QStringLiteral("shifted")] = shifted;
             return resp;
         }
 
@@ -2973,12 +3101,26 @@ namespace Friction
                 props[QStringLiteral("startTime")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("number")}, {QStringLiteral("description"), QStringLiteral("First layer starts here, seconds (converted with scene fps)")}};
                 props[QStringLiteral("outFrame")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("integer")}, {QStringLiteral("description"), QStringLiteral("Exit window start for direction=both")}};
                 props[QStringLiteral("durationScale")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("number")}, {QStringLiteral("description"), QStringLiteral("Multiplies each preset's built-in duration (default 1)")}};
-                props[QStringLiteral("staggerFrames")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("integer")}, {QStringLiteral("description"), QStringLiteral("Frames between consecutive layers (default 8) - the rhythm knob: stagger by row so a motion-graphics scene entrances cascade instead of popping at once. 0 = simultaneous")}};
+                props[QStringLiteral("staggerMode")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("string")}, {QStringLiteral("enum"), QJsonArray{QStringLiteral("timeline"), QStringLiteral("preset")}}, {QStringLiteral("description"), QStringLiteral("timeline (default) = move each layer later ON the timeline (fragment + keyframes together, stagger made visible in the layer stack); preset = only offset the animation start frames")}};
+                props[QStringLiteral("staggerFrames")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("integer")}, {QStringLiteral("description"), QStringLiteral("Frames between consecutive layers (default 8) - the rhythm knob. 0 = simultaneous")}};
                 props[QStringLiteral("staggerSeconds")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("number")}, {QStringLiteral("description"), QStringLiteral("Stagger in seconds (converted with scene fps)")}};
                 props[QStringLiteral("order")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("string")}, {QStringLiteral("enum"), QJsonArray{QStringLiteral("top"), QStringLiteral("bottom")}}, {QStringLiteral("description"), QStringLiteral("Which row animates first when staggering (default top)")}};
                 tools.append(makeTool(QStringLiteral("friction_apply_anim_preset"),
-                                      QStringLiteral("Apply an animation-preset-panel preset with built-in rhythm: give one layer (index/path/name) for a single animation, or scope:\"all\" to animate every top-level layer staggered by row (default 8 frames apart) - the default flow for MG scenes without detailed requirements. One undo step for the whole batch."),
+                                      QStringLiteral("Apply an animation-preset-panel preset: one layer (index/path/name) or scope:\"all\" for every top-level layer staggered by row (default 8 frames, layers move later on the timeline). The default single-call MG flow. One undo step for the whole batch."),
                                       props, QJsonArray{QStringLiteral("preset")}));
+            }
+
+            // 26.5b stagger_layers
+            {
+                QJsonObject props;
+                props[QStringLiteral("staggerFrames")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("integer")}, {QStringLiteral("description"), QStringLiteral("Frames each following layer moves later (default 8)")}};
+                props[QStringLiteral("staggerSeconds")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("number")}, {QStringLiteral("description"), QStringLiteral("Stagger in seconds (converted with scene fps)")}};
+                props[QStringLiteral("order")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("string")}, {QStringLiteral("enum"), QJsonArray{QStringLiteral("top"), QStringLiteral("bottom")}}, {QStringLiteral("description"), QStringLiteral("Which row stays put (default top)")}};
+                props[QStringLiteral("layers")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("array")}, {QStringLiteral("description"), QStringLiteral("Optional array of layer refs ({index}|{path}|{name}); default = every top-level layer in row order")}};
+                props[QStringLiteral("extendScene")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("boolean")}, {QStringLiteral("description"), QStringLiteral("Widen the scene frame range so shifted layers stay visible (default true)")}};
+                tools.append(makeTool(QStringLiteral("friction_stagger_layers"),
+                                      QStringLiteral("Move each layer later on the timeline by row order (layer fragment + all its keyframes travel together, exactly like dragging the layer in the timeline): first layer stays, each following layer +staggerFrames. Use on existing animations to give them rhythm. One undo step."),
+                                      props));
             }
 
             // 26.6 list_easing_presets

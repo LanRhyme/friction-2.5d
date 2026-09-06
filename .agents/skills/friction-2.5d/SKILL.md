@@ -204,7 +204,7 @@ addressing.
 
 Category | Key Tools
 :--- | :---
-**High-Level Orchestration** | `friction_render_markup` (declarative replace/append), `friction_update_layer` (non-destructive in-place edit), `friction_apply_anim_preset` (preset-panel animations with per-row stagger - the default MG flow), `friction_get_storyboard` (multi-frame vision review)
+**High-Level Orchestration** | `friction_render_markup` (declarative replace/append), `friction_update_layer` (non-destructive in-place edit), `friction_apply_anim_preset` (preset-panel animations; `scope:"all"` staggers by moving each layer later ON the timeline, default 8 frames - the default MG flow), `friction_stagger_layers` (timeline-shift existing layers by row order), `friction_get_storyboard` (multi-frame vision review)
 **Animation Presets** | `friction_list_anim_presets` (layer + text preset ids from the presets panel), `friction_apply_anim_preset` (single layer or `scope:"all"` staggered by row, direction in/out/both), `friction_list_easing_presets` (easing-panel ids) + `friction_set_keyframe_easing` (apply = "keyframes first, easing panel second" workflow)
 **Scene** | `friction_get_scene_info`, `friction_set_scene_info`, `friction_create_scene`, `friction_list_scenes`
 **Layer** | `friction_create_layer`, `friction_list_layers`, `friction_duplicate_layer`, `friction_delete_layer`, `friction_set_3d_mode`, `friction_set_parent_layer`, `friction_set_layer_order`, `friction_set_in_out_point`
