@@ -92,7 +92,10 @@ public:
         // Draw effect name
         painter->setPen(isSelected ? Qt::white : QColor(230, 230, 230));
         QFont nameFont = option.font;
-        nameFont.setPointSize(nameFont.pointSize() + 1);
+        // view fonts can be pixel-size based (pointSize() == -1);
+        // -1 + 1 == 0 would spam "Point size <= 0" warnings per paint
+        const int basePt = option.font.pointSize();
+        nameFont.setPointSize(basePt > 0 ? basePt + 1 : 10);
         painter->setFont(nameFont);
         QRect textRect(iconRect.right() + 10, option.rect.top(), option.rect.width() - 160, option.rect.height());
         painter->drawText(textRect, Qt::AlignVCenter | Qt::AlignLeft, text);
@@ -273,10 +276,24 @@ void QuickEffectSearchDialog::showAtCursor()
     if (y < screenGeo.top()) y = screenGeo.top() + 10;
 
     move(x, y);
+    mWasActivated = false;
     show();
     raise();
     activateWindow();
     mSearchEdit->setFocus();
+    qWarning() << "[FXSRCH] show" << pos() << size();
+    // Windows activation is asynchronous - if it did not land right
+    // after the first show (typically the very first press), retry
+    // once after the deactivate-guard window has passed
+    QTimer::singleShot(200, this, [this]() {
+        if (!isVisible()) { return; }
+        if (!isActiveWindow()) {
+            qWarning() << "[FXSRCH] activation retry";
+            activateWindow();
+            raise();
+            mSearchEdit->setFocus();
+        }
+    });
 }
 
 void QuickEffectSearchDialog::onSearchTextChanged(const QString &text)
@@ -362,13 +379,17 @@ void QuickEffectSearchDialog::applySelected()
 
 bool QuickEffectSearchDialog::event(QEvent *event)
 {
-    // Qt::Tool has no popup grab - close when the dialog loses
-    // activation (click elsewhere). Delayed check: a click on the
-    // IME candidate window briefly deactivates without meaning to
-    // dismiss, so give it 150ms to come back before hiding.
-    if (event->type() == QEvent::WindowDeactivate) {
+    if (event->type() == QEvent::WindowActivate) {
+        mWasActivated = true;
+    } else if (event->type() == QEvent::WindowDeactivate) {
+        // Qt::Tool has no popup grab - close when the dialog loses
+        // activation (click elsewhere). Delayed check: a click on the
+        // IME candidate window briefly deactivates without meaning to
+        // dismiss; and a window whose activation never landed yet
+        // (first show, async on Windows) must not be auto-hidden.
         QTimer::singleShot(150, this, [this]() {
-            if (!isVisible() || isActiveWindow()) { return; }
+            if (!isVisible() || isActiveWindow() || !mWasActivated) { return; }
+            qWarning() << "[FXSRCH] auto-hide: focus lost";
             hide();
         });
     }

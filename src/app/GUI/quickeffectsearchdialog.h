@@ -71,6 +71,10 @@ private:
     QLabel *mNoMatchLabel = nullptr;
     QListWidget *mListWidget = nullptr;
     QList<QuickEffectItem> mAllEffects;
+    // true once the window actually received activation - guards the
+    // auto-hide: a freshly shown window whose activation is still in
+    // flight must not be treated as "lost focus" and hidden
+    bool mWasActivated = false;
 
     void updateResultsGeometry();
 };

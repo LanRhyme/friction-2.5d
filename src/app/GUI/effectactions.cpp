@@ -39,6 +39,11 @@ void MainWindow::setupMenuEffects()
     const auto quickAct = mEffectsMenu->addAction(eIcon, tr("Quick Search Effects..."), this, &MainWindow::showQuickEffectSearch, QKeySequence(fxKey));
     quickAct->setData(tr("Quick Search Effects (AE: FX Console)"));
     cmdAddAction(quickAct);
+    // pre-create the dialog: building it inside the first shortcut
+    // press races with async window activation on Windows (first
+    // press could look like "no reaction"); an existing hidden Tool
+    // window shows reliably on the first press
+    mQuickEffectSearch = new QuickEffectSearchDialog(this, this);
     mEffectsMenu->addSeparator();
 
     QMap<QString, QMenu*> categoryMenus;
