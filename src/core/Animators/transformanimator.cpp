@@ -43,6 +43,10 @@ BasicTransformAnimator::BasicTransformAnimator() :
     mScaleAnimator = enve::make_shared<QPointFAnimator>("scale");
     mScaleAnimator->setBaseValue(QPointF(1, 1));
     mScaleAnimator->setPrefferedValueStep(0.05);
+    // default the X/Y proportional link ON (user preference): the
+    // chain toggle stores "linkedScale" as a dynamic property, unset
+    // reads as false - editing either axis should scale both by default
+    mScaleAnimator->setProperty("linkedScale", true);
 
     mRotAnimator = enve::make_shared<QrealAnimator>("rotation");
     mRotAnimator->setCurrentBaseValue(0);

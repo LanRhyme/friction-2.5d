@@ -222,16 +222,24 @@
 
             // 控制器：查找或创建，参数只在新键时写默认值
             var ctrl = scene.layer(ctrlName);
+            var created = false;
             if (!ctrl) {
                 ctrl = scene.addNull(ctrlName);
                 if (!ctrl) { alert("控制器创建失败"); return; }
+                created = true;
                 log("已创建控制器: " + ctrlName);
             } else {
                 log("复用控制器: " + ctrlName + "（已有参数保留当前值）");
             }
             ctrl.property("position").setValue(
                 [scene.width / 2, scene.height / 2]);
-            if (!isLinear) ctrl.set3DEnabled(true);
+            if (!isLinear) {
+                ctrl.set3DEnabled(true);
+                // 新建时默认 Z=2800（经验值）：默认相机(焦距800,z=-800)
+                // 下弧形的透视观感刚好合适；深度可在控制器
+                // 「3D position Z」上调或K帧
+                if (created) ctrl.property("zposition").setValue(2800);
+            }
             var defs = isLinear ? LINEAR_PROPS : RING_PROPS;
             var propList = [];
             for (var d = 0; d < defs.length; d++) {
