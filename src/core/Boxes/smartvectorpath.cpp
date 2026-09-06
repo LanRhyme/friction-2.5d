@@ -116,6 +116,11 @@ void SmartVectorPath::setPathSource(SmartVectorPath * const source) {
     // pointer already matches and skips the re-entry)
     if (mPathTarget) { mPathTarget->setTargetAction(source); }
     connectPathSource();
+    if (source) {
+        // drop the local path: geometry now comes from the source, and
+        // the stale local nodes would show as dead anchors in node mode
+        mPathAnimator->clear();
+    }
     setPathsOutdated(UpdateReason::userChange);
 }
 

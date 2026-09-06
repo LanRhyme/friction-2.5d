@@ -100,21 +100,26 @@ void PathPointBinding::resolveSource()
     if (!src || src == box) { return; }
     mSource = src;
     // live re-evaluation: any path change in the source layer (node
-    // drags, keyframe changes) re-runs every expression bound to it;
-    // three trigger surfaces so no change kind is missed
+    // drags, keyframe changes) re-runs every expression bound to it.
+    // BOTH signals are required: currentValueChanged updates the
+    // effective value, relRangeChanged drives the animator's
+    // prp_afterChangedRelRange so the transform/render cache is
+    // invalidated (without it the shape only snaps when the user
+    // pokes the transform handle)
+    const auto notify = [this]() {
+        emit currentValueChanged();
+        emit relRangeChanged(FrameRange::EMINMAX);
+    };
     const auto anim = src->getPathAnimator();
     if (anim) {
+        // same PMF form the SmartVectorPath constructor uses (the
+        // extra QPrivateSignal-carrying connects logged "signal not
+        // found" at runtime)
         connect(anim, &Property::prp_currentFrameChanged,
-                this, &PathPointBinding::currentValueChanged);
-        connect(anim, &Property::prp_afterChangedRelRange,
-                this, [this](const FrameRange&) {
-            emit currentValueChanged();
-        });
+                this, notify);
     }
-    connect(src, &Property::prp_currentFrameChanged,
-            this, &PathPointBinding::currentValueChanged);
     connect(src, &QObject::destroyed,
-            this, &PathPointBinding::currentValueChanged);
+            this, [this]() { emit currentValueChanged(); });
 }
 
 bool PathPointBinding::isValid() const
