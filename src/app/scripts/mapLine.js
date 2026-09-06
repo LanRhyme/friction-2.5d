@@ -67,15 +67,16 @@
         return { point: point, inTan: inTan || [0, 0], outTan: outTan || [0, 0] };
     }
 
-    // 内置样条：S 形 / 直角折线 / 三点共线（对应 CEP buildShapePath）
+    // 内置样条：CEP 原版固定 200×170 视口几何，整体居中于画布
+    // （CEP generateSpline: offsetX = comp.width/2 - 100, offsetY = comp.height/2 - 85）
     function buildSampleNodes(scene) {
-        var w = scene.width;
-        var h = scene.height;
-        var p0 = [w * 0.15, h * 0.62];
-        var corner = [w * 0.5, h * 0.62];
-        var p2 = [w * 0.85, h * 0.30];
+        var ox = scene.width / 2 - 100;
+        var oy = scene.height / 2 - 85;
+        var p0 = [20 + ox, 130 + oy];
+        var corner = [100 + ox, 130 + oy];
+        var p2 = [180 + ox, 40 + oy];
 
-        // 道路模式：3 点共线
+        // 道路模式：3 点共线（中点在起终点连线上）
         if (state.mode === 3) {
             var mid = [(p0[0] + p2[0]) / 2, (p0[1] + p2[1]) / 2];
             return [node(p0), node(mid), node(p2)];
@@ -84,9 +85,9 @@
         if (state.corner) {
             return [node(p0), node(corner), node(p2)];
         }
-        // 平滑 S 曲线（CEP t=0 分支：cp1/cp2 完全展开）
-        var cp1 = [corner[0] - w * 0.04, p0[1] - h * 0.30];
-        var cp2 = [corner[0] + w * 0.04, p2[1] + h * 0.28];
+        // 平滑 S 曲线：CEP t=0 全展开手柄（绝对像素，大弧度 S 弯）
+        var cp1 = [60 + ox, 30 + oy];
+        var cp2 = [140 + ox, 130 + oy];
         return [
             node(p0, [0, 0], [cp1[0] - p0[0], cp1[1] - p0[1]]),
             node(corner, [cp1[0] - corner[0], cp1[1] - corner[1]],
@@ -303,6 +304,17 @@
             var group = scene.addGroup(GROUP_NAME);
             if (!group) { throw "创建组失败"; }
 
+            // CEP 语义：图层轴心在内容中心（拖动/缩放围绕内容而不是左上角）
+            var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+            for (var gi = 0; gi < nodes.length; gi++) {
+                var gp = nodes[gi].point;
+                if (gp[0] < minX) { minX = gp[0]; }
+                if (gp[1] < minY) { minY = gp[1]; }
+                if (gp[0] > maxX) { maxX = gp[0]; }
+                if (gp[1] > maxY) { maxY = gp[1]; }
+            }
+            group.setAnchorPoint([(minX + maxX) / 2, (minY + maxY) / 2]);
+
             var created = [];
 
             // 添加顺序 = 视觉层级（Friction 后添加的在上方，与 AE 相反）：
@@ -371,17 +383,13 @@
                 + " | 模式" + state.mode
                 + " | 中线宽" + state.v1 + " 边线宽" + state.v2
                 + " 间距" + state.gap + " 密度" + Math.max(2, state.density));
-            // 回读诊断：确认组真实落位在场景顶层
-            var topLayers = scene.layers();
-            var names = [];
-            if (topLayers) {
-                for (var ti = 0; ti < topLayers.length; ti++) {
-                    names.push(topLayers[ti].name);
-                }
+
+            // CEP 语义：生成成功后隐藏引导路径层（保留以便再次调整）
+            var guide = scene.layer("划线引导路径");
+            if (guide && guide.visible) {
+                guide.visible = false;
+                log("引导路径层已隐藏（需要再调整时在时间轴重新点亮小眼睛）");
             }
-            log("回读: 场景顶层 = [" + names.join(", ") + "]");
-            alert("已生成地图划线（" + created.length + " 个图层，包含虚线流动动画）\n"
-                  + "改参数后再点生成可覆盖更新，Ctrl+Z 可撤销");
         } catch (e) {
             log("生成失败: " + e);
             alert("生成失败: " + e);
@@ -404,7 +412,14 @@
                 }
             }
             var old = scene.layer("划线引导路径");
-            if (old) { old.remove(); }
+            if (old) {
+                // 已存在：不删除（保留用户调整过的形状），重新显示
+                old.visible = true;
+                log("引导路径层已存在，已重新显示");
+                alert("「划线引导路径」图层已重新显示\n"
+                      + "继续用节点工具调整形状，调整完选中它再点生成");
+                return;
+            }
             var nodes = buildSampleNodes(scene);
             var layer = scene.addPath("划线引导路径", nodes, false);
             if (!layer) { throw "创建失败"; }
@@ -490,11 +505,7 @@
             { label: "▶ 生成地图划线", tooltip: "按当前参数生成（重复生成会先删除旧结果）",
               onClick: generate },
             { label: "✎ 创建引导路径层", tooltip: "生成一条可编辑的示例线，用节点工具调整后作为路径来源",
-              onClick: createGuideLayer },
-            { label: "☰ 调试日志", tooltip: "查看并复制调试日志",
-              onClick: function () {
-                  alert(debugLog.length > 0 ? debugLog.join("\n") : "暂无日志");
-              } }
+              onClick: createGuideLayer }
         ]
     });
 })();
