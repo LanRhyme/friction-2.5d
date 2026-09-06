@@ -584,10 +584,13 @@ BlackWhiteFlashEffect::BlackWhiteFlashEffect() :
     mEdgeIntensity = enve::make_shared<QrealAnimator>(50.0, 0.0, 100.0, 1.0, QStringLiteral("边缘强度"));
     ca_addChild(mEdgeIntensity);
 
-    mCenterX = enve::make_shared<QrealAnimator>(0.0, -1000.0, 1000.0, 1.0, QStringLiteral("中心 X"));
+    // AE point params are unbounded; the default clamp range is
+    // +/-10M (TEN_MIL) which is effectively unlimited - do not box
+    // the center into a small range or canvas dragging sticks at it.
+    mCenterX = enve::make_shared<QrealAnimator>(QStringLiteral("中心 X"));
     ca_addChild(mCenterX);
 
-    mCenterY = enve::make_shared<QrealAnimator>(0.0, -1000.0, 1000.0, 1.0, QStringLiteral("中心 Y"));
+    mCenterY = enve::make_shared<QrealAnimator>(QStringLiteral("中心 Y"));
     ca_addChild(mCenterY);
 
     mLightIntensity = enve::make_shared<QrealAnimator>(80.0, 0.0, 100.0, 1.0, QStringLiteral("光线强度"));
