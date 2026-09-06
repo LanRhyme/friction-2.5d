@@ -728,8 +728,10 @@ namespace Friction
 
             const QColor color = readColor(
                         settings.property(QStringLiteral("color")));
-            const bool enabled = settings.property(
-                        QStringLiteral("enabled")).toBool(true);
+            const auto enabledVal = settings.property(
+                        QStringLiteral("enabled"));
+            const bool enabled = enabledVal.isUndefined() ?
+                        true : enabledVal.toBool();
             stroke->setPaintType(enabled && color.isValid() ?
                                      PaintType::FLATPAINT :
                                      PaintType::NOPAINT);
@@ -776,8 +778,10 @@ namespace Friction
 
             const QColor color = readColor(
                         settings.property(QStringLiteral("color")));
-            const bool enabled = settings.property(
-                        QStringLiteral("enabled")).toBool(true);
+            const auto enabledVal = settings.property(
+                        QStringLiteral("enabled"));
+            const bool enabled = enabledVal.isUndefined() ?
+                        true : enabledVal.toBool();
             fill->setPaintType(enabled && color.isValid() ?
                                    PaintType::FLATPAINT :
                                    PaintType::NOPAINT);
@@ -1422,7 +1426,9 @@ namespace Friction
                         proxy ? proxy->box() : nullptr);
             if (svp) {
                 const auto collection = svp->getPathAnimator();
-                if (collection) { collection->createNewPath(path); }
+                // createNewPath() is private; loadSkPath() is the
+                // public importer entry (splits contours internally)
+                if (collection) { collection->loadSkPath(path); }
             }
             return result;
         }
