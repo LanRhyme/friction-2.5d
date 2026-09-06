@@ -635,11 +635,18 @@ SkMatrix AdvancedTransformAnimator::get3DTransformAtFrame(
     //   vz = -cx*sy*x + sx*y + zPos
     // perspective projection with focal length f:
     //   x' = f*vx / (f + vz),  y' = f*vy / (f + vz)   (zPos > 0 = farther)
-    // expressed as a 3x3 homography (applied on pivot-centered coords):
+    // expressed as a 3x3 homography (applied on pivot-centered coords);
+    // the constant divisor term is clamped away from zero: a layer at
+    // zPos == -f sits exactly on the perspective eye (0/0 = NaN for
+    // pivot-centered points, e.g. a carousel card at -diameter/2 with
+    // default perspective 800) and NaN coordinates crash the raster
+    // when a camera move forces a re-render - at or behind the eye the
+    // layer degenerates to an extreme scale instead of NaN
+    const qreal h22 = qMax(1., f + zPos);
     SkMatrix h;
     h.setAll(toSkScalar(f*cy),      toSkScalar(0.),        toSkScalar(0.),
              toSkScalar(f*sx*sy),   toSkScalar(f*cx),      toSkScalar(0.),
-             toSkScalar(-cx*sy),    toSkScalar(sx),        toSkScalar(f + zPos));
+             toSkScalar(-cx*sy),    toSkScalar(sx),        toSkScalar(h22));
 
     SkMatrix pre;  pre.setTranslate(toSkScalar(-pivotX), toSkScalar(-pivotY));
     SkMatrix post; post.setTranslate(toSkScalar(pivotX),  toSkScalar(pivotY));
