@@ -183,10 +183,14 @@
             "return cz - (rd / 2) * Math.cos(a);");
         if (err) return "位置Z: " + err;
 
-        // 朝向：-(角度)×增强%（知识库公式，增强可调可反可K帧）
+        // 朝向=内翻朝环心（AE"朝向摄像机"语义）。
+        // 两轴符号相反（由 get3DTransformAtFrame 单应矩阵推导）：
+        // 水平环(绕Y) rotY=-a；竖直环(绕X) rotX=+a——friction 坐标系
+        // y朝下、观察者在-z，两轴的手性不同；知识库-a公式只适用于Y轴
+        var rotSign = isY ? "-" : "";
         err = layer.property(isY ? "rotationy" : "rotationx")
                   .setExpression(bind,
-            "return -(rot + (" + idx.toFixed(4) + ") * sp) * en / 100;");
+            "return " + rotSign + "(rot + (" + idx.toFixed(4) + ") * sp) * en / 100;");
         if (err) return "朝向: " + err;
 
         // 缩放衰减：100 - |对称序号|×衰减%
