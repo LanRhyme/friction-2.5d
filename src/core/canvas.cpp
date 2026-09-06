@@ -378,7 +378,8 @@ void Canvas::drawWorkspaceBackdrop(SkCanvas* const canvas,
                                    const qreal pixelRatio)
 {
     // workspace backdrop around the scene card: theme-derived vertical
-    // gradient (lighter grey on top fading to near-black) with a faint
+    // gradient (near-black on top, dominating most of the height, easing
+    // into a subtle grey only towards the bottom) with a faint
     // world-aligned fine grid; drawn in device pixel space, the canvas
     // background and its contents are painted on top by the caller
     const SkScalar dx = toSkScalar(drawRect.x() * pixelRatio);
@@ -390,10 +391,12 @@ void Canvas::drawWorkspaceBackdrop(SkCanvas* const canvas,
     const QColor base = ThemeSupport::getThemeBaseColor();
     const SkPoint gradPts[2] = { SkPoint::Make(dx, dy),
                                  SkPoint::Make(dx, dy + dh) };
-    const SkColor gradCols[2] = { toSkColor(base.lighter(132)),
-                                  toSkColor(base.darker(210)) };
+    const SkColor gradCols[3] = { toSkColor(base.darker(220)),
+                                  toSkColor(base.darker(150)),
+                                  toSkColor(base.lighter(118)) };
+    const SkScalar gradPos[3] = { 0.0f, 0.68f, 1.0f };
     const auto shader = SkGradientShader::MakeLinear(gradPts, gradCols,
-                                                     nullptr, 2,
+                                                     gradPos, 3,
                                                      SkTileMode::kClamp);
     SkPaint paint;
     paint.setStyle(SkPaint::kFill_Style);
@@ -410,10 +413,11 @@ void Canvas::drawWorkspaceBackdrop(SkCanvas* const canvas,
     // coordinates so it follows pan/zoom
     const qreal zoom = mHasWorldToScreen ? mWorldToScreen.m11() : 0.0;
     if (zoom > 0.0) {
-        const qreal minSpacingDevice = 48.0 * pixelRatio;
-        static const qreal ladder[] = { 8.0, 10.0, 16.0, 20.0, 32.0,
-                                        40.0, 64.0, 80.0, 128.0, 160.0,
-                                        256.0, 320.0, 512.0, 640.0, 1024.0 };
+        const qreal minSpacingDevice = 16.0 * pixelRatio;
+        static const qreal ladder[] = { 2.0, 4.0, 5.0, 8.0, 10.0, 16.0,
+                                        20.0, 32.0, 40.0, 64.0, 80.0,
+                                        128.0, 160.0, 256.0, 320.0,
+                                        512.0, 640.0, 1024.0 };
         qreal worldSpacing = ladder[0];
         for (const qreal s : ladder) {
             worldSpacing = s;
