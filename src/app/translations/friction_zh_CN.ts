@@ -9880,6 +9880,10 @@ Select the layers you want to import:</source>
         <translation>临时画布</translation>
     </message>
     <message>
+        <source>Temporary Canvas: ON</source>
+        <translation>临时画布：开启</translation>
+    </message>
+    <message>
         <source>While on, freely move layers apart to organize them (group/reorder); switching it off returns every moved layer to its original position, keeping all grouping edits</source>
         <translation>开启后可自由摆开图层进行分组整理；关闭时所有移动过的图层自动回到原位，分组与顺序等操作全部保留</translation>
     </message>

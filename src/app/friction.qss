@@ -623,6 +623,26 @@ QPushButton#AboutButton:hover {
     background-color: transparent;
 }
 
+/* temporary canvas toggle (move-tool options): strong checked state so
+   the on/off mode is unmistakable (FlatButton is fully flat) */
+QToolButton#TempCanvasButton {
+    background-color: transparent;
+    border: 1px solid transparent;
+    border-radius: %17px;
+    padding: 2px 8px;
+}
+
+QToolButton#TempCanvasButton:checked {
+    background-color: %4;
+    color: #ffffff;
+    font-weight: bold;
+}
+
+QToolButton#TempCanvasButton:hover:!checked {
+    background-color: %15;
+    border: 1px solid %4;
+}
+
 #ToolBoxButton {
     margin: 1px 2px;
 }

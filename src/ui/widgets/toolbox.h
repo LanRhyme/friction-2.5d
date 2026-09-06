@@ -123,6 +123,7 @@ namespace Friction
             void setupDrawActions();
             void setupColorPickerActions();
             void setupAutoSelectActions();
+            void syncTempCanvasButton();
 
             void setCurrentCanvas(Canvas * const target);
             void setCanvasMode(const CanvasMode &mode);

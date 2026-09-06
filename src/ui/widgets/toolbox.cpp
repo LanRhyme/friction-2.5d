@@ -717,9 +717,11 @@ void ToolBox::setupAutoSelectActions()
     mGroupAutoSelect->addAction(mControls->addWidget(mAutoSelectLayer));
 
     // temporary canvas toggle: scratch layout for organizing layers;
-    // labels translated via friction_zh_CN.ts (target has no /utf-8)
+    // labels translated via friction_zh_CN.ts (target has no /utf-8);
+    // dedicated objectName so the qss can give :checked a clear
+    // highlight (FlatButton has no checked state of its own)
     mTempCanvasButton = new QToolButton(mControls);
-    mTempCanvasButton->setObjectName("FlatButton");
+    mTempCanvasButton->setObjectName("TempCanvasButton");
     mTempCanvasButton->setText(tr("Temporary Canvas"));
     mTempCanvasButton->setCheckable(true);
     mTempCanvasButton->setToolTip(
@@ -733,9 +735,11 @@ void ToolBox::setupAutoSelectActions()
         if (!canvas) {
             QSignalBlocker block(mTempCanvasButton);
             mTempCanvasButton->setChecked(false);
+            syncTempCanvasButton();
             return;
         }
         canvas->setTempLayoutActive(checked);
+        syncTempCanvasButton();
     });
     mGroupAutoSelect->addAction(mControls->addWidget(mTempCanvasButton));
 
@@ -752,7 +756,16 @@ void ToolBox::setCurrentCanvas(Canvas * const target)
         QSignalBlocker block(mTempCanvasButton);
         mTempCanvasButton->setChecked(target ? target->tempLayoutActive()
                                              : false);
+        syncTempCanvasButton();
     }
+}
+
+void ToolBox::syncTempCanvasButton()
+{
+    if (!mTempCanvasButton) { return; }
+    mTempCanvasButton->setText(mTempCanvasButton->isChecked() ?
+                                   tr("Temporary Canvas: ON") :
+                                   tr("Temporary Canvas"));
 }
 
 void ToolBox::setCanvasMode(const CanvasMode &mode)
