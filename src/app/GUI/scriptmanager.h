@@ -121,6 +121,11 @@ public:
     ScriptConsoleDock *console() const { return mConsole; }
     QList<QDockWidget*> panels() const { return mPanels; }
 
+    // creates (hidden) every script panel a saved workspace/window
+    // layout references but lazy creation never made, so a
+    // restoreState() can bring them back instead of dropping them
+    void ensurePanelsInState(const QByteArray &state);
+
     // console + debug log output (script print()/$.writeln)
     void output(const QString &message);
 

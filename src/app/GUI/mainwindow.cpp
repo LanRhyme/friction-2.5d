@@ -1469,6 +1469,10 @@ void MainWindow::applyWorkspace(const QString &name)
     const QByteArray state = AppSupport::getSettings("workspaces",
                                                      workspaceStateKey(name)).toByteArray();
     if (state.isEmpty()) { return; }
+    // a saved workspace may reference script panels that lazy panel
+    // creation never made - create them first or restoreState drops
+    // their layout silently
+    if (mScriptManager) { mScriptManager->ensurePanelsInState(state); }
     restoreState(state);
     // remember the applied workspace so it is restored on startup
     AppSupport::setSettings("workspaces", "active", name);
@@ -2549,6 +2553,10 @@ void MainWindow::applyPendingStateRestore()
     if (mPendingStateRestore.isEmpty()) { return; }
     const QByteArray state = mPendingStateRestore;
     mPendingStateRestore.clear();
+    // the restored state (active workspace or window state) can
+    // reference script panels lazy creation never made - create them
+    // first or restoreState drops their layout silently
+    if (mScriptManager) { mScriptManager->ensurePanelsInState(state); }
     const bool restored = restoreState(state);
     qWarning() << "WORKSPACE: stable-geometry restoreState returned"
                << restored << "window" << width() << "x" << height();

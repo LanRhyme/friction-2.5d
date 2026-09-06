@@ -383,6 +383,30 @@ void ScriptManager::saveOpenPanels() const
                             QStringLiteral("openPanels"), names);
 }
 
+void ScriptManager::ensurePanelsInState(const QByteArray &state)
+{
+    if (state.isEmpty()) { return; }
+    for (const auto host : mPanelScriptHosts) {
+        if (mPanelHosts.contains(host)) { continue; }
+        const auto name = panelObjectName(host->panelDesc().title);
+        // QMainWindow::saveState serializes the dock objectNames as
+        // QDataStream strings (UTF-16BE) - search for the raw UTF-16BE
+        // bytes of the name to know the layout references this panel
+        QByteArray needle;
+        needle.resize(name.size() * 2);
+        for (int i = 0; i < name.size(); i++) {
+            const ushort u = name.at(i).unicode();
+            needle[2 * i] = char(u >> 8);
+            needle[2 * i + 1] = char(u & 0xff);
+        }
+        if (state.contains(needle)) {
+            // hidden; the restoreState() that follows shows it at the
+            // saved position (and its visibility lands in openPanels)
+            createPanel(host, false);
+        }
+    }
+}
+
 void ScriptManager::createPanel(Friction::Core::JsHost * const host,
                                 const bool show)
 {
