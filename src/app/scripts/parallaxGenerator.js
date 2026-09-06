@@ -17,6 +17,9 @@
     }
 
     var WARN_TEXT = "视差已激活 - 完成后请烘焙";
+    // 旧版控制器方案的空对象层名（AE 原版同款 "- CAM CTRL -" 机制
+    // 已弃用：Friction 版直接动画原生摄像机，无父级绑定）
+    var LEGACY_CTRL_NAME = "CAM CTRL";
 
     // AE 原版校准常量（按 1920x1080 标定，随画布比例缩放）
     var CAM_ZOOM = 1493.3;
@@ -32,8 +35,23 @@
 
     function isSystemLayer(layer) {
         return layer.isCamera() ||
+               layer.name === LEGACY_CTRL_NAME ||
                layer.name === WARN_TEXT ||
                layer.name.indexOf("视差已激活") === 0;
+    }
+
+    // 旧版（控制器方案）残留的 CAM CTRL 空对象层：应用视差时
+    // 自动删除——原生摄像机方案不需要任何父级空对象
+    function removeLegacyCtrl(scene) {
+        var ls = scene.layers();
+        for (var i = 0; i < ls.length; i++) {
+            if (ls[i].name === LEGACY_CTRL_NAME) {
+                ls[i].remove();
+                log("已删除旧版残留的控制器层: " + LEGACY_CTRL_NAME);
+                return true;
+            }
+        }
+        return false;
     }
 
     function findCamera(scene) {
@@ -155,6 +173,9 @@
 
         app.beginUndoGroup("应用视差");
         try {
+            // 清理旧版残留的控制器空对象
+            removeLegacyCtrl(scene);
+
             // 相机：直接用/建 Friction 原生摄像机图层
             var cam = findCamera(scene);
             var camCreated = false;
@@ -320,24 +341,25 @@
     function doBake() {
         var scene = getScene();
         if (!scene) { return; }
+        // 旧版（控制器方案）场景可能没有摄像机：跳过相机清理，
+        // 照常固化图层（兼容旧工程迁移）
         var cam = findCamera(scene);
-        if (!cam) {
-            alert("未找到摄像机图层，请先点「应用视差」。");
-            return;
-        }
 
         app.beginUndoGroup("烘焙");
         try {
             var warn = findWarningLayer(scene);
             if (warn) { warn.remove(); }
+            removeLegacyCtrl(scene);
 
             // 清相机动画 + 归零（统一变换必须消失）
-            var keys = ["panX", "panY", "zoom", "rotZ"];
-            for (var k = 0; k < keys.length; k++) {
-                var cp = cam.cameraProperty(keys[k]);
-                while (cp.numKeys() > 0) { cp.removeKeyAtFrame(cp.keyFrame(1)); }
+            if (cam) {
+                var keys = ["panX", "panY", "zoom", "rotZ"];
+                for (var k = 0; k < keys.length; k++) {
+                    var cp = cam.cameraProperty(keys[k]);
+                    while (cp.numKeys() > 0) { cp.removeKeyAtFrame(cp.keyFrame(1)); }
+                }
+                resetCamera(cam);
             }
-            resetCamera(cam);
 
             var layers = contentLayers(scene);
             var done = 0;
