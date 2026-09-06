@@ -37,6 +37,30 @@
 
     var SHAPE_NAMES = ["无", "箭头", "圆点", "方块"];
 
+    // CEP 原版四预设（模式=预设参数组合）
+    var PRESETS = [
+        { name: "经典路感", mode: 1, v1: 8,   c1: "#ffcc00", v2: 1.5, c2: "#ffffff", gap: 13, density: 20 },
+        { name: "科技样条", mode: 1, v1: 5,   c1: "#ffcc00", v2: 4.5, c2: "#ffffff", gap: 24, density: 273 },
+        { name: "双层叠压", mode: 2, v1: 8,   c1: "#ffffff", v2: 8,   c2: "#ffcc00", gap: 0,  density: 41 },
+        { name: "道路标识", mode: 3, v1: 4,   c1: "#ffffff", v2: 2,   c2: "#ffffff", gap: 15, density: 30 }
+    ];
+
+    // 套用预设（CEP applyPreset：切模式=整套参数，重置折角）
+    function applyPreset(idx) {
+        var p = PRESETS[idx];
+        state.mode = p.mode;
+        state.v1 = p.v1;
+        state.v2 = p.v2;
+        state.gap = p.gap;
+        state.density = p.density;
+        state.c1 = p.c1;
+        state.c2 = p.c2;
+        state.corner = false;
+        log("已套用预设「" + p.name + "」: 中线宽" + p.v1
+            + " 边线宽" + p.v2 + " 间距" + p.gap + " 密度" + p.density
+            + "（注意：面板滑块显示不会自动刷新，以本次套用值为准）");
+    }
+
     // ---------------- 几何工具 ----------------
 
     function node(point, inTan, outTan) {
@@ -230,10 +254,17 @@
         for (var f = 0; f <= totalFrames; f += step) {
             keys.push([f, (f / step) * period]);
         }
+        // 末尾不满一步时补终点帧，保证播放全程都在流动
+        if (totalFrames % step !== 0) {
+            keys.push([totalFrames, (totalFrames / step) * period]);
+        }
         if (keys.length < 2) { keys = [[0, 0], [totalFrames, period]]; }
-        layer.addPathEffect("dash", {
+        var ok = layer.addPathEffect("dash", {
             dash: dash, gap: gapLen, offset: 0, offsetKeys: keys
         });
+        log("dash特效: " + (ok ? "已添加" : "添加失败!")
+            + " dash=" + dash + " gap=" + gapLen.toFixed(1)
+            + " 关键帧" + keys.length + "个(0.." + totalFrames + "帧)");
     }
 
     function generate() {
@@ -338,8 +369,17 @@
 
             log("生成完成: " + created.join(" + ")
                 + " | 模式" + state.mode
-                + " | 虚线 " + Math.max(2, state.density)
-                + " 周期 " + Math.round(Math.max(2, state.density) * 1.8));
+                + " | 中线宽" + state.v1 + " 边线宽" + state.v2
+                + " 间距" + state.gap + " 密度" + Math.max(2, state.density));
+            // 回读诊断：确认组真实落位在场景顶层
+            var topLayers = scene.layers();
+            var names = [];
+            if (topLayers) {
+                for (var ti = 0; ti < topLayers.length; ti++) {
+                    names.push(topLayers[ti].name);
+                }
+            }
+            log("回读: 场景顶层 = [" + names.join(", ") + "]");
             alert("已生成地图划线（" + created.length + " 个图层，包含虚线流动动画）\n"
                   + "改参数后再点生成可覆盖更新，Ctrl+Z 可撤销");
         } catch (e) {
@@ -389,10 +429,10 @@
         title: "地图划线",
         columns: 4,
         combos: [
-            { label: "模式", id: "mode",
-              options: ["经典路感", "双层叠压", "道路标识"], index: 0,
-              tooltip: "经典路感=虚线中线+双侧边线；双层叠压=实线底+虚线顶；道路标识=矩形框+中线",
-              onChange: function (i) { state.mode = i + 1; } },
+            { label: "预设", id: "mode",
+              options: ["经典路感", "科技样条", "双层叠压", "道路标识"], index: 0,
+              tooltip: "每个预设=CEP原版整套参数组合（切到科技样条试试长虚线）",
+              onChange: function (i) { applyPreset(i); } },
             { label: "路径来源", id: "flow",
               options: ["内置样条", "选中路径层"], index: 0,
               tooltip: "选中路径层=读取钢笔工具画的矢量路径图层（可先点下方「创建引导路径层」）",
