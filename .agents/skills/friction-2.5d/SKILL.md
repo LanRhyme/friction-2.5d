@@ -187,12 +187,28 @@ Method | Description
 
 ## 4. MCP Tools Catalog (Summary)
 
+### 4.0 Layer Addressing (read this first)
+
+Layers are addressed **by row number first, name only as fallback**. Every
+row number is the 1-based number the timeline shows **within its container**;
+group-internal rows and top-level rows reuse the same numbers by design, so
+nested layers must use the full group path:
+
+- `index: 3` - top-level row 3
+- `index: "2/1"` or `path: "2/1"` or `index: [2, 1]` - top-level row 2, its child row 1 (deeper paths chain the same way)
+- `name: "Title"` - recursive name lookup; ambiguous when names duplicate, avoid as primary addressing
+
+`friction_list_layers` returns the recursive tree with `row`, `path`,
+`depth`, `isGroup` and `numChildren` per layer - always list before
+addressing.
+
 Category | Key Tools
 :--- | :---
-**High-Level Orchestration** | `friction_render_markup` (declarative replace/append), `friction_update_layer` (non-destructive in-place edit), `friction_animate_layer` (macro motion presets), `friction_get_storyboard` (multi-frame vision review)
+**High-Level Orchestration** | `friction_render_markup` (declarative replace/append), `friction_update_layer` (non-destructive in-place edit), `friction_apply_anim_preset` (preset-panel animations with per-row stagger - the default MG flow), `friction_get_storyboard` (multi-frame vision review)
+**Animation Presets** | `friction_list_anim_presets` (layer + text preset ids from the presets panel), `friction_apply_anim_preset` (single layer or `scope:"all"` staggered by row, direction in/out/both), `friction_list_easing_presets` (easing-panel ids) + `friction_set_keyframe_easing` (apply = "keyframes first, easing panel second" workflow)
 **Scene** | `friction_get_scene_info`, `friction_set_scene_info`, `friction_create_scene`, `friction_list_scenes`
 **Layer** | `friction_create_layer`, `friction_list_layers`, `friction_duplicate_layer`, `friction_delete_layer`, `friction_set_3d_mode`, `friction_set_parent_layer`, `friction_set_layer_order`, `friction_set_in_out_point`
-**Keyframe** | `friction_set_property_value`, `friction_set_keyframe` (with `easing`), `friction_set_keyframe_easing`, `friction_remove_keyframe`, `friction_clear_keyframes`
+**Keyframe** | `friction_set_property_value`, `friction_set_keyframe` (with `easing`), `friction_get_keyframes`, `friction_set_expression`, `friction_set_keyframe_easing`, `friction_remove_keyframe`, `friction_clear_keyframes`
 **Effects** | `friction_add_raster_effect`, `friction_remove_raster_effect`, `friction_list_available_effects`
 **Script & Viewport** | `friction_eval_script`, `friction_seek_timeline`, `friction_play_pause`, `friction_capture_viewport`, `friction_undo`, `friction_redo`
 
