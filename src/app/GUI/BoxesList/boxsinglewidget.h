@@ -199,10 +199,15 @@ private:
     ContainerBox *getPromoteTargetGroup();
 
     // AE-style Shift range selection: select every layer row between
-    // the anchor (last plain-clicked row) and the clicked row
-    void selectRowRange(BoxSingleWidget* const rowA,
-                        BoxSingleWidget* const rowB);
+    // the anchor (last plain-clicked row) and the clicked row; returns
+    // false when either row is no longer in the list
+    bool selectRowRange(SWT_Abstraction* const absA,
+                        SWT_Abstraction* const absB);
     static QPointer<BoxSingleWidget> sLastClickedRow;
+    // the anchor row's abstraction: the widget pool recycles row
+    // widgets once they scroll out of view, so the anchor must not be
+    // kept as a widget (its target would silently change)
+    static stdptr<SWT_Abstraction> sLastClickedAbs;
 
     void clearSelected() { setSelected(false); }
     void switchContentVisibleAction();

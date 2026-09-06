@@ -66,6 +66,7 @@
 #include "GUI/global.h"
 #include "TransformEffects/parenteffect.h"
 #include <functional>
+#include <climits>
 #include "TransformEffects/transformeffectcollection.h"
 
 #include <QApplication>
@@ -2238,15 +2239,22 @@ void BoxSingleWidget::mouseReleaseEvent(QMouseEvent *event)
         const auto boxTarget = static_cast<eBoxOrSound*>(target);
         if (shiftPressed && !sLastClickedRow.isNull() &&
                 sLastClickedRow.data() != this &&
-                sLastClickedRow->mParent == mParent) {
+                sLastClickedRow->mParent == mParent &&
+                !sLastClickedAbs.isNull() &&
+                sLastClickedAbs.data() != mTarget.data()) {
             // AE-style range select: every layer row between the
             // anchor (last plain-clicked row) and this one
-            selectRowRange(sLastClickedRow.data(), this);
+            if (!selectRowRange(sLastClickedAbs.data(), mTarget.data())) {
+                // anchor row left the list (deleted or filtered out):
+                // degrade to an additive single-row select
+                boxTarget->selectionChangeTriggered(true);
+            }
         } else if (ctrlPressed) {
             boxTarget->selectionChangeTriggered(true);
         } else {
             boxTarget->selectionChangeTriggered(false);
             sLastClickedRow = this;
+            sLastClickedAbs = mTarget;
         }
         Document::sInstance->actionFinished();
     } else if (const auto pTarget = enve_cast<Property*>(target)) {
@@ -2255,23 +2263,30 @@ void BoxSingleWidget::mouseReleaseEvent(QMouseEvent *event)
 }
 
 QPointer<BoxSingleWidget> BoxSingleWidget::sLastClickedRow;
+stdptr<SWT_Abstraction> BoxSingleWidget::sLastClickedAbs;
 
-void BoxSingleWidget::selectRowRange(BoxSingleWidget* const rowA,
-                                     BoxSingleWidget* const rowB)
+bool BoxSingleWidget::selectRowRange(SWT_Abstraction* const absA,
+                                     SWT_Abstraction* const absB)
 {
     const auto scene = mParent ? mParent->currentScene() : nullptr;
-    if (!scene) { return; }
-    // all visible layer rows in visual (top-to-bottom) order
-    auto rows = mParent->findChildren<BoxSingleWidget*>();
-    std::sort(rows.begin(), rows.end(),
-              [](const BoxSingleWidget* const r1,
-                 const BoxSingleWidget* const r2) {
-        return r1->mapToGlobal(QPoint(0, 0)).y() <
-               r2->mapToGlobal(QPoint(0, 0)).y();
-    });
-    const int iA = rows.indexOf(rowA);
-    const int iB = rows.indexOf(rowB);
-    if (iA < 0 || iB < 0) { return; }
+    if (!scene || !absA || !absB) { return false; }
+    // Enumerate every row this list currently shows, in visual order,
+    // straight from the abstraction tree. The widget pool only
+    // instantiates rows inside the visible scroll window, so walking
+    // widgets would truncate the range to the viewport.
+    const auto mainAbs = mParent->getMainAbstration();
+    if (!mainAbs) { return false; }
+    QList<SWT_Abstraction*> rows;
+    SetAbsFunc collectFunc = [&rows](SWT_Abstraction* abs, const int) {
+        rows.append(abs);
+    };
+    int currY = 0;
+    mainAbs->setAbstractions(0, INT_MAX, currY, 0, eSizesUI::widget,
+                             collectFunc, mParent->getRulesCollection(),
+                             true, false);
+    const int iA = rows.indexOf(absA);
+    const int iB = rows.indexOf(absB);
+    if (iA < 0 || iB < 0) { return false; }
     // the pick direction decides the Ctrl+Alt stagger anchor end:
     // anchor row below the clicked row = the user selected bottom-up;
     // must run AFTER clearBoxesSelection() which resets the direction
@@ -2283,17 +2298,14 @@ void BoxSingleWidget::selectRowRange(BoxSingleWidget* const rowA,
         }
     }
     for (int i = qMin(iA, iB); i <= qMax(iA, iB); i++) {
-        const auto row = rows.at(i);
-        // findChildren also returns recycled (hidden, target-less)
-        // rows - dereferencing their mTarget would crash
-        if (row->isHidden() || !row->mTarget) { continue; }
-        const auto t = row->mTarget->getTarget();
+        const auto t = rows.at(i)->getTarget();
         if (const auto bb = enve_cast<BoundingBox*>(t)) {
             if (!bb->isSelected()) { scene->addBoxToSelection(bb); }
         } else if (const auto snd = enve_cast<eIndependentSound*>(t)) {
             snd->setSelected(true);
         }
     }
+    return true;
 }
 
 void BoxSingleWidget::enterEvent(QEvent *)
