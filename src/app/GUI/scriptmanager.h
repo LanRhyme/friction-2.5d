@@ -144,6 +144,9 @@ private:
     // script panels: host -> dock
     QMap<Friction::Core::JsHost*, QDockWidget*> mPanelHosts;
     QList<QDockWidget*> mPanels;
+    // panels open at the moment of a scripts reload, by objectName -
+    // lets the rebuilt panels keep their visibility
+    QHash<QString, bool> mPanelWasVisible;
     // slider live-preview coalescing: raw sliderMoved rates (30+/s)
     // would flood the undo stack and renderer; tail-merge to one run
     // per 100ms idle

@@ -289,8 +289,11 @@ void ScriptPreviewWidget::paintEvent(QPaintEvent * const event)
 void ScriptManager::loadScripts()
 {
     mCommands.clear();
-    // drop previous script panels before rebuilding
+    // drop previous script panels before rebuilding; remember which
+    // ones were open so the rebuilt panels keep their visibility
+    mPanelWasVisible.clear();
     for (const auto dock : mPanels) {
+        mPanelWasVisible.insert(dock->objectName(), dock->isVisible());
         mMainWindow->removeDockWidget(dock);
         delete dock;
     }
@@ -546,8 +549,11 @@ void ScriptManager::createPanel(Friction::Core::JsHost * const host)
 
     dock->setWidget(content);
     mMainWindow->addDockWidget(Qt::LeftDockWidgetArea, dock);
-    // script panels open as floating windows by default; they can still
-    // be docked by dragging them into the main window
+    // panels are created HIDDEN in floating state: on startup only the
+    // ones the user had open come back (MainWindow's saved state calls
+    // restoreState on them); a panel opened from the Scripts menu for
+    // the first time appears as a floating window instead of silently
+    // docking into the left area
     dock->setFloating(true);
     const auto hint = content->sizeHint();
     dock->resize(qMax(320, hint.width()) + 16,
@@ -556,10 +562,17 @@ void ScriptManager::createPanel(Friction::Core::JsHost * const host)
     const int cascade = mPanels.count() * 32;
     dock->move(mMainWindow->mapToGlobal(QPoint(0, 0))
                + QPoint(80 + cascade, 120 + cascade));
+    // a scripts reload recreates every panel - keep the ones open that
+    // were open before, everything else stays hidden until the user
+    // opens it from the Scripts menu
+    if (mPanelWasVisible.value(dock->objectName(), false)) {
+        dock->show();
+        dock->raise();
+    } else {
+        dock->hide();
+    }
     mPanels.append(dock);
     mPanelHosts.insert(host, dock);
-
-    // panels start visible (script authors want them immediately)
 }
 
 void ScriptManager::rebuildMenu()
