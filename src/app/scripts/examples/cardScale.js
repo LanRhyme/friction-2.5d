@@ -222,14 +222,7 @@
         extraButtons: [
             { label: "▶ 绑定缩放", tooltip: "给选中卡片挂缩放表达式", onClick: runCardScale },
             { label: "图标跟随", tooltip: "让选中的鼠标图标图层跟随控制器", onClick: bindMouseIcon },
-            { label: "? 帮助", tooltip: "使用说明", onClick: showHelp },
-            {
-                label: "☰ 调试日志",
-                tooltip: "查看并复制调试日志",
-                onClick: function () {
-                    alert(debugLog.length > 0 ? debugLog.join("\n") : "暂无日志");
-                }
-            }
+            { label: "? 帮助", tooltip: "使用说明", onClick: showHelp }
         ]
     });
     registerCommand("卡片缩放: 绑定", runCardScale);

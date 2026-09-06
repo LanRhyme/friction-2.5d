@@ -783,6 +783,12 @@ void TopViewWindow::mousePressEvent(QMouseEvent* e)
                 return;
             }
         }
+        // left-drag on empty space pans the view too: middle-drag-only
+        // panning felt confined ("not free") - AE/Blender-style free
+        // navigation (wheel still zooms, double-click still re-fits)
+        mDragType = DragType::pan;
+        setCursor(Qt::ClosedHandCursor);
+        return;
     }
     if (e->button() == Qt::MiddleButton ||
         e->button() == Qt::RightButton ||

@@ -350,14 +350,7 @@
             { label: "复查读数", tooltip: "回读所有已绑定卡片的表达式生效值", onClick: recheck }
         ],
         extraButtons: [
-            { label: "? 帮助", tooltip: "使用说明", onClick: showHelp },
-            {
-                label: "☰ 调试日志",
-                tooltip: "查看并复制调试日志",
-                onClick: function () {
-                    alert(debugLog.length > 0 ? debugLog.join("\n") : "暂无日志");
-                }
-            }
+            { label: "? 帮助", tooltip: "使用说明", onClick: showHelp }
         ]
     });
     registerCommand("轮播: 水平环", function () { runCarousel(1); });

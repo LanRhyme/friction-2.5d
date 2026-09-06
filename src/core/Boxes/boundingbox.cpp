@@ -1609,6 +1609,17 @@ void BoundingBox::updateDrawRenderContainerTransform() {
         const int relFrame = anim_getCurrentRelFrame();
         SkMatrix full = toSkMatrix(getTotalTransformAtFrame(relFrame));
         if(mType != eBoxType::canvas && mTransformAnimator->is3DEnabled()) {
+            // also prepend the billboard perspective homography (same
+            // family as the render data: perspective -> rel -> inherited
+            // -> camera) - the affine-only compensation ignored it, so
+            // expression-driven z/scale changes showed a wrongly sized
+            // stale bitmap until the exact render landed = the perceived
+            // flicker/judder while dragging carousel parameters
+            if(mTransformAnimator->has3DTransformAtFrame(relFrame)) {
+                full = SkMatrix::Concat(
+                            full,
+                            mTransformAnimator->get3DTransformAtFrame(relFrame));
+            }
             const auto scene = getParentScene();
             if(scene) {
                 const SkMatrix cam = scene->getCameraTransformAtFrame(relFrame);
