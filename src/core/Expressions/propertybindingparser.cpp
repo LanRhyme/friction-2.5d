@@ -30,6 +30,7 @@
 #include "valuebinding.h"
 #include "scenebinding.h"
 #include "pathpointbinding.h"
+#include "propertybinding.h"
 #include "appsupport.h"
 
 void skipSpaces(const QString& exp, int& position) {
@@ -124,11 +125,28 @@ bool parseSceneRangeMin(const QString& exp, int& pos) {
     return parse(exp, pos, "$scene.rangeMin");
 }
 
+// $camera().panX / .panY / .zoom / .rotZ / .focal - binds the fixed
+// animators of the scene's first CameraLayer (language-immune; see
+// CameraPropBinding)
+bool parseCameraProp(const QString& exp, int& pos, int& member) {
+    int newPos = pos;
+    if(!parse(exp, newPos, "$camera()")) return false;
+    if(!parse(exp, newPos, ".")) return false;
+    if(parse(exp, newPos, "panX")) { member = 0; }
+    else if(parse(exp, newPos, "panY")) { member = 1; }
+    else if(parse(exp, newPos, "zoom")) { member = 2; }
+    else if(parse(exp, newPos, "rotZ")) { member = 3; }
+    else if(parse(exp, newPos, "focal")) { member = 4; }
+    else return false;
+    if(newPos != exp.count()) return false;
+    pos = newPos;
+    return true;
+}
+
 // $path("layer name").start.x / start.y / start.angle /
 //                        end.x / end.y / end.angle
 bool parsePathPoint(const QString& exp, int& pos,
-                    QString& layerName, bool& end, int& component) {
-    int newPos = pos;
+                    QString& layerName, bool& end, int& component) {    int newPos = pos;
     if(!parse(exp, newPos, "$path(")) return false;
     if(newPos >= exp.count() || exp.at(newPos) != '"') return false;
     newPos++; // skip the opening quote
@@ -213,12 +231,22 @@ qsptr<PropertyBindingBase> PropertyBindingParser::parseBinding(
                         "Path layer '" + layerName + "' not found:\n'" +
                         exp + "'");
         } else {
-            QString binding;
-            parseBinding(exp, pos, binding);
-            result = PropertyBinding::sCreate(binding.trimmed(),
-                                              validator, context);
-            if(!result) PrettyRuntimeThrow("Binding could not be resolved:\n'" +
-                                           binding + "'");
+            int camMember = -1;
+            int camPos = pos;
+            if(parseCameraProp(exp, camPos, camMember)) {
+                result = CameraPropBinding::sCreate(
+                            static_cast<CameraPropBinding::Member>(camMember),
+                            context);
+                if(!result) PrettyRuntimeThrow(
+                            "No camera layer in the scene:\n'" + exp + "'");
+            } else {
+                QString binding;
+                parseBinding(exp, pos, binding);
+                result = PropertyBinding::sCreate(binding.trimmed(),
+                                                  validator, context);
+                if(!result) PrettyRuntimeThrow("Binding could not be resolved:\n'" +
+                                               binding + "'");
+            }
         }
     }
     if(!result) PrettyRuntimeThrow("Binding could not be resolved:\n'" +

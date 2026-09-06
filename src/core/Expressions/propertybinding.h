@@ -81,8 +81,7 @@ private:
 
 template <class T>
 bool PropertyBinding::sValidateClass(const Validator& validator,
-                                     Property* const prop) {
-    return enve_cast<T*>(prop) && (!validator || validator(prop));
+                                     Property* const prop) {    return enve_cast<T*>(prop) && (!validator || validator(prop));
 }
 
 template <class T>
@@ -92,5 +91,34 @@ PropertyBinding::sWrapValidatorForClass(const Validator& validator) {
         return sValidateClass<T>(validator, prop);
     };
 }
+
+// Binds the fixed animators of the scene's FIRST CameraLayer
+// ($camera().panX/.panY/.zoom/.rotZ/.focal). Needed because the
+// camera animators carry tr()'d display names ("Pan X"/...) that
+// change with the UI language - a plain path binding would silently
+// break when the language or the .ts coverage changes. The member is
+// resolved to the C++ animator accessor, immune to renaming.
+class CORE_EXPORT CameraPropBinding : public PropertyBindingBase {
+public:
+    enum class Member { panX, panY, zoom, rotZ, focal };
+    static qsptr<CameraPropBinding> sCreate(const Member member,
+                                            const Property* const context);
+
+    QJSValue getJSValue(QJSEngine& e);
+    QJSValue getJSValue(QJSEngine& e, const qreal relFrame);
+
+    FrameRange identicalRelRange(const int absFrame);
+    FrameRange nextNonUnaryIdenticalRelRange(const int absFrame);
+
+    QString path() const;
+    bool dependsOn(const Property* const prop);
+    bool isValid() const;
+private:
+    CameraPropBinding(const Member member, const Property* const context);
+    void resolveSource();
+
+    Member mMember;
+    ConnContextQPtr<Property> mBind;
+};
 
 #endif // PROPERTYBINDING_H

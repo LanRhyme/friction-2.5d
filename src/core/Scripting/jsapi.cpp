@@ -32,6 +32,7 @@
 #include "Boxes/circle.h"
 #include "Boxes/textbox.h"
 #include "Boxes/nullobject.h"
+#include "Boxes/cameralayer.h"
 #include "Boxes/smartvectorpath.h"
 #include "Boxes/pathbox.h"
 #include "Boxes/boxwithpatheffects.h"
@@ -763,6 +764,35 @@ namespace Friction
             return mEngine->newQObject(proxy);
         }
 
+        bool JsLayerProxy::isCamera()
+        {
+            if (!mBox) { return false; }
+            return mBox->getBoxType() == eBoxType::cameraLayer;
+        }
+
+        // camera animator access for CameraLayer layers; the names are
+        // language-immune unlike the tr()'d display names. Returns the
+        // scalar property proxy (value/setValue/keyframes work on it)
+        // or null for non-camera layers/unknown names.
+        QJSValue JsLayerProxy::cameraProperty(const QString &name)
+        {
+            if (!mBox || !mEngine) { return QJSValue(QJSValue::NullValue); }
+            const auto cam = enve_cast<CameraLayer*>(mBox.data());
+            if (!cam) { return QJSValue(QJSValue::NullValue); }
+            const QString n = name.toLower();
+            QrealAnimator *prop = nullptr;
+            if (n == "panx") { prop = cam->panXAnimator(); }
+            else if (n == "pany") { prop = cam->panYAnimator(); }
+            else if (n == "zoom") { prop = cam->zoomAnimator(); }
+            else if (n == "rotz" || n == "rotate") { prop = cam->rotZAnimator(); }
+            else if (n == "focal" || n == "focallength") { prop = cam->focalAnimator(); }
+            if (!prop) { return QJSValue(QJSValue::NullValue); }
+            const auto proxy = new JsPropertyProxy(
+                        QPointer<Property>(prop),
+                        JsPropertyProxy::Kind::Scalar, nullptr);
+            return mEngine->newQObject(proxy);
+        }
+
         QJSValue JsLayerProxy::paths()
         {
             if (!mBox || !mEngine) {
@@ -1373,6 +1403,9 @@ namespace Friction
                 case eBoxType::nullObject:
                     box = enve::make_shared<NullObject>();
                     break;
+                case eBoxType::cameraLayer:
+                    box = enve::make_shared<CameraLayer>();
+                    break;
                 case eBoxType::group:
                     box = enve::make_shared<ContainerBox>(eBoxType::group);
                     break;
@@ -1455,6 +1488,20 @@ namespace Friction
         QJSValue JsSceneProxy::addLayer(const QString &name)
         {
             return addBox(int(eBoxType::layer), name);
+        }
+
+        // AE-style scene camera layer: creating one enables the scene
+        // camera (affects 3D-switch layers; expression-bindable via
+        // $camera().panX/.panY/.zoom/.rotZ/.focal). Returns null when
+        // the scene already has a camera (one camera per scene, same
+        // rule as the camera tool's addCameraLayerAction).
+        QJSValue JsSceneProxy::addCamera(const QString &name)
+        {
+            if (!mScene) { return QJSValue(QJSValue::NullValue); }
+            if (mScene->getCameraLayer()) {
+                return QJSValue(QJSValue::NullValue);
+            }
+            return addBox(int(eBoxType::cameraLayer), name);
         }
 
         QJSValue JsSceneProxy::addPath(const QString &name,

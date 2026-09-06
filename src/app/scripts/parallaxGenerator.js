@@ -1,15 +1,13 @@
 // parallaxGenerator.js — 视差生成器（AE CEP "Parallaxer" 移植）
 //
 // 一键搭建 2.5D 视差场景：内容层沿 Z 轴分布 + 每层挂补偿表达式。
-// 默认视角下画面与原始完全一致；动画「CAM CTRL」控制器属性即产生
-// 真实景深视差（近层动得多、远层动得少，推拉时近层放得快）。
+// 相机直接用 Friction 原生摄像机图层：动画摄像机的 平移X/Y 与 缩放
+// （=推拉）即产生真实景深视差（近层动得多、远层动得少）。
 //
-// 与 AE 原版（Cream-FX Parallaxer）的差异：
-// - Friction 相机是画布级统一 2D 变换（无逐层投影），视差由每层
-//   表达式显式完成针孔投影，相机参数放在控制器层的自定义属性上
-// - 相机参数：相机X / 相机Y（平移）、相机距离（推拉 dolly）、焦距
-//   （默认 1493.3×画布比例，对应 AE 的 Zoom=1493.3）
-// - 图层深度用原生「3D position Z」，可在时间线上单独 K 帧
+// 原理：Friction 相机本身是画布级统一变换（无视差），每层表达式
+// 负责 ① 抵消统一变换 ② 按本层 Z 深度做针孔投影。默认相机参数下
+// 画面与原始平铺完全一致。旋转/倾斜未做抵消——视差模式请只用
+// 平移与缩放操作相机。
 (function () {
     var debugLog = [];
     function log(msg) {
@@ -18,20 +16,13 @@
         try { print(msg); } catch (e) {}
     }
 
-    var CTRL_NAME = "CAM CTRL";
     var WARN_TEXT = "视差已激活 - 完成后请烘焙";
 
-    // AE 原版校准常量（按 1920x1080 标定，随画布对角比例缩放）
+    // AE 原版校准常量（按 1920x1080 标定，随画布比例缩放）
     var CAM_ZOOM = 1493.3;
     var SIZE_DIV = 4820;
     var Z_START = 35;
     var Z_END = 4285;
-
-    // 控制器自定义属性名（绑定路径段，禁含空格/点）
-    var P_PANX = "相机X";
-    var P_PANY = "相机Y";
-    var P_DIST = "相机距离";
-    var P_FOCUS = "焦距";
 
     function getScene() {
         var scene = app.activeScene;
@@ -39,27 +30,37 @@
         return scene;
     }
 
-    function isSystemLayer(name) {
-        return name === CTRL_NAME || name === WARN_TEXT ||
-               name.indexOf("视差已激活") === 0;
+    function isSystemLayer(layer) {
+        return layer.isCamera() ||
+               layer.name === WARN_TEXT ||
+               layer.name.indexOf("视差已激活") === 0;
     }
 
-    function findLayer(scene, name) {
+    function findCamera(scene) {
         var ls = scene.layers();
         for (var i = 0; i < ls.length; i++) {
-            if (ls[i].name === name) { return ls[i]; }
+            if (ls[i].isCamera()) { return ls[i]; }
         }
         return null;
     }
 
-    function findCtrl(scene) { return findLayer(scene, CTRL_NAME); }
+    function findWarningLayer(scene) {
+        var ls = scene.layers();
+        for (var i = 0; i < ls.length; i++) {
+            if (ls[i].name === WARN_TEXT ||
+                ls[i].name.indexOf("视差已激活") === 0) {
+                return ls[i];
+            }
+        }
+        return null;
+    }
 
-    // 顶层内容层（排除系统层）；AE 原版同样只处理顶层图层
+    // 顶层内容层（排除摄像机与警告层）；AE 原版同样只处理顶层图层
     function contentLayers(scene) {
         var ls = scene.layers();
         var out = [];
         for (var i = 0; i < ls.length; i++) {
-            if (!isSystemLayer(ls[i].name)) { out.push(ls[i]); }
+            if (!isSystemLayer(ls[i])) { out.push(ls[i]); }
         }
         return out;
     }
@@ -67,44 +68,48 @@
     function sizeFactor(scene) {
         return (scene.width + scene.height) / SIZE_DIV;
     }
-    function defZoom(scene) { return CAM_ZOOM * sizeFactor(scene); }
 
     // ---- 每层补偿表达式 -------------------------------------------------
-    // 绑定源：$value(表达式前基值)/$scene/z(本层3D Z)/f(本层透视)/控制器4参数
+    // 绑定：$value(基值)/$scene/本层 Z 与透视/$camera().panX/.panY/.zoom
     // 铁律：必须绑 frame=$frame（否则换帧冻结）；常量烤进 script 体
-    // 公式（AE 针孔投影 + Parallaxer 补偿，默认视角严格还原原画面）：
-    //   u = 层中心相对画布中心偏移 = v + C - 画布中心
-    //   depth = z + d;  k = zm / depth
-    //   新位置 = v + k*((Z0+z)/Z0*u - p) - u
-    //   新缩放 = s * (zm*(Z0+z)/(depth*Z0)) * ((f+z)/f)   ← 末项抵消 billboard
+    //
+    // Friction 相机统一变换 cam(q) = C + zoom*(q - C - pan)，
+    // 针孔投影（zoom 解释为推近倍率，相机距离 d = Z0/zoom）：
+    //   X = C + k*(L - C - pan)，k = Z0*zoom/(Z0 + z*zoom)
+    // 抵消 + 投影（令 t = Z0/(Z0 + z*zoom)，u = 层中心偏画布中心）：
+    //   新位置 = v + pan + t*((Z0+z)/Z0*u - pan) - u
+    //   新缩放 = s * (Z0+z)/(Z0 + z*zoom) * (f+z)/f   ← 末项抵消 billboard
+    // 默认（pan=0, zoom=1）：t*(Z0+z)/Z0 = 1，位置/缩放还原原画面
     function bindLayer(layer, Z0, cX, cY, sw, sh) {
-        var ctrlPath = CTRL_NAME + ".properties.";
-
-        var posBase =
-            "frame = $frame;\n" +
-            "v = $value;\n" +
-            "z = transform.3D position Z;\n" +
-            "p = " + ctrlPath;
-        var posTail =
-            ";\nd = " + ctrlPath + P_DIST + ";\n" +
-            "zm = " + ctrlPath + P_FOCUS + ";\n";
-        // 场景宽高在 setup 时烤入（AE 原版同样按建场时画布校准）
-        var swLit = String(sw);
-        var shLit = String(sh);
         var z0Lit = Z0.toFixed(2);
 
+        var posBindingsX =
+            "frame = $frame;\n" +
+            "v = $value;\n" +
+            "sw = $scene.width;\n" +
+            "z = transform.3D position Z;\n" +
+            "px = $camera().panX;\n" +
+            "zm = $camera().zoom;\n";
+        var posBindingsY =
+            "frame = $frame;\n" +
+            "v = $value;\n" +
+            "sh = $scene.height;\n" +
+            "z = transform.3D position Z;\n" +
+            "py = $camera().panY;\n" +
+            "zm = $camera().zoom;\n";
+
         var err = layer.property("positionx").setExpression(
-            posBase + P_PANX + posTail,
-            "var u = v + " + cX.toFixed(2) + " - " + swLit + "/2;\n" +
-            "var k = zm/(z + d);\n" +
-            "return v + k*((" + z0Lit + " + z)/" + z0Lit + "*u - p) - u;");
+            posBindingsX,
+            "var u = v + " + cX.toFixed(2) + " - sw/2;\n" +
+            "var t = " + z0Lit + "/(" + z0Lit + " + z*zm);\n" +
+            "return v + px + t*((" + z0Lit + " + z)/" + z0Lit + "*u - px) - u;");
         if (err) { return "位置X: " + err; }
 
         err = layer.property("positiony").setExpression(
-            posBase + P_PANY + posTail,
-            "var u = v + " + cY.toFixed(2) + " - " + shLit + "/2;\n" +
-            "var k = zm/(z + d);\n" +
-            "return v + k*((" + z0Lit + " + z)/" + z0Lit + "*u - p) - u;");
+            posBindingsY,
+            "var u = v + " + cY.toFixed(2) + " - sh/2;\n" +
+            "var t = " + z0Lit + "/(" + z0Lit + " + z*zm);\n" +
+            "return v + py + t*((" + z0Lit + " + z)/" + z0Lit + "*u - py) - u;");
         if (err) { return "位置Y: " + err; }
 
         var scaleBindings =
@@ -112,12 +117,9 @@
             "s = $value;\n" +
             "z = transform.3D position Z;\n" +
             "f = transform.3D perspective;\n" +
-            "d = " + ctrlPath + P_DIST + ";\n" +
-            "zm = " + ctrlPath + P_FOCUS + ";\n";
+            "zm = $camera().zoom;\n";
         var scaleScript =
-            "var m = (zm*(" + z0Lit + " + z))/((z + d)*" +
-            z0Lit + ")*(f + z)/f;\n" +
-            "return s*m;";
+            "return s*(" + z0Lit + " + z)/(" + z0Lit + " + z*zm)*(f + z)/f;";
 
         err = layer.property("scalex").setExpression(scaleBindings, scaleScript);
         if (err) { return "缩放X: " + err; }
@@ -126,18 +128,25 @@
         return "";
     }
 
-    // ---- 1. 设置 --------------------------------------------------------
+    // ---- 1. 应用视差 ----------------------------------------------------
     function doSetup() {
         var scene = getScene();
         if (!scene) { return; }
 
-        if (findCtrl(scene)) {
-            alert("视差生成器已应用于此场景。\n如需重新生成，请先烘焙或删除「" +
-                  CTRL_NAME + "」控制器层。");
-            return;
-        }
         var layers = contentLayers(scene);
         if (layers.length === 0) { alert("场景中没有可处理的图层。"); return; }
+
+        // 已应用检测：任一内容层位置带表达式
+        var applied = false;
+        for (var i = 0; i < layers.length; i++) {
+            if (layers[i].property("positionx").hasExpression()) {
+                applied = true; break;
+            }
+        }
+        if (applied) {
+            alert("视差生成器已应用于此场景。\n如需重新生成，请先「烘焙」。");
+            return;
+        }
 
         var sf = sizeFactor(scene);
         var Z0 = +(CAM_ZOOM * sf).toFixed(2);
@@ -146,14 +155,14 @@
 
         app.beginUndoGroup("应用视差");
         try {
-            // 控制器（相机参数 = 自定义属性，可 K 帧动画）
-            var ctrl = scene.addNull(CTRL_NAME);
-            if (!ctrl) { throw "无法创建控制器层"; }
-            ctrl.numberProperty(P_PANX, 0);
-            ctrl.numberProperty(P_PANY, 0);
-            ctrl.numberProperty(P_DIST, Z0);
-            ctrl.numberProperty(P_FOCUS, Z0);
-            log("控制器已创建: " + CTRL_NAME + " (Z0=" + Z0 + ")");
+            // 相机：直接用/建 Friction 原生摄像机图层
+            var cam = findCamera(scene);
+            var camCreated = false;
+            if (!cam) {
+                cam = scene.addCamera("摄像机");
+                camCreated = !!cam;
+            }
+            if (!cam) { throw "无法创建摄像机图层"; }
 
             var n = layers.length;
             var errs = [];
@@ -182,29 +191,24 @@
                     (err ? "  表达式错误: " + err : ""));
             }
 
-            // 警告层（AE 版：红色大字提示，Friction 文字层）
+            // 警告层（AE 版同款提示）
             var warn = scene.addText(WARN_TEXT, WARN_TEXT);
             if (warn) {
                 warn.position().setValue(
                     [scene.width / 2, (scene.width + scene.height) / 60]);
             }
 
+            // 静默成功：不打扰，结果进日志
+            log("应用视差完成: 层数=" + n + " 相机=" +
+                (camCreated ? "新建" : "沿用现有") +
+                " Z0=" + Z0 + " z=" + zStart.toFixed(1) + "→" + zEnd.toFixed(1));
+
             if (errs.length > 0) {
-                alert("设置完成，但 " + errs.length + " 个图层表达式失败：\n" +
+                alert("应用完成，但 " + errs.length + " 个图层表达式失败：\n" +
                       errs.join("\n"));
-            } else {
-                alert("视差已激活（" + n + " 层，Z 分布 " +
-                      zStart.toFixed(0) + " → " + zEnd.toFixed(0) + "）。\n\n" +
-                      "动画图层「" + CTRL_NAME + "」的自定义属性产生视差：\n" +
-                      "· " + P_PANX + " / " + P_PANY + " —— 相机平移\n" +
-                      "· " + P_DIST + " —— 推拉（数值越小越近，视差越强）\n" +
-                      "· " + P_FOCUS + " —— 焦距（默认即原画面）\n\n" +
-                      "完成后请点「烘焙」。");
             }
-            log("setup 完成: 层数=" + n + " Z0=" + Z0 +
-                " zStart=" + zStart.toFixed(1) + " zEnd=" + zEnd.toFixed(1));
         } catch (e) {
-            alert("设置出错: " + e);
+            alert("应用视差出错: " + e);
             log("setup 异常: " + e);
         } finally {
             app.endUndoGroup();
@@ -218,7 +222,7 @@
         var sel = scene.selectedLayers();
         var valid = [];
         for (var i = 0; i < sel.length; i++) {
-            if (!isSystemLayer(sel[i].name)) { valid.push(sel[i]); }
+            if (!isSystemLayer(sel[i])) { valid.push(sel[i]); }
         }
         if (valid.length < 2) {
             alert("请至少选择两个图层（" + label + "）。");
@@ -250,23 +254,53 @@
         }
     }
 
-    // ---- 3. 重置相机 ----------------------------------------------------
+    // ---- 3. 批量 3D 开关 ------------------------------------------------
+    function set3DBatch(enabled) {
+        var scene = getScene();
+        if (!scene) { return; }
+        var sel = scene.selectedLayers();
+        if (!sel || sel.length === 0) {
+            alert("请先选中一个或多个图层。");
+            return;
+        }
+        app.beginUndoGroup(enabled ? "打开 3D" : "关闭 3D");
+        try {
+            var n = 0;
+            for (var i = 0; i < sel.length; i++) {
+                if (sel[i].is3DEnabled() !== enabled) {
+                    sel[i].set3DEnabled(enabled);
+                }
+                n++;
+            }
+            log((enabled ? "已打开 3D: " : "已关闭 3D: ") + n + " 个图层");
+        } catch (e) {
+            alert("出错: " + e);
+            log("3D 开关异常: " + e);
+        } finally {
+            app.endUndoGroup();
+        }
+    }
+
+    // ---- 4. 重置相机 ----------------------------------------------------
+    function resetCamera(cam) {
+        cam.cameraProperty("panX").setValue(0);
+        cam.cameraProperty("panY").setValue(0);
+        cam.cameraProperty("zoom").setValue(1);
+        cam.cameraProperty("rotZ").setValue(0);
+    }
+
     function doResetCamera() {
         var scene = getScene();
         if (!scene) { return; }
-        var ctrl = findCtrl(scene);
-        if (!ctrl) {
-            alert("未找到视差控制器，请先点「应用视差」。");
+        var cam = findCamera(scene);
+        if (!cam) {
+            alert("未找到摄像机图层，请先点「应用视差」。");
             return;
         }
-        var Z0 = +defZoom(scene).toFixed(2);
         app.beginUndoGroup("重置相机");
         try {
-            ctrl.numberProperty(P_PANX, 0).setValue(0);
-            ctrl.numberProperty(P_PANY, 0).setValue(0);
-            ctrl.numberProperty(P_DIST, Z0).setValue(Z0);
-            ctrl.numberProperty(P_FOCUS, Z0).setValue(Z0);
-            log("相机已重置 (Z0=" + Z0 + ")");
+            resetCamera(cam);
+            log("相机已重置（平移 0,0 缩放 1）");
         } catch (e) {
             alert("出错: " + e);
             log("重置相机异常: " + e);
@@ -275,42 +309,35 @@
         }
     }
 
-    // ---- 4. 烘焙 --------------------------------------------------------
-    // AE 版语义：删警告层 + 重置相机 + 表达式值固化为静态值 + 删全部键。
-    // Friction 实现要点：
+    // ---- 5. 烘焙 --------------------------------------------------------
+    // AE 版语义：删警告层 + 重置相机 + 表达式值固化 + 删全部键。
+    // Friction 要点：
+    // - 相机 pan/zoom/rotZ 的关键帧必须清掉：表达式删除后相机的
+    //   统一变换仍会作用于全部层，残留动画会污染静态画面
     // - 位置表达式在默认相机下输出=基值，clearExpression 即还原
-    // - 缩放需固化 s*(f+z)/f：zPos 保留时 billboard 透视仍在，固化值
+    // - 缩放固化 s*(f+z)/f：zPos 保留时 billboard 透视仍在，固化值
     //   内含抵消因子，画面严格保持 flat 原样
-    // - zPos 与 3D 开关保留（AE 同样保留 3D 位置，便于后续继续调节）
     function doBake() {
         var scene = getScene();
         if (!scene) { return; }
-        var ctrl = findCtrl(scene);
-        if (!ctrl) {
-            alert("未找到视差控制器，请先点「应用视差」。");
+        var cam = findCamera(scene);
+        if (!cam) {
+            alert("未找到摄像机图层，请先点「应用视差」。");
             return;
         }
 
         app.beginUndoGroup("烘焙");
         try {
-            // 删警告层
-            var warn = findLayer(scene, WARN_TEXT);
-            if (!warn) {
-                var ls = scene.layers();
-                for (var i = 0; i < ls.length; i++) {
-                    if (ls[i].name.indexOf("视差已激活") === 0) {
-                        warn = ls[i]; break;
-                    }
-                }
-            }
+            var warn = findWarningLayer(scene);
             if (warn) { warn.remove(); }
 
-            // 重置相机（AE 版行为）
-            var Z0 = +defZoom(scene).toFixed(2);
-            ctrl.numberProperty(P_PANX, 0).setValue(0);
-            ctrl.numberProperty(P_PANY, 0).setValue(0);
-            ctrl.numberProperty(P_DIST, Z0).setValue(Z0);
-            ctrl.numberProperty(P_FOCUS, Z0).setValue(Z0);
+            // 清相机动画 + 归零（统一变换必须消失）
+            var keys = ["panX", "panY", "zoom", "rotZ"];
+            for (var k = 0; k < keys.length; k++) {
+                var cp = cam.cameraProperty(keys[k]);
+                while (cp.numKeys() > 0) { cp.removeKeyAtFrame(cp.keyFrame(1)); }
+            }
+            resetCamera(cam);
 
             var layers = contentLayers(scene);
             var done = 0;
@@ -350,9 +377,7 @@
             var ls2 = scene.layers();
             for (var i = 0; i < ls2.length; i++) { ls2[i].selected = false; }
 
-            alert("烘焙完成（" + done + "/" + layers.length +
-                  " 层），可以开始动画了。");
-            log("bake 完成: " + done + "/" + layers.length);
+            log("烘焙完成: " + done + "/" + layers.length + " 层");
         } catch (e) {
             alert("出错: " + e);
             log("bake 异常: " + e);
@@ -372,13 +397,17 @@
               onClick: function () { adjustSpacing(1.15, "增大间距"); } },
             { label: "展平", tooltip: "将所选图层放到 Z 轴同一平面",
               onClick: function () { adjustSpacing(0.001, "展平图层"); } },
-            { label: "重置相机", tooltip: "相机参数恢复初始位置（画面=原始平铺）",
+            { label: "3D开", tooltip: "打开所选图层的 3D 开关（批量）",
+              onClick: function () { set3DBatch(true); } },
+            { label: "3D关", tooltip: "关闭所选图层的 3D 开关（批量）",
+              onClick: function () { set3DBatch(false); } },
+            { label: "重置相机", tooltip: "相机平移/缩放归零（画面=原始平铺）",
               onClick: doResetCamera },
-            { label: "烘焙", tooltip: "移除表达式与动态功能，固化画面，加速场景",
+            { label: "烘焙", tooltip: "移除表达式与相机动画，固化画面",
               onClick: doBake }
         ],
         extraButtons: [
-            { label: "⚙ 应用视差", tooltip: "Z 轴分布全部图层 + 建立视差相机（选好场景后点击）",
+            { label: "应用视差", tooltip: "Z 轴分布全部图层 + 建立视差相机（静默执行）",
               onClick: doSetup },
             { label: "☰ 调试日志", tooltip: "查看并复制调试日志",
               onClick: function () {

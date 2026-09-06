@@ -27,6 +27,10 @@
 
 #include "Animators/complexanimator.h"
 
+#include "Boxes/boundingbox.h"
+#include "Boxes/cameralayer.h"
+#include "canvas.h"
+
 PropertyBinding::PropertyBinding(const Validator& validator,
                                  const Property* const context) :
     PropertyBindingBase(context),
@@ -171,4 +175,103 @@ void PropertyBinding::setBindPathValid(const bool valid) {
     mBindPathValid = valid;
     emit currentValueChanged();
     emit relRangeChanged(FrameRange::EMINMAX);
+}
+
+//---------------------------- CameraPropBinding ----------------------------
+
+CameraPropBinding::CameraPropBinding(const Member member,
+                                     const Property* const context) :
+    PropertyBindingBase(context), mMember(member) {}
+
+qsptr<CameraPropBinding> CameraPropBinding::sCreate(
+        const Member member, const Property* const context) {
+    const auto result = new CameraPropBinding(member, context);
+    result->resolveSource();
+    if(!result->mBind) return nullptr;
+    return qsptr<CameraPropBinding>(result);
+}
+
+void CameraPropBinding::resolveSource() {
+    const auto box = mContext ?
+                mContext->getFirstAncestor<BoundingBox>() : nullptr;
+    const auto scene = box ? box->getParentScene() : nullptr;
+    const auto cam = scene ? scene->getCameraLayer() : nullptr;
+    if(!cam) return;
+    QrealAnimator* anim = nullptr;
+    switch(mMember) {
+        case Member::panX:  anim = cam->panXAnimator(); break;
+        case Member::panY:  anim = cam->panYAnimator(); break;
+        case Member::zoom:  anim = cam->zoomAnimator(); break;
+        case Member::rotZ:  anim = cam->rotZAnimator(); break;
+        case Member::focal: anim = cam->focalAnimator(); break;
+    }
+    if(!anim) return;
+    auto& conn = mBind.assign(anim);
+    // signal wiring mirrors PropertyBinding::bindProperty: range
+    // changes drive the host animator's cache invalidation, the frame
+    // signal re-evaluates on frame switches
+    conn << connect(anim, &Property::prp_absFrameRangeChanged,
+                    this, [this](const FrameRange& absRange) {
+        const auto relRange = mContext->prp_absRangeToRelRange(absRange);
+        if(relRange.inRange(relFrame())) emit currentValueChanged();
+        emit relRangeChanged(relRange);
+    });
+    connect(anim, &Property::prp_currentFrameChanged,
+            this, &CameraPropBinding::currentValueChanged);
+    // camera deleted at runtime: bindings fall back to 0/1 instead of
+    // dangling (the expressions degrade to the flat look)
+    connect(cam, &QObject::destroyed, this, [this]() {
+        emit currentValueChanged();
+        emit relRangeChanged(FrameRange::EMINMAX);
+    });
+}
+
+QJSValue CameraPropBinding::getJSValue(QJSEngine& e) {
+    const auto anim = mBind.get();
+    return anim ? anim->prp_getEffectiveJSValue(e) : QJSValue(0.);
+}
+
+QJSValue CameraPropBinding::getJSValue(QJSEngine& e, const qreal relFrame) {
+    const auto anim = mBind.get();
+    return anim ? anim->prp_getEffectiveJSValue(e, relFrame) : QJSValue(0.);
+}
+
+bool CameraPropBinding::dependsOn(const Property* const prop) {
+    const auto anim = mBind.get();
+    return anim && (anim == prop || anim->prp_dependsOn(prop));
+}
+
+bool CameraPropBinding::isValid() const { return mBind.get(); }
+
+FrameRange CameraPropBinding::identicalRelRange(const int absFrame) {
+    const auto anim = mBind.get();
+    if(anim && mContext) {
+        const int relFrame = anim->prp_absFrameToRelFrame(absFrame);
+        const auto absRange = anim->prp_getIdenticalAbsRange(relFrame);
+        return mContext->prp_absRangeToRelRange(absRange);
+    }
+    return FrameRange::EMINMAX;
+}
+
+FrameRange CameraPropBinding::nextNonUnaryIdenticalRelRange(
+        const int absFrame) {
+    const auto anim = mBind.get();
+    if(anim && mContext) {
+        const int relFrame = anim->prp_absFrameToRelFrame(absFrame);
+        const auto absRange =
+                anim->prp_nextNonUnaryIdenticalAbsRange(relFrame);
+        return mContext->prp_absRangeToRelRange(absRange);
+    }
+    return FrameRange::EMINMAX;
+}
+
+QString CameraPropBinding::path() const {
+    switch(mMember) {
+        case Member::panX:  return QStringLiteral("$camera().panX");
+        case Member::panY:  return QStringLiteral("$camera().panY");
+        case Member::zoom:  return QStringLiteral("$camera().zoom");
+        case Member::rotZ:  return QStringLiteral("$camera().rotZ");
+        case Member::focal: return QStringLiteral("$camera().focal");
+    }
+    return QStringLiteral("$camera().zoom");
 }
