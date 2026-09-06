@@ -235,10 +235,12 @@
             // 路径来源（须在清选之前读取选中图层）：
             // 选中的路径层（用「绘制路径」工具画的）> 内置样条
             var pathData = null;
+            var pathSourceLayer = null;
             var selLayers = scene.selectedLayers();
             if (selLayers && selLayers.length > 0) {
                 try {
                     pathData = nodesFromLayer(selLayers[0], "选中路径层");
+                    pathSourceLayer = selLayers[0];
                 } catch (e) {
                     log("选中图层不是可用路径，改用内置样条 (" + e + ")");
                 }
@@ -376,6 +378,22 @@
                         + last.point[0].toFixed(1) + ","
                         + last.point[1].toFixed(1) + ") 节点数="
                         + info.nodes.length + " 闭合=" + info.closed);
+                }
+            }
+
+            // 生成成功后自动删除引用的源路径层（同撤销组内，
+            // Ctrl+Z 可连生成结果一起还原）
+            if (pathSourceLayer) {
+                try {
+                    var srcName = pathSourceLayer.name;
+                    if (pathSourceLayer.valid()) {
+                        pathSourceLayer.remove();
+                        log("已自动删除源路径层 \"" + srcName
+                            + "\"（想改路线：Ctrl+Z 撤销后重新画，或直接编辑"
+                            + "「中线虚线」层的锚点）");
+                    }
+                } catch (delE) {
+                    log("源路径层删除失败（可手动删除）: " + delE);
                 }
             }
         } catch (e) {
