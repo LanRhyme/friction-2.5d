@@ -97,15 +97,18 @@ void BoxTargetWidget::mousePressEvent(QMouseEvent *event) {
                 act->setDisabled(true);
             }
         }
-        for(int i = 0; i < boxes.count(); i++) {
-            const auto& box = boxes.at(i);
+        for(const auto& box : boxes) {
             if(box == parentBox) continue;
             const auto& validator = mProperty->validator();
             if(validator && !validator(box)) continue;
-            // same natural-number layer index shown in the timeline (top=1)
+            // same natural-number layer index shown in the timeline
+            // (slot in the parent's full contained list, topmost = 1;
+            // the boxes list here excludes sounds, so its enumeration
+            // order would drift from the timeline numbering)
             const auto act = menu.addAction(
-                        QStringLiteral("%1. %2").arg(i + 1)
-                                     .arg(box->prp_getName()));
+                        QStringLiteral("%1. %2")
+                        .arg(srcGroup->getContainedIndexCached(box) + 1)
+                        .arg(box->prp_getName()));
             connect(act, &QAction::triggered, this, [this, box]() {
                 mProperty->setTargetAction(box);
                 Document::sInstance->actionFinished();
@@ -141,7 +144,7 @@ void BoxTargetWidget::paintEvent(QPaintEvent *) {
         p.drawText(rect(), Qt::AlignCenter, "-none-");
     } else {
         const auto group = target->getParentGroup();
-        const int boxId = group ? group->getContainedIndex(target) : -1;
+        const int boxId = group ? group->getContainedIndexCached(target) : -1;
         const QString label = boxId >= 0 ?
                     QStringLiteral("%1. %2").arg(boxId + 1)
                                   .arg(target->prp_getName()) :

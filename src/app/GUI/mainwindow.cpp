@@ -1238,6 +1238,8 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *e)
 
 void MainWindow::closeEvent(QCloseEvent *e)
 {
+    // persist the final script-panel open state before shutdown
+    if (mScriptManager) { mScriptManager->flushOpenPanels(); }
     if (!closeProject()) { e->ignore(); }
     else { mShutdown = true; }
 }
@@ -1474,6 +1476,9 @@ void MainWindow::applyWorkspace(const QString &name)
     // their layout silently
     if (mScriptManager) { mScriptManager->ensurePanelsInState(state); }
     restoreState(state);
+    // and the reverse: script panels from the previous workspace that
+    // the new snapshot does not reference must be closed
+    if (mScriptManager) { mScriptManager->hidePanelsNotInState(state); }
     // remember the applied workspace so it is restored on startup
     AppSupport::setSettings("workspaces", "active", name);
 }

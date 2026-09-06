@@ -125,6 +125,12 @@ public:
     // layout references but lazy creation never made, so a
     // restoreState() can bring them back instead of dropping them
     void ensurePanelsInState(const QByteArray &state);
+    // hides script panels the given layout snapshot does not reference
+    // (workspace switching must not keep the old workspace's panels)
+    void hidePanelsNotInState(const QByteArray &state);
+    // writes the open-panel list right away (window close) so a
+    // pending debounce cannot lose the final state
+    void flushOpenPanels();
 
     // console + debug log output (script print()/$.writeln)
     void output(const QString &message);
@@ -145,6 +151,7 @@ private:
     // persists which script panels are currently open, so the next
     // launch only creates the panels the user actually had open
     void saveOpenPanels() const;
+    void scheduleSaveOpenPanels();
     static QString panelObjectName(const QString &title);
 
     MainWindow *mMainWindow;
@@ -162,6 +169,8 @@ private:
     // true while panels are torn down/rebuilt - suppresses the
     // open-panels persistence during the deletes
     bool mUpdatingPanels = false;
+    // coalesces open-panel persistence writes (200ms single shot)
+    QTimer *mOpenPanelsTimer = nullptr;
     // reload() runs loadScripts() a second time and recreates the
     // panels the user has open immediately visible
     bool mScriptsReload = false;

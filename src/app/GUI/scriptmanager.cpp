@@ -372,6 +372,30 @@ QString ScriptManager::panelObjectName(const QString &title)
                                        QByteArray::OmitTrailingEquals)));
 }
 
+void ScriptManager::scheduleSaveOpenPanels()
+{
+    // debounce: a layout restore flips several panels at once and every
+    // visibilityChanged would hit the settings backend separately
+    if (!mOpenPanelsTimer) {
+        mOpenPanelsTimer = new QTimer(this);
+        mOpenPanelsTimer->setSingleShot(true);
+        mOpenPanelsTimer->setInterval(200);
+        connect(mOpenPanelsTimer, &QTimer::timeout,
+                this, [this]() { saveOpenPanels(); });
+    }
+    mOpenPanelsTimer->start();
+}
+
+void ScriptManager::flushOpenPanels()
+{
+    // called on window close so a pending debounce cannot lose the
+    // final visibility state
+    if (mOpenPanelsTimer && mOpenPanelsTimer->isActive()) {
+        mOpenPanelsTimer->stop();
+        saveOpenPanels();
+    }
+}
+
 void ScriptManager::saveOpenPanels() const
 {
     if (mUpdatingPanels) { return; }
@@ -383,26 +407,47 @@ void ScriptManager::saveOpenPanels() const
                             QStringLiteral("openPanels"), names);
 }
 
+namespace {
+// QMainWindow::saveState serializes the dock objectNames as QDataStream
+// strings (UTF-16BE) - searching the raw UTF-16BE bytes of a name tells
+// whether a layout snapshot references that panel
+bool stateContainsName(const QByteArray &state, const QString &name)
+{
+    QByteArray needle;
+    needle.resize(name.size() * 2);
+    for (int i = 0; i < name.size(); i++) {
+        const ushort u = name.at(i).unicode();
+        needle[2 * i] = char(u >> 8);
+        needle[2 * i + 1] = char(u & 0xff);
+    }
+    return state.contains(needle);
+}
+} // namespace
+
 void ScriptManager::ensurePanelsInState(const QByteArray &state)
 {
     if (state.isEmpty()) { return; }
     for (const auto host : mPanelScriptHosts) {
         if (mPanelHosts.contains(host)) { continue; }
-        const auto name = panelObjectName(host->panelDesc().title);
-        // QMainWindow::saveState serializes the dock objectNames as
-        // QDataStream strings (UTF-16BE) - search for the raw UTF-16BE
-        // bytes of the name to know the layout references this panel
-        QByteArray needle;
-        needle.resize(name.size() * 2);
-        for (int i = 0; i < name.size(); i++) {
-            const ushort u = name.at(i).unicode();
-            needle[2 * i] = char(u >> 8);
-            needle[2 * i + 1] = char(u & 0xff);
-        }
-        if (state.contains(needle)) {
+        if (stateContainsName(state,
+                              panelObjectName(host->panelDesc().title))) {
             // hidden; the restoreState() that follows shows it at the
             // saved position (and its visibility lands in openPanels)
             createPanel(host, false);
+        }
+    }
+}
+
+void ScriptManager::hidePanelsNotInState(const QByteArray &state)
+{
+    // switching workspaces: restoreState() leaves docks that are not in
+    // the new snapshot untouched - script panels from the previous
+    // workspace would stay open and pollute the persisted open list
+    if (state.isEmpty()) { return; }
+    for (const auto dock : mPanels) {
+        if (dock && dock->isVisible()
+                && !stateContainsName(state, dock->objectName())) {
+            dock->hide();
         }
     }
 }
@@ -621,7 +666,7 @@ void ScriptManager::createPanel(Friction::Core::JsHost * const host,
     // keep the persisted open-panel list in sync with the UI so the
     // next launch creates exactly the panels the user has open
     connect(dock, &QDockWidget::visibilityChanged,
-            this, [this](const bool) { saveOpenPanels(); });
+            this, [this](const bool) { scheduleSaveOpenPanels(); });
     if (show) { dock->show(); dock->raise(); }
     else { dock->hide(); }
     mPanels.append(dock);

@@ -2430,7 +2430,7 @@ void BoxSingleWidget::paintEvent(QPaintEvent *) {
             // natural-number layer index (topmost = 1, AE-style), same
             // numbering the track-matte source picker uses
             const auto group = bsTarget->getParentGroup();
-            const int boxId = group ? group->getContainedIndex(bsTarget) : -1;
+            const int boxId = group ? group->getContainedIndexCached(bsTarget) : -1;
             if (boxId >= 0) {
                 const QRect numRect(nameX, 0, eSizesUI::widget,
                                     eSizesUI::widget);
@@ -2662,7 +2662,7 @@ void BoxSingleWidget::rebuildTrkMatLayerCandidates() {
             // label shows the same natural-number index the timeline
             // row shows (index in its own parent group, topmost = 1)
             const auto group = b->getParentGroup();
-            const int boxId = group ? group->getContainedIndex(b) : -1;
+            const int boxId = group ? group->getContainedIndexCached(b) : -1;
             mTrkMatLayerCombo->addItem(
                         boxId >= 0
                             ? QStringLiteral("%1. %2").arg(boxId + 1)

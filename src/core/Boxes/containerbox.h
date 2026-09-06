@@ -226,6 +226,13 @@ public:
     void updateContainedIds(const int firstId);
     void updateContainedIds(const int firstId, const int lastId);
     int getContainedIndex(eBoxOrSound * const child);
+    // O(1) variant reading the child's maintained z-list index - for
+    // paint/hot paths; structural code keeps the linear scan above
+    int getContainedIndexCached(eBoxOrSound * const child) const
+    {
+        return child && child->getParentGroup() == this
+                ? child->getZIndex() : -1;
+    }
     qsptr<eBoxOrSound> takeContained_k(const int id);
     void removeContained_k(const qsptr<eBoxOrSound> &child);
     void increaseContainedZInList(eBoxOrSound * const child);
