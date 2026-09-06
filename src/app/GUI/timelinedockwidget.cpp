@@ -1282,6 +1282,14 @@ void TimelineDockWidget::updateSettingsForCurrentCanvas(Canvas* const canvas)
 {
     if (!canvas) { return; }
 
+    // drop the previous scene's connections first: a stale scene's
+    // frame/range changes would keep driving the dock, and revisiting
+    // a scene would stack duplicate connections
+    if (mConnectedCanvas) {
+        disconnect(mConnectedCanvas, nullptr, this, nullptr);
+    }
+    mConnectedCanvas = canvas;
+
     // keep the clip-to-canvas toggle in sync with the scene state (the
     // view-menu entry and the C shortcut can change it elsewhere)
     mClipCanvasButton->blockSignals(true);

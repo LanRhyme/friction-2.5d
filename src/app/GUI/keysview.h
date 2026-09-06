@@ -274,7 +274,7 @@ private:
     bool mGraphUpdateAfterKeysChangedNeeded = false;
 
     QPointer<TimelineMovable> mLastPressedMovable;
-    Key *mLastPressedKey = nullptr;
+    stdptr<Key> mLastPressedKey;
     bool mFirstMove = false;
     qreal mMoveDFrame = 0;
     QPoint mLastPressPos;

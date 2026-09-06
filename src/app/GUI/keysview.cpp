@@ -90,8 +90,9 @@ void KeysView::dragMoveEvent(QDragMoveEvent *event) {
 void KeysView::setCurrentScene(Canvas * const scene)
 {
     // drop every pointer into the old scene's objects: hovered and
-    // last-pressed keys/movables are raw pointers owned by the scene
+    // last-pressed keys/movables are pointers owned by the scene
     // and would dangle as soon as it (or a layer) is deleted
+    clearKeySelection();
     clearHovered();
     mLastPressedKey = nullptr;
     mLastPressedMovable = nullptr;
@@ -153,6 +154,13 @@ void KeysView::deleteSelectedKeys() {
     }
     for(const auto& anim : mSelectedKeysAnimators)
         anim->anim_deleteSelectedKeys();
+    // the animators' own selections are now empty; drop our list too
+    // so hasSelectedKeysForShortcut() does not report stale state and
+    // the next addKeyToSelection() does not append duplicates
+    for(const auto& anim : mSelectedKeysAnimators) {
+        disconnect(anim, &QObject::destroyed, this, nullptr);
+    }
+    mSelectedKeysAnimators.clear();
 }
 
 
@@ -1207,6 +1215,9 @@ void KeysView::removeKeyFromSelection(Key * const key) {
 void KeysView::clearKeySelection() {
     for(const auto& anim : mSelectedKeysAnimators) {
         anim->anim_deselectAllKeys();
+        // drop the destroyed-cleanups added by addKeyToSelection, they
+        // would otherwise pile up over many select/deselect cycles
+        disconnect(anim, &QObject::destroyed, this, nullptr);
     }
     mSelectedKeysAnimators.clear();
 }

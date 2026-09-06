@@ -89,6 +89,8 @@ LayoutHandler::LayoutHandler(Document& document,
 }
 
 void LayoutHandler::clear() {
-    for(int i = 0; i < mComboBox->count(); i++)
+    // removeAt shrinks the combo box each iteration, so an indexed
+    // for-loop stops halfway; drain from index 0 until empty
+    while(mComboBox->count() > 0)
         removeAt(0);
 }
