@@ -767,6 +767,7 @@ void TopViewWindow::mousePressEvent(QMouseEvent* e)
                 mDragStartZoom = cam->zoomAnimator()->getCurrentBaseValue();
                 mDragStartCamZ = mPose.fValid ? mPose.fPos.y() : 0.;
                 mDragDz = mPose.fValid ? mPose.fDz : -1.;
+                mDragDollyBlockedLogged = false;
                 cam->panXAnimator()->prp_startTransform();
                 cam->zoomAnimator()->prp_startTransform();
                 setCursor(Qt::ClosedHandCursor);
@@ -832,15 +833,26 @@ void TopViewWindow::mouseMoveEvent(QMouseEvent* e)
         // vertical drag = dolly along depth: solve the zoom that puts
         // the icon at the cursor height (C.z = dz * f / zoom), so the
         // camera slides towards/away from the canvas following the
-        // mouse exactly
+        // mouse exactly; zoom bound matches the animator range so the
+        // solve is never clamped short (it used to pin the camera at
+        // ~z=-8 on the axis line once zoom hit its old 100 cap)
         const qreal f = cam->focalAnimator()->getCurrentBaseValue();
         const qreal dz = mDragDz;
-        if (qAbs(dz) > 1e-3 && qAbs(f) > 1e-3) {
+        if (qAbs(dz) < 1e-3) {
+            // tilt near +/-90 deg: the optical axis runs parallel to
+            // the canvas plane and no parameter can move the camera
+            // in z - say so instead of failing silently
+            if (!mDragDollyBlockedLogged) {
+                mDragDollyBlockedLogged = true;
+                qWarning() << "[topview] camera tilt near +/-90 deg,"
+                           << "depth drag disabled (reset Tilt X/Y to move in depth)";
+            }
+        } else if (qAbs(f) > 1e-3) {
             const qreal targetZ = mDragStartCamZ + dWorld.y();
             // keep the camera on the viewer side (z < 0)
             if (targetZ < -1.) {
                 cam->zoomAnimator()->setCurrentBaseValue(
-                            qBound(0.01, dz * f / targetZ, 100.));
+                            qBound(0.01, dz * f / targetZ, 100000.));
             }
         }
         update();

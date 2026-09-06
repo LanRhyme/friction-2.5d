@@ -424,10 +424,10 @@ void Canvas::cameraMove(const eMouseEvent& e) {
         cam->panYAnimator()->setCurrentBaseValue(
                     mCamStartPanY - d.y()*k);
     } else {
-        // drag up = zoom in
+        // drag up = zoom in (bound matches the animator range)
         cam->zoomAnimator()->setCurrentBaseValue(
                     qBound(0.01, mCamStartZoom*std::exp(-d.y()*0.005),
-                           100.));
+                           100000.));
     }
 }
 

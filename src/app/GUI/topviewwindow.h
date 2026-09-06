@@ -102,6 +102,7 @@ private:
     qreal mDragStartZoom = 1.;
     qreal mDragStartCamZ = 0.;   // camera C.z at press (world depth)
     qreal mDragDz = -1.;         // D.z at press
+    bool mDragDollyBlockedLogged = false; // one-shot tilt-degenerate warning per drag
     qreal mPressRingAngle = 0.;  // device-space handle angle, degrees
     int mHoverIndex = -1;
 

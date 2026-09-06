@@ -9,7 +9,13 @@ CameraLayer::CameraLayer() :
                 QObject::tr("Pan X"));
     mPanY = enve::make_shared<QrealAnimator>(0., -100000., 100000., 1.,
                 QObject::tr("Pan Y"));
-    mZoom = enve::make_shared<QrealAnimator>(1., 0.01, 100., 0.01,
+    // zoom upper bound 100000: the camera's virtual depth is
+    // z = dz*focal/zoom, so a dolly-in was capped at 8*dz
+    // (focal 800, zoom 100) - the top-view camera icon got pinned
+    // onto the x axis line (~z=-8) and refused to move closer;
+    // the wide bound lets the dolly solve cover the whole depth
+    // range down to the z<-1 viewer-side guard
+    mZoom = enve::make_shared<QrealAnimator>(1., 0.01, 100000., 0.01,
                 QObject::tr("Zoom"));
     mRotZ = enve::make_shared<QrealAnimator>(0., -36000., 36000., 1.,
                 QObject::tr("Rotate"));
