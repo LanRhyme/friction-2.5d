@@ -8654,7 +8654,7 @@ Select the layers you want to import:</source>
     </message>
 </context>
 <context>
-    <name>ToolBox</name>
+    <name>Friction::Ui::ToolBox</name>
     <message>
         <source>Auto-Select Layer</source>
         <translation>自动选择图层</translation>
