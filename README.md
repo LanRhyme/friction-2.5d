@@ -1,81 +1,84 @@
-# Friction
+# Friction 2.5D
 
 [![Windows](https://github.com/friction2d/friction/actions/workflows/windows.yml/badge.svg)](https://github.com/friction2d/friction/actions/workflows/windows.yml?query=branch%3Amain) [![Linux](https://github.com/friction2d/friction/actions/workflows/linux.yml/badge.svg)](https://github.com/friction2d/friction/actions/workflows/linux.yml?query=branch%3Amain) [![macOS](https://github.com/friction2d/friction/actions/workflows/macos.yml/badge.svg)](https://github.com/friction2d/friction/actions/workflows/macos.yml?query=branch%3Amain)
 
-[Friction](https://friction.graphics) is a powerful and versatile motion graphics application that allows you to create vector and raster animations for web and video
+基于 [Friction](https://friction.graphics) 的深度定制版：一款兼具矢量与位图能力的 MG 动画应用，面向 Web 与视频创作。本分支长期融合 **After Effects / Moho / TVPaint** 的工作流经验，并内置 AI 协作接口。
+
 <img width="1988" height="1080" alt="8月29日(1)" src="https://github.com/user-attachments/assets/08773cea-45d9-4771-a23f-9a872756b53b" />
 <img width="1988" height="1080" alt="8月29日" src="https://github.com/user-attachments/assets/12b06cd3-9b08-40dc-aede-613e402c4abf" />
 <img width="3842" height="2090" alt="ScreenShot_2026-08-26_213719_382" src="https://github.com/user-attachments/assets/3c2f9de3-17f6-4fc9-9d96-d49b1ef4aaf8" />
 <img width="1988" height="1080" alt="8月29日(3)" src="https://github.com/user-attachments/assets/cf32b2e9-2da1-4f1a-8961-4c6c2e1ab82f" />
 <img width="1988" height="1080" alt="8月29日(2)" src="https://github.com/user-attachments/assets/4ecc6773-7dfb-4d2e-89c6-261f6f39601a" />
 
+## ✨ 功能总览
+
+### 🎨 界面与工作流
+
+- **主题系统** — 多套莫兰迪主题 / 经典深蓝 / 石墨 / 北欧苔原 / 京都晚秋等一键切换，全 UI 配色统一
+- **中文本地化** — 界面全面汉化（1600+ 条），首选项支持中英切换
+- **面板系统** — AE 式停靠合并（标签带入口）、脚本浮窗面板（懒创建 + 工作区记忆）、项目面板（场景 + 素材统一管理）
+- **队列面板** — 渲染队列卡片式管理，完成后可直接播放预览
+- **顶视图** — AE 式顶视图：单级网格 / 深度轴线 / 相机线框足迹，可直接拖动相机
+- **画布增强** — 标尺与可拖参考线、透明网格切换、快照导出、安全框、灰黑渐变工作区背景、**临时画布模式**（位置临时 / 结构永久）
+- **快捷面板** — 快捷键面板、运动曲线快捷面板、快捷特效搜索（Ctrl+Space 胶囊浮窗，逐词模糊匹配）
+
+### 🎬 图层与动画
+
+- **2.5D 图层** — X/Y 轴旋转、Z 深度排序、透视强度，3D 开关一键切换，绕自身轴心的正确变换
+- **骨骼系统** — Moho 式 FK 链 / 刚体绑定 / 冻结姿势 / 拖拽自动 K 帧
+- **摄像机** — AE 式摄像机层（轨道 / 平移 / 缩放 / 焦距），跨图层 3D 联动，视差生成器深度集成
+- **切换面板** — 复刻 Moho 切换器，口型动画 / 动作切换原生面板，性能优于脚本方案
+- **可见性关键帧** — 图层小眼睛可记录动画（AE 没有的能力），为深度自动化打基础
+- **图层样式** — PS 式复合特效（描边等），支持 PSD lfxp 导入
+- **蒙版系统** — 钢笔 / 矩形工具在图像层自动建蒙版，AE 式 TrkMat 轨道遮罩（蒙版源自动隐藏 / 擦除 / 相加相减 / 羽化）
+- **批量与多选** — 多选行内开关、图层自然数序号、Ctrl+Alt 阶梯错开与整层平移、框选穿组
+- **固态层 / 调整图层 / 空对象** — AE 语义完整
+
+### 🧰 生成器与脚本引擎
+
+- **AE 脚本兼容引擎** — jsapi 对标 ExtendScript，AE 脚本简单移植即可运行；表达式桥（`setExpression`）、`$frame` / `$camera` / `$path` 绑定源、父子绑定（pick-whip）、共享路径、自定义滑块属性
+- **地图划线** — CEP 版全功能移植：三模式线型 / 虚线流动 / 端点形状 / 道路框法线偏移 / 实时预览
+- **视差生成器** — 逐层 2.5D 相机矩阵（Parallaxer 语义），原生摄像机 + 针孔投影，一键烘焙
+- **天平生成器** — AE 版移植：秤杆角度表达式 + 平台挂杆保持水平，关键词自动识别
+- **轮播三合一** — 水平环 / 竖直环 / 线性，参数上控制器可 K 帧，滑杆实时预览
+- **自动化图层工具集** — 表达式注入、卡片缩放、批量动效
+
+### 🤖 AI
+
+- **AI 深度估计** — Depth Anything V2 本机推理（三档模型 7.6s~640MB），帧批量 + 中值 / EMA 时序平滑，等比插入画布
+- **AI 动效引擎 + MCP 工具链** — 多态图层寻址、递归遍历、复合动效、事务隔离；HTTP 鉴权 + Bearer 令牌；声明式 MG 排版原语（协作者开发）
+- **动效预设库** — 文字 / 图层动画预设 **230 种**（含 AE 码头人式预设面板，胶囊分类筛选）
+
+### 📥 导入导出
+
+- **PSD 分层导入** — 图层 / 组 / 混合模式 / 剪贴蒙版 / 图层样式
+- **Krita .kra 原生导入** — 绘画层静态 + 逐关键帧动画、组递归、混合模式、帧率画布
+- **OCA 导入** — 开放动画格式，与 OpenToonz / Krita 互通
+- **文件对话框缩略图** — 常规图自解码，PSD / PSB 走系统解码器
+- **矢量描摹** — vtracer 位图转矢量，菜单栏独立入口
+
+### ✂️ 特效
+
+- **液态玻璃** — 分流型折射特效（锐边高光可调）
+- **扣绿 Chroma Key** — 移植 Enhanced Hybrid Keyer 3.1（MIT），13 参数 4 键控法
+- **黑白闪烁 BWF / 像素化 Pixelate** — 按 AE 插件源码忠实移植
+- **AE 特效家族 20+** — 暗角 / 色差 / 信箱 / 扫描线 / 方向模糊 / 径向模糊 / 波浪扭曲 / 雨 / 边缘检测 / 反转 / 噪波 / 镜像 / 故障 / 色调分离 / 旋涡 / 半调 / 抖动 / 条纹 / 运动平铺 / 分形噪波 / 光扫 / 位移扭曲 / 胶片颗粒……
+
+### ⏱ 时间轴
+
+- **TVP 风格改造** — 块语义操作 / 块缘 trim / 一拍 N 碰撞推挤 / 末尾块拖长实体化
+- **图层即轨道** — 同类折叠单行、拖拽合并 / Alt 分离、轨道遮罩列
+- **实用改进** — XY 等比缩放链接、匹配画布按钮、输出预设下拉、场景对话框时间码表单、播放栏全面汉化
+
+## 本地开发
+
+**部署位置：** `friction/build/output/friction-cn-test/friction.exe`
+
 ## Contribute
 
 We accept any contributions, big or small. Before submitting a pull request it's recommended that you communicate with the developers first (on [GitHub](https://github.com/friction2d/friction/issues) or [Codeberg](https://codeberg.org/friction/friction/issues))
 
 It's always preferred to submit pull requests against the `main` branch
-
-## Branches and versions
-
-- 实现2.5D图层功能（X/Y/Z旋转、透视、Z排序）
-- 添加3D开关按钮及重置按钮
-- 修复3D属性名乱码
-- 修复图标模糊问题
-
-**已完成的功能：**
-
-1. **2.5D图层变换** - 实现了类似AE的轻量3D图层功能，图层为平面面片Billboard，支持：
-   - X/Y轴旋转（模拟3D透视效果）
-   - Z轴位移（深度排序）
-   - 透视强度参数调节
-   - 正确的绕自身轴心变换（修复了矩阵合成顺序：3D本地空间 → 2D变换 → 父级变换）
-
-2. **3D开关按钮** - 在图层面板上添加3D开关，使用⬢（开启）/⬡（关闭）Unicode字符图标
-
-3. **参数重置按钮** - 每个属性添加重置按钮，使用↻字符图标
-
-4. **3D属性汉化修复** - 将属性名从乱码修复为正确的中文显示：
-   - 3D 旋转 X
-   - 3D 旋转 Y
-   - 3D 位移 Z
-   - 3D 透视
-   （根因：`tr()`窄字符串在MSVC GBK编码下转义错误，改用`QStringLiteral`宽字符串解决）
-5. **psd分层导入**
-6. **快捷键面板** 
-7. **主题模块**
-8. **优化时间轴**
-9. **脚本引擎系统** - 兼容ae脚本只需简单移植代码
-10. **i18n汉化架构**
-11. **运动曲线快捷面板**
-12. **多个脚本内置**
-13. **骨骼系统和工具** - 类似moho操作逻辑和绑定方式
-14. **自由层级拖动** - 类似剪辑软件一样的自由层级，可自由合并和分解，拖动左侧拖出栏即可合并，按住alt拖动图层即可分解，也可以右键菜单
-15. **层属性按钮完善** - 和ae一样的层属性按钮功能
-16. **新增摄像机功能** - 类似ae摄像机
-17. **中英文切换** - 支持中文，英文切换，首选项可设置语言
-18. **新增色轮** - 填色收藏持久化
-19. **透明网格切换，快照导出，安全框** - 类似ae的功能
-20. **图层眼睛可见动画记录** - 可见属性可记录动画，这是ae没有的功能，方便后续的深度开发作为基础
-21. **骨骼动画自动记录关键帧** - 类似moho的操作体验
-22. **新增固态层**
-23. **特效模块加强** - 由协助者移植开发，我做的ae特效黑白闪，像素化，移植到了friction
-24. **原生oca导入** - 开源的动画格式，支持opentoonz，krita
-25. **扣绿特效 Chroma Key** - 移植 Enhanced Hybrid Keyer 3.1，MIT 许可
-26. **骨骼冻结姿势** - 全属性关键帧钉死姿势
-27. **Krita .kra 原生导入** - 绘画层静态+逐关键帧动画/组递归/混合模式/帧率画布
-28.  **项目面板** -改善场景嵌套流程，类似ae合成使用逻辑
-29.   **液态玻璃** -新增特效滤镜
-30.    **循环** -3中循环按钮表达式注入，常用工具，播放控制栏
-31. **ai深度分析** -图像深度通道分析，适合ai参考视频使用，后期方面也有很大价值
-32.  **自动匹配画布按钮** -等比例匹配画布
-33.   **位图转矢量** -菜单栏独立菜单
-34.    **文字预设面板** -支持文字，图像快捷动画应用，类似ae码头人插件，未来可扩展更多内容
-35. **切换面板** -复刻moho切换器面板，适合口型动画，动作切换，原生面板，性能更好
-36.  **项目面板** -新增项目面板，合并场景和素材管理，和ae一样
-
-
-
-**部署位置：** `friction/build/output/friction-cn-test/friction.exe`
 
 ## Documentation
 
