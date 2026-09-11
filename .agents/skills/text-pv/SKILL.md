@@ -1,231 +1,316 @@
 ---
 name: text-pv
 description: >-
-  Friction 2.5D 文字 PV 动画制作专业指南，涵盖日文/中文动态排版（Kinetic Typography）、
-  音乐卡点节奏系统（Beat Snapping）、25 种核心视觉特效与转场技法配方、
-  物理下坠与排除混合、晶格碎裂与毛边粗糙化着色器、
-  以及基于 JS API 与 MCP 的自动化排版动画流水线
+  Comprehensive, battle-tested engineering guide for creating kinetic typography (Text PV)
+  and music visualizer animations in Friction 2.5D, featuring multi-lingual typographic systems,
+  timeline beat-snapping workflows, 30+ visual effect and motion design recipes,
+  physics-driven rigid body simulations, GPU shader distortions, and script automation
 ---
 
-# Friction 2.5D 文字 PV 动画设计与制作指南
+# Friction 2.5D Kinetic Typography & Text PV Engineering Guide
 
-文字 PV（Kinetic Typography Music Video）是一种融合动效设计、音乐节奏卡点与字体排印美学的矢量动画形式
-本指南为 AI 智能体与开发者提供在 Friction 2.5D 中全流程制作高品质文字 PV 的核心规范、技术方案与代码配方
+Kinetic Typography Music Videos (Text PV) combine expressive typography, audio synchronization, graphic design, and physics-driven motion graphics
+This skill equips AI agents and motion designers with deep technical recipes, mathematical formulas, and scripting patterns to craft high-impact text animations in Friction 2.5D
 
----
+--------------------------------------------------------------------------------
 
-## 1. 工程规格与系统架构
+## 1. Project Specifications & User-Driven Principles
 
-- **标准画幅规格**：2400x1080（超宽 21:9 电影画幅）或 1920x1080（16:9 标准画幅）
-- **基准帧率**：60 FPS（确保缓动超调与粒子晶格的丝滑物理质感）
-- **画布背景**：统一采用纯黑 `#000000` 矢量矩形作为底色，便于实施 `Difference`（差值）与 `Exclusion`（排除）图层反色
-- **字体规范**：
-  - 正文排版：`Noto Serif CJK JP`（日文明朝体 / 中文宋体），呈现典雅笔锋与极高排版质感
-  - 注释标注：`Noto Sans CJK JP`（日文黑体），清晰紧凑，适合右下角参数标注与技法解释
-  - 汉字大字与假名小字比例：大汉字字号通常为 120-160pt，小假名字号通常为 48-64pt
+### Resolution & Aspect Ratio Standards
+- **Default Resolution**: 1920x1080 (Standard 16:9 Full HD) or 2560x1440 (2K QHD)
+- **Dynamic Project Detection**: Always inspect active scene dimensions (`scene.width`, `scene.height`) or respect user-specified aspect ratios:
+  - 16:9 Standard widescreen (`1920x1080`, `2560x1440`, `3840x2160`)
+  - 9:16 Vertical mobile video (`1080x1920` for TikTok, YouTube Shorts, Reels)
+  - 21:9 Anamorphic cinematic (`2400x1080`, `2560x1080`)
+  - 1:1 Square social feed (`1080x1080`)
+- **Frame Rate**: Default to 60 FPS for ultra-smooth easing curves, sub-frame interpolation, and physics particle simulations
+- **Background Layer**: Use a full-canvas vector rectangle (`scene.addRect`) set to `#000000` or the user's selected palette, providing a reliable backdrop for `Difference` and `Exclusion` invert blend modes
 
----
+### User-First Creative Freedom & Clarification Flow
+- Never force a single rigid visual aesthetic or color scheme
+- When user requirements are unspecified, proactively present targeted design choices:
+  - Typography style: Classical Mincho / Songti, Modern Gothic / Grotesk, Brutalist Display, or Handwriting
+  - Color palette: High-contrast monochrome, vibrant Cyberpunk neon, pastel Morandi, or warm retro film
+  - Animation temperament: Snappy aggressive cuts, fluid organic liquid drift, or rhythmic anime step-frame cadence
 
-## 2. 音乐卡点与时间轴标记系统（Beat Snapping）
+--------------------------------------------------------------------------------
 
-高质感文字 PV 的核心灵魂在于视觉动效与音频强弱拍、瞬态信号（Transients）的绝对对齐
+## 2. Audio Rhythm, Beat Snapping & Timeline Marker Architecture
 
-### 音轨导入与卡点注入规范
+Musical synchronization is the foundation of kinetic typography
+
+### Audio Pipeline Integration
 ```javascript
-// 1. 挂载无损原声音轨
-scene.addSound("/path/to/audio.wav", "BGM");
-scene.clearMarkers();
+// Load pristine lossless background audio track
+scene.addSound("/path/to/audio.wav", "BGM_Main")
+scene.clearMarkers()
 
-// 2. 注入三级时间轴节拍标记
-function secToFrame(sec) { return Math.round(sec * 60); }
-
-// 标记类型分级：
-// - 镜头转换标记（Shot Cut）：用于全局镜头切换与画面重构
-// - 节拍强拍标记（Beat）：对齐底鼓、钢琴强音、军鼓与人声起音
-// - 动效触发标记（Impact）：对齐刚体落地、晶格炸裂、故障跳帧与弹性超调
-scene.setMarker(secToFrame(0.0), "01_镜头入场");
-scene.setMarker(secToFrame(1.17), "Beat: 钢琴强拍");
-scene.setMarker(secToFrame(26.0), "Impact: 刚体落地");
-scene.setMarker(secToFrame(53.5), "Impact: 玻璃碎裂");
+var FPS = scene.fps || 60
+function secToFrame(sec) { return Math.round(sec * FPS) }
 ```
 
----
+### Three-Tier Marker Hierarchy
+- **Tier 1: Sectional Cut Markers (Shot Transitions)**
+  - Placed on verse, chorus, bridge, and drop transitions
+  - Trigger global camera movements, color inversions, and scene layout replacements
+- **Tier 2: Metric Pulse Markers (Rhythmic Beats)**
+  - Synchronized to downbeats, snare hits, kick punch, and transient peaks
+  - Drive character entrance timing, scale pulses, and flash strobes
+- **Tier 3: Impact & Transient Markers (Micro-Dynamic Triggers)**
+  - Synchronized to vocal articulation, bass drops, glass shatter bursts, and rigid body collisions
+  - Drive sub-frame secondary motion, easing rebounds, and glitch bursts
 
-## 3. 核心动效技法与代码配方库
+### Beat Subdivision Formula
+$$\Delta t_{\text{bar}} = \frac{240}{\text{BPM}} \quad (\text{seconds per 4/4 bar})$$
+$$\Delta t_{\text{beat}} = \frac{60}{\text{BPM}} \quad (\text{quarter note downbeat})$$
+$$\Delta t_{\text{8th}} = \frac{30}{\text{BPM}}, \quad \Delta t_{\text{16th}} = \frac{15}{\text{BPM}}, \quad \Delta t_{\text{triplet}} = \frac{20}{\text{BPM}}$$
 
-### 技法 1：TextEvo 遮罩入场（Mask Stagger Reveal）
-- **视觉特征**：底色框体横向滑出，单字依次向左滑入并伴随不透明度淡入
-- **实现方案**：
+--------------------------------------------------------------------------------
+
+## 3. Typographic Systems & Spatial Composition
+
+### Multi-Lingual Font Pairing Guidelines
+- **Japanese Mincho / Chinese Songti**:
+  - Primary: `Noto Serif CJK JP`, `Source Han Serif`, `Yu Mincho`
+  - Evokes elegance, classical gravitas, dramatic vocal intensity, and traditional literary depth
+- **Japanese Gothic / Modern Sans-Serif**:
+  - Primary: `Noto Sans CJK JP`, `Source Han Sans`, `Hiragino Sans`, `Inter`, `Montserrat`
+  - Evokes contemporary urban energy, fast-paced electronic genres, and technical HUD readouts
+- **Display & Monospace Accents**:
+  - Primary: `JetBrains Mono`, `Bebas Neue`, `Cinzel`, `Impact`
+  - Ideal for background serial numbers, song credits, BPM counters, and glitch artifacts
+
+### Hierarchical Layout Patterns
+- **Kanji vs Kana Scale Contrast (Nisai_KanSamllIze Pattern)**:
+  - Hero Kanji characters scaled to 140-180pt for prominent semantic weight
+  - Grammatical Kana particles scaled to 45-60pt and positioned along the optical center
+- **Vertical Multi-Column Japanese / Chinese Typography**:
+  - Traditional vertical flow along $Y$ axis with staggered entrance delays along $X$ axis
+  - Coupled with two-stage overshoot easing on arrival
+- **Dynamic Bounding Box Auto-Padding (Textbox Paradigm)**:
+  - Rectangular stroke or fill elements bound to text metrics
+  - Scaled proportionally with text content to form clean graphic badges
+
+--------------------------------------------------------------------------------
+
+## 4. Comprehensive Kinetic Typography Repertoire (30 Core Techniques)
+
+### Category A: Masking, Reveal & Handwriting Mechanics
+
+#### 1. TextEvo Directional Mask & Opacity Slide
+- Mask box travels outward while glyphs glide along opposite axis with per-glyph opacity stagger
 ```javascript
-var box = scene.addRect("底框", -270, -55, 540, 110);
-box.setFillColor("#ffffff");
-box.setStrokeWidth(0);
-box.property("position").setValueAtFrame(secToFrame(0.2), [620, 390]);
-box.property("position").setValueAtFrame(secToFrame(0.8), [880, 390]);
-box.property("position").setEasing("easeOutCubic", secToFrame(0.2), secToFrame(0.8));
+var box = scene.addRect("RevealMask", -300, -60, 600, 120)
+box.setFillColor("#ffffff")
+box.setStrokeWidth(0)
+box.property("position").setValueAtFrame(secToFrame(0.0), [700, 540])
+box.property("position").setValueAtFrame(secToFrame(0.6), [960, 540])
+box.property("position").setEasing("easeOutCubic", secToFrame(0.0), secToFrame(0.6))
 
-var txt = scene.addText("文字", "例えば君が");
-txt.setFontFamily("Noto Serif CJK JP");
-txt.setFontSize(72);
-txt.setFillColor("#000000");
-txt.position().setValue([880, 390]);
-txt.applyTextPreset("prop-pos-x-left", secToFrame(0.3), 0.7);
+var txt = scene.addText("TextLayer", "例えば君が")
+txt.setFontFamily("Noto Serif CJK JP")
+txt.setFontSize(80)
+txt.setFillColor("#000000")
+txt.position().setValue([960, 540])
+txt.applyTextPreset("prop-pos-x-left", secToFrame(0.1), 0.6)
 ```
 
-### 技法 2：双矩形遮罩轴错开（Dual-Mask Staggered Slide）
-- **视觉特征**：白色底盒与蓝色装饰细条异步滑入，文字保持绝对静止，仅通过遮罩区域呈现
-- **实现方案**：主框体先入，细色条（宽度 10-14px）稍滞后 0.1 秒滑出，形成前后景深拉伸感
+#### 2. Dual-Layer Offset Mask Stagger
+- Main background box slides horizontally, followed 4 frames later by an accent stripe (width 8-16px), while text remains static behind the clipping boundary
 
-### 技法 3：Textbox 框随字动与框随单字文本
-- **视觉特征**：文本外框自动包络文本边界；或每个单字拥有专属独立小方块（灰底白边），单字弹性弹入
-- **实现方案**：
+#### 3. Single-Character Bounding Box Array
+- Each glyph is seated inside an individual square or capsule graphic (e.g. 72x72px with neutral gray `#808080` fill and `#ffffff` border), popping up with `easeOutBack`
+
+#### 4. SubPath Trim Paths Handwriting Reveal
+- Uses `addPathEffect("trim")` on vector stroke geometry or progressive horizontal wipe to simulate dynamic hand-lettered ink revelation
 ```javascript
-// 框随单字文本
-var chars = ["笑", "っ", "て", "飛", "び", "込", "め", "る", "だ"];
-var xs = [1120, 1210, 1290, 1390, 1480, 1570, 1660, 1740, 1820];
-var ys = [440, 400, 470, 410, 480, 440, 520, 550, 580];
-
-for (var i = 0; i < chars.length; i++) {
-    var cbox = scene.addRect("框_" + i, -36, -36, 72, 72);
-    cbox.setFillColor("#808080");
-    cbox.setStrokeWidth(2.0);
-    cbox.setStrokeColor("#ffffff");
-    cbox.position().setValue([xs[i], ys[i]]);
-    cbox.property("scale").setValueAtFrame(secToFrame(9.0 + i * 0.1), [0.0, 0.0]);
-    cbox.property("scale").setValueAtFrame(secToFrame(9.3 + i * 0.1), [1.0, 1.0]);
-    cbox.property("scale").setEasing("easeOutBack", secToFrame(9.0 + i * 0.1), secToFrame(9.3 + i * 0.1));
-
-    var ctxt = scene.addText("字_" + i, chars[i]);
-    ctxt.setFontFamily("Noto Serif CJK JP");
-    ctxt.setFontSize(50);
-    ctxt.setFillColor("#ffffff");
-    ctxt.position().setValue([xs[i], ys[i]]);
-    ctxt.property("position").setValueAtFrame(secToFrame(9.0 + i * 0.1), [xs[i], ys[i] + 25]);
-    ctxt.property("position").setValueAtFrame(secToFrame(9.3 + i * 0.1), [xs[i], ys[i]]);
-    ctxt.property("position").setEasing("easeOutBack", secToFrame(9.0 + i * 0.1), secToFrame(9.3 + i * 0.1));
-}
+pathLayer.addPathEffect("trim", {
+    start: 0,
+    end: 100,
+    endKeys: [[secToFrame(1.0), 0], [secToFrame(2.2), 100]]
+})
 ```
 
-### 技法 4：交替字符倾斜进入（Skew / Shear Matrix Transform）
-- **视觉特征**：字符从上下两侧交错入场，并伴随 X 轴剪切倾角与回弹归零
-- **实现方案**：
-```javascript
-var t = scene.addText("倾斜字", "二");
-t.setFontSize(105);
-t.skewX().setValueAtFrame(secToFrame(12.0), -24.0);
-t.skewX().setValueAtFrame(secToFrame(12.6), 0.0);
-t.skewX().setEasing("easeOutBack", secToFrame(12.0), secToFrame(12.6));
-```
+#### 5. Hollow Stroke Transition Matte with Fill Fill-In
+- Dual text layers: background layer retains static hollow stroke (`fill: none, stroke: #ffffff, width: 2.5`), while foreground layer wipes solid white fill across the characters
 
-### 技法 5：汉字与假名大小强烈对比（Nisai_KanSamllIze）
-- **视觉特征**：词组中核心汉字字号放大 2.5 至 3 倍，助词与尾缀假名字号收敛缩小，增强阅读视觉焦点
-- **典型比例**：汉字（如「胸痛」）字号 140-160pt；假名（如「くなるよ」）字号 50-56pt
-
-### 技法 6：Newton 刚体物理落地与排除模式（Difference Mode Invert）
-- **视觉特征**：单字自画面顶端做自由落体运动，砸入白色刚体底盒并发生地面反弹与倾角微偏，在盒体内外呈现反色
-- **实现方案**：
-```javascript
-var whiteBox = scene.addRect("底盒", -280, -120, 560, 240);
-whiteBox.setFillColor("#ffffff");
-whiteBox.position().setValue([840, 550]);
-
-var dropChar = scene.addText("刚体_強", "強");
-dropChar.setFontSize(96);
-dropChar.setFillColor("#ffffff");
-dropChar.setBlendMode("Difference"); // 在白色底盒内自动反转为纯黑
-
-var p = dropChar.property("position");
-p.setValueAtFrame(secToFrame(25.5), [680, 50]);   // 起始高空
-p.setValueAtFrame(secToFrame(26.05), [680, 510]); // 触底冲击
-p.setValueAtFrame(secToFrame(26.35), [680, 475]); // 向上反弹
-p.setValueAtFrame(secToFrame(26.65), [680, 510]); // 稳定触底
-p.setEasing("easeInQuad", secToFrame(25.5), secToFrame(26.05));
-p.setEasing("easeOutQuad", secToFrame(26.05), secToFrame(26.35));
-p.setEasing("easeInQuad", secToFrame(26.35), secToFrame(26.65));
-```
-
-### 技法 7：定格抽帧闪烁与轴错位（Hold-Strobe & Chromatic Shift）
-- **视觉特征**：在白色字符下方垫一层偏移 10px 的青色 `#00e5ff` 或品红底字，白色图层按 3-4 帧间隔在不透明度 100 与 0 之间定格跳变
-
-### 技法 8：毛边粗糙化（Roughen Edges）
-- **视觉特征**：文字笔画边缘产生强烈的类似湿纸或墨水渗透的分形腐蚀与锯齿扩散
-- **实现方案**：
-```javascript
-txt.addEffect("roughen_edges");
-var border = txt.property("border");
-border.setValueAtFrame(secToFrame(32.5), 2.0);
-border.setValueAtFrame(secToFrame(33.5), 20.0);
-border.setValueAtFrame(secToFrame(34.5), 45.0);
-border.setEasing("easeInCubic", secToFrame(32.5), secToFrame(34.5));
-```
-
-### 技法 9：分形杂色置换与故障 RGB 分离（Glitch & Displacement Warp）
-- **视觉特征**：多重散落字符叠加水平切片故障（Glitch）与流动置换扭曲（Displacement Warp）
-- **实现方案**：
-```javascript
-txt.addEffect("glitch");
-txt.addEffect("displacement_warp");
-```
-
-### 技法 10：蓝宝石 s_shake 高频震颤与 CC Smear 涂抹
-- **视觉特征**：强重拍处单个巨大汉字产生高频随机震动抖动；下一阶段切换为平假名，通过横向涂抹特效将字形向右极限拉伸
-- **实现方案**：
-```javascript
-// 震颤字
-var shakeP = renTxt.property("position");
-// 注入每帧 20-30px 高频振荡关键帧
-
-// 涂抹字
-souTxt.addEffect("smear");
-var intensity = souTxt.property("intensity");
-intensity.setValueAtFrame(secToFrame(42.2), 0.0);
-intensity.setValueAtFrame(secToFrame(44.0), 100.0);
-```
-
-### 技法 11：Voronoi 晶格物理碎裂飞散（Shatter Explosion）
-- **视觉特征**：巨大文字伴随重击音效碎裂为无数不规则晶格，沿爆炸抛物线向外炸飞并旋转散落，中心留空
-- **实现方案**：
-```javascript
-txt.addEffect("shatter");
-var prog = txt.property("progress");
-prog.setValueAtFrame(secToFrame(53.0), 0.0);  // 完好
-prog.setValueAtFrame(secToFrame(53.5), 0.12); // 微裂痕高光
-prog.setValueAtFrame(secToFrame(54.4), 0.85); // 碎片向外爆炸飞离
-prog.setEasing("easeOutQuad", secToFrame(53.5), secToFrame(54.4));
-```
-
-### 技法 12：3D 独立字符 Y 轴翻转（Individual 3D Billboard Rotation）
-- **视觉特征**：字符依次在 3D 空间中自 -90 度沿垂直 Y 轴快速翻转归正
-- **实现方案**：
-```javascript
-txt.set3DEnabled(true);
-var ry = txt.rotationY();
-ry.setValueAtFrame(t0, -90.0);
-ry.setValueAtFrame(t1, 0.0);
-ry.setEasing("easeOutBack", t0, t1);
-```
-
-### 技法 13：非等比弹性形变与阶梯抽帧（Squash & Stretch + Posterize）
-- **视觉特征**：字符入场时产生剧烈的纵横挤压拉伸（如 `[1.5, 0.65] -> [0.85, 1.25] -> [1.0, 1.0]`），并挂载 `posterize` 特效模拟每秒 12-15 帧的动漫手绘跳帧质感
+#### 6. Radial Polar & Iris Reveal
+- Circular mask expansion or rotational sweep revealing text outward from the center point
 
 ---
 
-## 4. 自动化生成与调试工作流
+### Category B: Geometric, Matrix & Spatial Transformations
 
-- **生成执行脚本**：推荐采用 Python + Unix Socket IPC 模式，实时将完整工程或镜头片段注入 Friction
-```bash
-python3 tools/mcp/generate_exact_replica_pv.py
+#### 7. Alternating Bilateral Skew / Shear Matrix Transform
+- Characters enter from alternating top/bottom offsets while distorted by dynamic $X$-shear matrix tilt, snapping back to zero shear upon arrival
+```javascript
+var sk = layer.skewX()
+sk.setValueAtFrame(secToFrame(2.0), -24.0)
+sk.setValueAtFrame(secToFrame(2.6), 0.0)
+sk.setEasing("easeOutBack", secToFrame(2.0), secToFrame(2.6))
 ```
-- **实时视口抓帧**：调用 `friction_capture_viewport` 检查每处关键帧构图、字号对比与特效渲染
-- **缓动调试原则**：
-  - 冲击与落地：前段采用 `easeInQuad` 模拟重力加速，回弹采用 `easeOutQuad`
-  - 文本滑入：一律优先采用 `easeOutCubic` 或带有轻微超调的 `easeOutBack`
-  - 路径巡航：采用 `easeInOutSine` 保证速度连续性
+
+#### 8. Non-Uniform Elastic Squash & Stretch
+- Impactful arrivals compress along movement axis and expand perpendicularly to preserve apparent visual volume
+```javascript
+var sc = layer.scale()
+sc.setValueAtFrame(secToFrame(0.0), [0.2, 0.2])
+sc.setValueAtFrame(secToFrame(0.3), [1.55, 0.65])
+sc.setValueAtFrame(secToFrame(0.5), [0.85, 1.25])
+sc.setValueAtFrame(secToFrame(0.7), [1.0, 1.0])
+```
+
+#### 9. Secondary Two-Stage Overshoot Recoil
+- Fast primary impulse passes the resting target coordinate by 10-15%, followed by an exponential damped return
+$$x(t) = x_{\text{target}} + A \cdot e^{-\zeta \omega t} \cos(\omega_d t)$$
+
+#### 10. Individual 3D Character Y-Axis Billboard Rotation
+- Splits phrases into standalone glyph layers, enabling true 2.5D billboard transform (`set3DEnabled(true)`) and staggering Y-rotation from $-90^\circ$ to $0^\circ$
+```javascript
+glyph.set3DEnabled(true)
+glyph.rotationY().setValueAtFrame(secToFrame(1.0), -90.0)
+glyph.rotationY().setValueAtFrame(secToFrame(1.6), 0.0)
+glyph.rotationY().setEasing("easeOutBack", secToFrame(1.0), secToFrame(1.6))
+```
+
+#### 11. Multi-Plane 2.5D Depth Parallax
+- Foreground text positioned at $Z = -400$, midground text at $Z = 0$, and background decorative numbers at $Z = 800$, moving camera across scene with realistic optical parallax
+
+#### 12. Spline Follow-Path Kinetic Alignment
+- Binds text layer position and auto-rotation along cubic Bezier paths (`scene.addPath`) across undulating wave trajectories
 
 ---
 
-## 5. 文档与代码规范约束
+### Category C: Physics, Collision & Particle Systems
 
-- **严禁在 Markdown 与技术说明中使用任何句号（。）**
-- **严禁在 Markdown 与技术说明中使用任何 Emoji**
-- 保持列表精炼、技术术语精确，代码片段开箱即用
+#### 13. Newtonian Rigid-Body Free Fall & Floor Rebound
+- Characters fall from out-of-screen ceiling under gravity acceleration ($g = 9.8\text{m/s}^2$), striking collision floor with rebound dampening and slight tilt rotation
+
+#### 14. Difference / Exclusion Blend Mode Contrast Inversion
+- Sets text blend mode to `Difference` or `Exclusion` over contrasting geometric obstacles; text automatically turns black inside white boxes and white over black voids
+```javascript
+dropText.setBlendMode("Difference")
+```
+
+#### 15. Voronoi Crystal Shatter Explosion
+- GPU-accelerated Voronoi cell decomposition where fragments scatter along explosive parabolas with independent angular velocities and gravity decay, leaving a hollowed void at center
+```javascript
+shatterLayer.addEffect("shatter")
+var prog = shatterLayer.property("progress")
+prog.setValueAtFrame(secToFrame(5.0), 0.0)
+prog.setValueAtFrame(secToFrame(5.4), 0.12)
+prog.setValueAtFrame(secToFrame(6.2), 0.85)
+prog.setEasing("easeOutQuad", secToFrame(5.4), secToFrame(6.2))
+```
+
+#### 16. Floating Kana Particle Drift (GlyphGlide Paradigm)
+- Disperses kana characters randomly in a wide coordinate cloud with subtle continuous Brownian drift and alpha transparency variations (60-80%)
+
+---
+
+### Category D: Shaders, Distortions & Stylistic Glitch
+
+#### 17. Roughen Edges Fractal fBm Erosion
+- Multi-octave fractal Brownian motion noise corrupts the text alpha boundary, producing an ink-bleed, acid-etched, or worn paper edge
+```javascript
+textLayer.addEffect("roughen_edges")
+var border = textLayer.property("border")
+border.setValueAtFrame(secToFrame(3.0), 2.0)
+border.setValueAtFrame(secToFrame(4.5), 45.0)
+border.setEasing("easeInCubic", secToFrame(3.0), secToFrame(4.5))
+```
+
+#### 18. Turbulent Displacement Liquification
+- Displaces image texture via perlin gradient fields, smoothly liquifying and deforming glyphs during vocal vibrato and vocal transitions
+```javascript
+textLayer.addEffect("displacement_warp")
+var amt = textLayer.property("amount")
+amt.setValueAtFrame(secToFrame(10.0), 0.0)
+amt.setValueAtFrame(secToFrame(11.2), 85.0)
+```
+
+#### 19. Sapphire S_Shake High-Frequency Camera Jitter
+- Rapid sub-frame coordinate perturbations ($\pm 25\text{px}$) applied on loud vocal spikes or heavy bass drops to convey violent acoustic resonance
+
+#### 20. CC Smear Lateral Drag & Directional Melting
+- Radial or unidirectional pixel pulling that extends trailing edges of characters across screen boundaries on sustained vocal vowels
+```javascript
+textLayer.addEffect("smear")
+textLayer.property("intensity").setValueAtFrame(secToFrame(12.0), 0.0)
+textLayer.property("intensity").setValueAtFrame(secToFrame(13.5), 100.0)
+```
+
+#### 21. Rowbyte Separate RGB & Digital Glitch
+- Splits RGB channels horizontally while slicing random scanline blocks across text during beat dropouts or breakdown sections
+```javascript
+textLayer.addEffect("glitch")
+```
+
+#### 22. Deep Glow Volumetric Bloom & Letterspacing Expansion
+- Combines optical glow, gaussian blur, and dynamic character tracking expansion (`letterSpacing` keyframing from 0.05 to 0.35)
+```javascript
+textLayer.addEffect("glow")
+textLayer.addEffect("blur")
+textLayer.setLetterSpacing(0.25)
+```
+
+#### 23. Hold-Strobe Frame Flashing
+- Rapid square-wave keyframing of opacity (`100% -> 0% -> 100% -> 0%`) every 2-4 frames accompanied by chromatic hue shifts
+
+#### 24. Posterize Anime Step-Frame Cadence
+- Drops apparent motion frame rate down to 12 or 15 FPS via `posterize` filter, imbuing vector motion with a stylized hand-drawn anime aesthetic
+```javascript
+textLayer.addEffect("posterize")
+```
+
+#### 25. Repeater Clone Cascade with Multiplied Gradient
+- Stacks multiple vertical or horizontal ghost instances of text with decaying alpha steps (`100% -> 80% -> 60% -> 40% -> 20%`)
+
+#### 26. Specular Light Sweep Gleam
+- Glint angle passing across typography faces on dramatic accent beats
+
+--------------------------------------------------------------------------------
+
+## 5. Friction 2.5D Scripting API Reference
+
+### Scene & Timeline Management
+- `scene.width`, `scene.height`: Canvas dimensions in pixels
+- `scene.fps`: Playback and rendering frame rate
+- `scene.duration`: Total scene duration in seconds
+- `scene.addText(name, content)`: Creates a text layer proxy
+- `scene.addRect(name, x, y, width, height)`: Creates a vector rectangle
+- `scene.addPath(name, nodes, closed)`: Creates a vector spline path
+- `scene.addSound(path, name)`: Attaches audio track to timeline
+- `scene.setMarker(frame, label)`: Places named timeline marker
+- `scene.clearMarkers()`: Removes all markers
+
+### Layer Manipulation
+- `layer.position()`: QPointFAnimator proxy for position $[X, Y]$
+- `layer.scale()`: QPointFAnimator proxy for scale $[S_x, S_y]$
+- `layer.rotation()`: Scalar rotation animator in degrees
+- `layer.skew()`, `layer.skewX()`, `layer.skewY()`: Shear matrix animators
+- `layer.rotationX()`, `layer.rotationY()`: 2.5D billboard rotation angles
+- `layer.zPosition()`, `layer.perspective()`: 3D depth and focal distance
+- `layer.opacity`: Direct scalar layer opacity (0-100)
+- `layer.setInPoint(frame)`, `layer.setOutPoint(frame)`: Clipping boundaries
+- `layer.setBlendMode(mode)`: Blend mode (`"Normal"`, `"Difference"`, `"Exclusion"`, `"Multiply"`, `"Screen"`)
+- `layer.addEffect(type)`: Attaches GPU raster effect
+- `layer.addPathEffect(type, settings)`: Attaches vector modifier (`"dash"`, `"trim"`)
+
+### Keyframe Interpolation & Easing Presets
+- `easeLinear`: Constant rate interpolation
+- `easeInQuad`, `easeOutQuad`, `easeInOutQuad`: Parabolic velocity curves
+- `easeInCubic`, `easeOutCubic`, `easeInOutCubic`: Standard smooth animation curves
+- `easeInExpo`, `easeOutExpo`: Dramatic explosive acceleration
+- `easeOutBack`: Overshoot bounce (essential for pop-ins and kinetic snaps)
+- `easeInOutSine`: Soft wave transitions
+
+--------------------------------------------------------------------------------
+
+## 6. Execution & Verification Workflow
+
+1. **Verify Canvas & Preferences**: Read active scene specifications or prompt the user if aspect ratio or font preferences are ambiguous
+2. **Construct Payload Script**: Assemble cleanly scoped JavaScript payload avoiding global namespace collisions
+3. **IPC Dispatch**: Send payload via Unix socket (`/tmp/friction_mcp.sock`) using `friction_eval_script`
+4. **Multimodal Visual Inspection**: Call `friction_seek_timeline` and `friction_capture_viewport` to verify critical keyframes, typography legibility, and shader rendering
+5. **Iterative Refinement**: Adjust easing boundaries, tracking offsets, and effect amplitudes based on visual playback review
