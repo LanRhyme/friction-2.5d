@@ -41,6 +41,20 @@
 #include "AI/mcpdispatcher.h"
 #include "textanimpresets.h"
 #include "layeranimpresets.h"
+#include "GUI/mainwindow.h"
+#include "GUI/canvaswindow.h"
+#include "GUI/timelinedockwidget.h"
+#include "renderhandler.h"
+
+// Headless test stubs for McpDispatcher GUI references
+RenderHandler *RenderHandler::sInstance = nullptr;
+TimelineDockWidget *MainWindow::getTimeLineWidget() { return nullptr; }
+void TimelineDockWidget::spaceToggle() {}
+Canvas *CanvasWindow::getCurrentCanvas() { return nullptr; }
+void CanvasWindow::fitCanvasToSize(const bool&) {}
+void CanvasWindow::setRulersVisible(bool) {}
+const QMetaObject MainWindow::staticMetaObject = QMainWindow::staticMetaObject;
+const QMetaObject CanvasWindow::staticMetaObject = GLWindow::staticMetaObject;
 
 int main(int argc, char *argv[])
 {

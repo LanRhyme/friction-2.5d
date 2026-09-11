@@ -27,6 +27,7 @@
 
 #include <QLocalSocket>
 #include <QTcpSocket>
+#include <QCoreApplication>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
@@ -575,6 +576,20 @@ namespace Friction
                 [callback](const QJsonObject &resp) {
                 callback(QJsonDocument(resp));
             });
+        }
+
+        QJsonObject McpServer::processJsonRpc(const QJsonObject &request)
+        {
+            QJsonObject result;
+            bool done = false;
+            processJsonRpcObj(request, [&result, &done](const QJsonObject &resp) {
+                result = resp;
+                done = true;
+            });
+            while (!done) {
+                QCoreApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
+            }
+            return result;
         }
 
         void McpServer::processJsonRpcObj(const QJsonObject &request,
