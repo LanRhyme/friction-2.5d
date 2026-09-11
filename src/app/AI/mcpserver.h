@@ -75,6 +75,7 @@ namespace Friction
             // the event loop keeps running in the meantime.
             void processJsonRpcDoc(const QJsonDocument &request,
                                    const std::function<void(const QJsonDocument&)> &callback);
+            QJsonObject processJsonRpc(const QJsonObject &request);
 
         signals:
             void serverStarted();
