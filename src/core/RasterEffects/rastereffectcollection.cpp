@@ -243,6 +243,12 @@ qsptr<RasterEffect> createRasterEffectForNonCustomType(const RasterEffectType ty
             return enve::make_shared<LayerStylesEffect>();
         case(RasterEffectType::CHROMA_KEY):
             return enve::make_shared<ChromaKeyEffect>();
+        case(RasterEffectType::SHATTER):
+            return enve::make_shared<ShatterEffect>();
+        case(RasterEffectType::SMEAR):
+            return enve::make_shared<SmearEffect>();
+        case(RasterEffectType::ROUGHEN_EDGES):
+            return enve::make_shared<RoughenEdgesEffect>();
         default: return nullptr;
     }
 }

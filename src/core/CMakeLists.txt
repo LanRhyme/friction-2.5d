@@ -278,6 +278,9 @@ set(
     RasterEffects/pixelarteffect.cpp
     RasterEffects/layerstyleseffect.cpp
     RasterEffects/wipeeffect.cpp
+    RasterEffects/shattereffect.cpp
+    RasterEffects/smeareffect.cpp
+    RasterEffects/roughenedgeseffect.cpp
     ReadWrite/ereadstream.cpp
     ReadWrite/ewritestream.cpp
     ReadWrite/filefooter.cpp
@@ -658,6 +661,9 @@ set(
     RasterEffects/pixelarteffect.h
     RasterEffects/layerstyleseffect.h
     RasterEffects/wipeeffect.h
+    RasterEffects/shattereffect.h
+    RasterEffects/smeareffect.h
+    RasterEffects/roughenedgeseffect.h
     ReadWrite/efuturepos.h
     ReadWrite/ereadstream.h
     ReadWrite/evformat.h

@@ -142,18 +142,26 @@ namespace Friction
         static QWidget *findCanvasWidget(QMainWindow *mw)
         {
             if (!mw) return nullptr;
-            // prefer the visible canvas window (tabs may host several)
+            CanvasWindow *bestCanvas = nullptr;
+            int bestArea = 0;
+            const auto canvases = mw->findChildren<CanvasWindow*>();
+            for (auto *c : canvases) {
+                if (c && c->isVisible()) {
+                    int area = c->width() * c->height();
+                    if (area > bestArea) {
+                        bestArea = area;
+                        bestCanvas = c;
+                    }
+                }
+            }
+            if (bestCanvas) return bestCanvas;
+            if (!canvases.isEmpty()) return canvases.first();
+
             const auto named = mw->findChildren<QWidget*>(QStringLiteral("canvasWindow"));
             for (auto w : named) {
                 if (w && w->isVisible()) { return w; }
             }
             if (!named.isEmpty()) { return named.first(); }
-            const auto allWidgets = mw->findChildren<QWidget*>();
-            for (auto w : allWidgets) {
-                if (w && w->inherits("CanvasWindow")) {
-                    return w;
-                }
-            }
             return mw;
         }
 
@@ -583,6 +591,14 @@ namespace Friction
                 return toolUndo(arguments);
             } else if (toolName == QStringLiteral("friction_redo")) {
                 return toolRedo(arguments);
+            } else if (toolName == QStringLiteral("friction_import_file")) {
+                return toolImportFile(arguments);
+            } else if (toolName == QStringLiteral("friction_set_marker")) {
+                return toolSetMarker(arguments);
+            } else if (toolName == QStringLiteral("friction_clear_markers")) {
+                return toolClearMarkers(arguments);
+            } else if (toolName == QStringLiteral("friction_list_markers")) {
+                return toolListMarkers(arguments);
             } else if (toolName == QStringLiteral("friction_get_api_schema")) {
                 QJsonObject res;
                 res[QStringLiteral("success")] = true;
@@ -712,12 +728,32 @@ namespace Friction
             // clean grab: selection outlines, transform handles and
             // rulers are hidden while the pixels are taken so the
             // image reflects the scene, not the editing chrome
+            QRect cropRect;
             CleanCanvasGrab clean;
             if (auto *cw = qobject_cast<CanvasWindow*>(grabWidget)) {
                 clean.begin(cw->getCurrentCanvas());
+                cw->fitCanvasToSize();
+                cw->repaint();
+                if (auto *c = cw->getCurrentCanvas()) {
+                    const QSize cSize = c->getCanvasSize();
+                    cropRect = cw->getViewTransform().mapRect(QRect(0, 0, cSize.width(), cSize.height()));
+                }
             }
-            QPixmap pix = grabWidget ? grabWidget->grab() : mw->grab();
+            QPixmap pix;
+            if (auto *glw = qobject_cast<QOpenGLWidget*>(grabWidget)) {
+                pix = QPixmap::fromImage(glw->grabFramebuffer());
+            } else if (grabWidget) {
+                pix = grabWidget->grab();
+            } else {
+                pix = mw->grab();
+            }
             clean.end();
+            if (!cropRect.isEmpty() && cropRect.isValid() && !pix.isNull()) {
+                const QRect safeCrop = cropRect.intersected(pix.rect());
+                if (!safeCrop.isEmpty()) {
+                    pix = pix.copy(safeCrop);
+                }
+            }
             if (pix.isNull()) {
                 pix = mw->grab();
             }
@@ -1048,9 +1084,12 @@ namespace Friction
                 script = QStringLiteral("var l = app.activeScene.addGroup(%1);\n").arg(name);
             } else if (type == QStringLiteral("layer") || type == QStringLiteral("container") || type == QStringLiteral("panel")) {
                 script = QStringLiteral("var l = app.activeScene.addLayer(%1);\n").arg(name);
+            } else if (type == QStringLiteral("sound") || type == QStringLiteral("audio")) {
+                const QString path = jsStr(args.value(QStringLiteral("path")).toString(args.value(QStringLiteral("filePath")).toString()));
+                script = QStringLiteral("var l = app.activeScene.addSound(%1, %2);\n").arg(path, name);
             } else {
                 QJsonObject resp;
-                resp[QStringLiteral("error")] = QStringLiteral("Unknown layer type: %1. Valid: rect/rectangle, ellipse/circle, text, null, group, layer/container").arg(type);
+                resp[QStringLiteral("error")] = QStringLiteral("Unknown layer type: %1. Valid: rect/rectangle, ellipse/circle, text, null, group, layer/container, sound/audio").arg(type);
                 resp[QStringLiteral("success")] = false;
                 return resp;
             }
@@ -1633,6 +1672,106 @@ namespace Friction
                 resp[QStringLiteral("error")] = QStringLiteral("Actions unavailable");
                 resp[QStringLiteral("success")] = false;
             }
+            return resp;
+        }
+
+        QJsonObject McpDispatcher::toolImportFile(const QJsonObject &args)
+        {
+            const QString path = args.value(QStringLiteral("path")).toString(args.value(QStringLiteral("filePath")).toString());
+            if (path.isEmpty()) {
+                QJsonObject resp;
+                resp[QStringLiteral("error")] = QStringLiteral("Missing path parameter");
+                resp[QStringLiteral("success")] = false;
+                return resp;
+            }
+            if (!QFileInfo::exists(path)) {
+                QJsonObject resp;
+                resp[QStringLiteral("error")] = QStringLiteral("File does not exist: %1").arg(path);
+                resp[QStringLiteral("success")] = false;
+                return resp;
+            }
+            auto *canvas = activeScene();
+            if (!canvas) {
+                QJsonObject resp;
+                resp[QStringLiteral("error")] = QStringLiteral("No active scene");
+                resp[QStringLiteral("success")] = false;
+                return resp;
+            }
+            if (Actions::sInstance) {
+                auto *imported = Actions::sInstance->importFile(path, canvas->getCurrentGroup());
+                QJsonObject resp;
+                resp[QStringLiteral("success")] = (imported != nullptr);
+                if (imported) {
+                    const QString customName = args.value(QStringLiteral("name")).toString();
+                    if (!customName.isEmpty()) {
+                        imported->prp_setName(customName);
+                    }
+                    resp[QStringLiteral("name")] = imported->prp_getName();
+                } else {
+                    resp[QStringLiteral("error")] = QStringLiteral("Failed to import file");
+                }
+                return resp;
+            }
+            QJsonObject resp;
+            resp[QStringLiteral("error")] = QStringLiteral("Actions unavailable");
+            resp[QStringLiteral("success")] = false;
+            return resp;
+        }
+
+        QJsonObject McpDispatcher::toolSetMarker(const QJsonObject &args)
+        {
+            auto *canvas = activeScene();
+            if (!canvas) {
+                QJsonObject resp;
+                resp[QStringLiteral("error")] = QStringLiteral("No active scene");
+                resp[QStringLiteral("success")] = false;
+                return resp;
+            }
+            const int frame = args.value(QStringLiteral("frame")).toInt();
+            const QString title = args.value(QStringLiteral("title")).toString();
+            canvas->setMarker(title, frame);
+            QJsonObject resp;
+            resp[QStringLiteral("success")] = true;
+            resp[QStringLiteral("frame")] = frame;
+            resp[QStringLiteral("title")] = title;
+            return resp;
+        }
+
+        QJsonObject McpDispatcher::toolClearMarkers(const QJsonObject &)
+        {
+            auto *canvas = activeScene();
+            if (!canvas) {
+                QJsonObject resp;
+                resp[QStringLiteral("error")] = QStringLiteral("No active scene");
+                resp[QStringLiteral("success")] = false;
+                return resp;
+            }
+            canvas->clearMarkers();
+            QJsonObject resp;
+            resp[QStringLiteral("success")] = true;
+            return resp;
+        }
+
+        QJsonObject McpDispatcher::toolListMarkers(const QJsonObject &)
+        {
+            auto *canvas = activeScene();
+            if (!canvas) {
+                QJsonObject resp;
+                resp[QStringLiteral("error")] = QStringLiteral("No active scene");
+                resp[QStringLiteral("success")] = false;
+                return resp;
+            }
+            QJsonArray markersArr;
+            for (const auto &m : canvas->getMarkers()) {
+                QJsonObject obj;
+                obj[QStringLiteral("title")] = m.title;
+                obj[QStringLiteral("frame")] = m.frame;
+                obj[QStringLiteral("enabled")] = m.enabled;
+                markersArr.append(obj);
+            }
+            QJsonObject resp;
+            resp[QStringLiteral("success")] = true;
+            resp[QStringLiteral("markers")] = markersArr;
             return resp;
         }
 
@@ -2704,8 +2843,9 @@ namespace Friction
             // 5. create_layer
             {
                 QJsonObject props;
-                props[QStringLiteral("type")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("string")}, {QStringLiteral("enum"), QJsonArray{QStringLiteral("rect"), QStringLiteral("ellipse"), QStringLiteral("text"), QStringLiteral("null"), QStringLiteral("group"), QStringLiteral("container")}}, {QStringLiteral("description"), QStringLiteral("Type of layer to create (aliases: solid/box=rect, circle/ball=ellipse, layer/panel=container)")}};
+                props[QStringLiteral("type")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("string")}, {QStringLiteral("enum"), QJsonArray{QStringLiteral("rect"), QStringLiteral("ellipse"), QStringLiteral("text"), QStringLiteral("null"), QStringLiteral("group"), QStringLiteral("container"), QStringLiteral("sound"), QStringLiteral("audio")}}, {QStringLiteral("description"), QStringLiteral("Type of layer to create (aliases: solid/box=rect, circle/ball=ellipse, layer/panel=container, sound/audio=sound file)")}};
                 props[QStringLiteral("name")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("string")}, {QStringLiteral("description"), QStringLiteral("Layer name")}};
+                props[QStringLiteral("path")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("string")}, {QStringLiteral("description"), QStringLiteral("File path for audio or media layer")}};
                 props[QStringLiteral("x")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("number")}, {QStringLiteral("description"), QStringLiteral("X position for rect")}};
                 props[QStringLiteral("y")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("number")}, {QStringLiteral("description"), QStringLiteral("Y position for rect")}};
                 props[QStringLiteral("width")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("number")}, {QStringLiteral("description"), QStringLiteral("Width for rect")}};
@@ -2714,7 +2854,7 @@ namespace Friction
                 props[QStringLiteral("text")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("string")}, {QStringLiteral("description"), QStringLiteral("Text content for text layer")}};
                 props[QStringLiteral("opacity")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("number")}, {QStringLiteral("description"), QStringLiteral("Opacity 0-100 (values in (0,1] are treated as fractions and scaled x100)")}};
                 tools.append(makeTool(QStringLiteral("friction_create_layer"),
-                                      QStringLiteral("Create a new layer in the active scene (rect, ellipse, text, null, group, container)"),
+                                      QStringLiteral("Create a new layer in the active scene (rect, ellipse, text, null, group, container, sound)"),
                                       props, QJsonArray{QStringLiteral("type"), QStringLiteral("name")}));
             }
 
@@ -3126,6 +3266,36 @@ namespace Friction
             // 26.6 list_easing_presets
             tools.append(makeTool(QStringLiteral("friction_list_easing_presets"),
                                   QStringLiteral("Enumerate the easing preset ids of the easing presets panel (same registry). Pass an id to friction_set_keyframe_easing after creating keyframes - that tool is the programmatic equivalent of the panel."),
+                                  QJsonObject()));
+
+            // 27. import_file
+            {
+                QJsonObject props;
+                props[QStringLiteral("path")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("string")}, {QStringLiteral("description"), QStringLiteral("File path to import (audio, video, image, vector, OCA)")}};
+                props[QStringLiteral("name")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("string")}, {QStringLiteral("description"), QStringLiteral("Optional layer name")}};
+                tools.append(makeTool(QStringLiteral("friction_import_file"),
+                                      QStringLiteral("Import an external media file into the active scene (supports audio files: mp3, wav, flac, ogg, images, videos, svg)"),
+                                      props, QJsonArray{QStringLiteral("path")}));
+            }
+
+            // 28. set_marker
+            {
+                QJsonObject props;
+                props[QStringLiteral("frame")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("integer")}, {QStringLiteral("description"), QStringLiteral("Timeline frame index for the marker (1-based or 0-based)")}};
+                props[QStringLiteral("title")] = QJsonObject{{QStringLiteral("type"), QStringLiteral("string")}, {QStringLiteral("description"), QStringLiteral("Optional marker label/title, e.g. beat note, shot name, rhythm cue")}};
+                tools.append(makeTool(QStringLiteral("friction_set_marker"),
+                                      QStringLiteral("Set a timeline marker at a specific frame (used for music beat snapping, rhythm cues, shot cuts)"),
+                                      props, QJsonArray{QStringLiteral("frame")}));
+            }
+
+            // 29. clear_markers
+            tools.append(makeTool(QStringLiteral("friction_clear_markers"),
+                                  QStringLiteral("Remove all timeline markers from the active scene"),
+                                  QJsonObject()));
+
+            // 30. list_markers
+            tools.append(makeTool(QStringLiteral("friction_list_markers"),
+                                  QStringLiteral("List all timeline markers currently set in the active scene with their frame and title"),
                                   QJsonObject()));
 
             // 26.3 get_api_schema (introspection)

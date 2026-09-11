@@ -173,6 +173,10 @@ namespace Friction
             Q_INVOKABLE QJSValue zPosition();
             Q_INVOKABLE QJSValue perspective();
             Q_INVOKABLE QJSValue opacityProp();
+            Q_INVOKABLE QJSValue skew();
+            Q_INVOKABLE QJSValue skewX();
+            Q_INVOKABLE QJSValue skewY();
+            Q_INVOKABLE QJSValue shear();
             // Styling & typography helpers
             Q_INVOKABLE bool setFillColor(const QString &color);
             Q_INVOKABLE bool setStrokeColor(const QString &color);
@@ -404,6 +408,12 @@ namespace Friction
             Q_INVOKABLE QJSValue addPath(const QString &name,
                                          const QJSValue &nodes,
                                          const bool closed);
+            Q_INVOKABLE QJSValue addSound(const QString &filePath,
+                                         const QString &name = QString());
+            Q_INVOKABLE QJSValue importFile(const QString &filePath);
+            Q_INVOKABLE bool setMarker(const int frame,
+                                       const QString &title = QString());
+            Q_INVOKABLE void clearMarkers();
 
             QString name() const;
             void setName(const QString &name);

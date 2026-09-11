@@ -51,6 +51,12 @@ SubPathEffect::SubPathEffect() :
     ca_addChild(mOffset);
 }
 
+void SubPathEffect::setSubPathValues(const qreal min, const qreal max, const qreal offset) {
+    mMin->setCurrentBaseValue(min);
+    mMax->setCurrentBaseValue(max);
+    mOffset->setCurrentBaseValue(offset);
+}
+
 class SubPathEffectCaller : public PathEffectCaller {
 public:
     SubPathEffectCaller(const bool pathWise,

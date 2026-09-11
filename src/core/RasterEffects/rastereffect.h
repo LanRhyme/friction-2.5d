@@ -120,7 +120,10 @@ enum class RasterEffectType : short {
     PIXEL_ART,
     // Photoshop-style layer styles container (shadow/glow/stroke);
     // appended last, never reorder - serialized ids must stay stable
-    LAYER_STYLES
+    LAYER_STYLES,
+    SHATTER,
+    SMEAR,
+    ROUGHEN_EDGES
 };
 
 struct BoxRenderData;

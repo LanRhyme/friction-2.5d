@@ -39,6 +39,9 @@
         <file alias="filmgraineffect.frag">RasterEffects/filmgraineffect.frag</file>
         <file alias="pixelarteffect.frag">RasterEffects/pixelarteffect.frag</file>
         <file alias="chromakeyeffect.frag">RasterEffects/chromakeyeffect.frag</file>
+        <file alias="smeareffect.frag">RasterEffects/smeareffect.frag</file>
+        <file alias="shattereffect.frag">RasterEffects/shattereffect.frag</file>
+        <file alias="roughenedgeseffect.frag">RasterEffects/roughenedgeseffect.frag</file>
         <file alias="alpha.frag">colorshaders/alpha.frag</file>
         <file alias="blue.frag">colorshaders/blue.frag</file>
         <file alias="border.frag">colorshaders/border.frag</file>
