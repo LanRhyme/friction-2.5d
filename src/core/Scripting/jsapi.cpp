@@ -43,6 +43,7 @@
 #include "Animators/paintsettingsanimator.h"
 #include "Animators/outlinesettingsanimator.h"
 #include "PathEffects/dashpatheffect.h"
+#include "PathEffects/subpatheffect.h"
 #include "PathEffects/patheffectcollection.h"
 #include "Animators/SmartPath/smartpathcollection.h"
 #include "Animators/SmartPath/smartpathanimator.h"
@@ -61,6 +62,8 @@
 #include "Expressions/expression.h"
 #include "Expressions/propertybindingparser.h"
 #include "Timeline/durationrectangle.h"
+#include "Sound/eindependentsound.h"
+#include "actions.h"
 
 #include <QFile>
 #include <QTextStream>
@@ -869,12 +872,51 @@ namespace Friction
                 const auto boxTrans = mBox->getBoxTransformAnimator();
                 if (!boxTrans) { return QJSValue(QJSValue::NullValue); }
                 prop = boxTrans->getPerspectiveAnimator();
-            } else if (n == "opacity" || n == "op") {
+            } else if (n == "shear" || n == "skew") {
                 const auto boxTrans = mBox->getBoxTransformAnimator();
                 if (!boxTrans) { return QJSValue(QJSValue::NullValue); }
-                prop = boxTrans->getOpacityAnimator();
-            } else {
-                return QJSValue(QJSValue::NullValue);
+                prop = boxTrans->getShearAnimator();
+                kind = JsPropertyProxy::Kind::Point;
+            } else if (n == "shearx" || n == "skewx") {
+                const auto boxTrans = mBox->getBoxTransformAnimator();
+                if (!boxTrans) { return QJSValue(QJSValue::NullValue); }
+                const auto shear = boxTrans->getShearAnimator();
+                prop = shear ? shear->getXAnimator() : nullptr;
+            } else if (n == "sheary" || n == "skewy") {
+                const auto boxTrans = mBox->getBoxTransformAnimator();
+                if (!boxTrans) { return QJSValue(QJSValue::NullValue); }
+                const auto shear = boxTrans->getShearAnimator();
+                prop = shear ? shear->getYAnimator() : nullptr;
+            } else if (n == "trimstart" || n == "trim_start" || n == "trimmin") {
+                prop = mBox->ca_getFirstDescendant<Property>([](Property *p) {
+                    return p && p->prp_getName().compare(QStringLiteral("min length"), Qt::CaseInsensitive) == 0;
+                });
+            } else if (n == "trimend" || n == "trim_end" || n == "trimmax") {
+                prop = mBox->ca_getFirstDescendant<Property>([](Property *p) {
+                    return p && p->prp_getName().compare(QStringLiteral("max length"), Qt::CaseInsensitive) == 0;
+                });
+            } else if (n == "trimoffset" || n == "trim_offset") {
+                prop = mBox->ca_getFirstDescendant<Property>([](Property *p) {
+                    return p && p->prp_getName().compare(QStringLiteral("offset"), Qt::CaseInsensitive) == 0;
+                });
+            } else if (mBox) {
+                const QString targetName = name.trimmed();
+                auto target = mBox->ca_getFirstDescendant<Property>([&targetName](Property *p) {
+                    return p && p->prp_getName().compare(targetName, Qt::CaseInsensitive) == 0;
+                });
+                if (!target && mBox->rasterEffectsCollection()) {
+                    target = mBox->rasterEffectsCollection()->ca_getFirstDescendant<Property>([&targetName](Property *p) {
+                        return p && p->prp_getName().compare(targetName, Qt::CaseInsensitive) == 0;
+                    });
+                }
+                if (target) {
+                    prop = target;
+                    if (enve_cast<QPointFAnimator*>(prop)) {
+                        kind = JsPropertyProxy::Kind::Point;
+                    } else {
+                        kind = JsPropertyProxy::Kind::Scalar;
+                    }
+                }
             }
             if (!prop) { return QJSValue(QJSValue::NullValue); }
             const auto proxy = new JsPropertyProxy(QPointer<Property>(prop),
@@ -925,6 +967,26 @@ namespace Friction
         QJSValue JsLayerProxy::opacityProp()
         {
             return makeProperty(QStringLiteral("opacity"));
+        }
+
+        QJSValue JsLayerProxy::skew()
+        {
+            return makeProperty(QStringLiteral("skew"));
+        }
+
+        QJSValue JsLayerProxy::skewX()
+        {
+            return makeProperty(QStringLiteral("skewx"));
+        }
+
+        QJSValue JsLayerProxy::skewY()
+        {
+            return makeProperty(QStringLiteral("skewy"));
+        }
+
+        QJSValue JsLayerProxy::shear()
+        {
+            return makeProperty(QStringLiteral("shear"));
         }
 
         bool JsLayerProxy::setFillColor(const QString &color)
@@ -1135,7 +1197,7 @@ namespace Friction
             { RasterEffectType::VIGNETTE, "vignette" },
             { RasterEffectType::CHROMATIC_ABERRATION, "chromatic_aberration" },
             { RasterEffectType::SCANLINES, "scanlines" },
-            { RasterEffectType::GLITCH, "glitch" },
+            { RasterEffectType::GLITCH, "glitch|separate_rgb|rgb_split" },
             { RasterEffectType::DROP_SHADOW, "drop_shadow|shadow" },
             { RasterEffectType::BLUR, "blur|gaussian_blur" },
             { RasterEffectType::MOTION_BLUR, "motion_blur" },
@@ -1153,7 +1215,7 @@ namespace Friction
             { RasterEffectType::HALFTONE, "half_tone" },
             { RasterEffectType::POSTERIZE, "posterize" },
             { RasterEffectType::TWIRL, "twirl" },
-            { RasterEffectType::SHAKE, "shake" },
+            { RasterEffectType::SHAKE, "shake|s_shake" },
             { RasterEffectType::STRIPE, "stripe" },
             { RasterEffectType::COLOR_GRADING, "color_grading" },
             { RasterEffectType::BRIGHTNESS_CONTRAST, "brightness_contrast" },
@@ -1165,11 +1227,14 @@ namespace Friction
             { RasterEffectType::RAIN, "rain" },
             { RasterEffectType::MIRROR, "mirror" },
             { RasterEffectType::CHROMA_KEY, "chroma_key" },
-            { RasterEffectType::DISPLACEMENT_WARP, "displacement_warp|displacement" },
+            { RasterEffectType::DISPLACEMENT_WARP, "displacement_warp|displacement|turbulent_displace|displacement_map" },
             { RasterEffectType::BLACK_WHITE_FLASH, "black_white_flash|bw_flash|flash" },
             { RasterEffectType::LETTERBOX, "letterbox" },
             { RasterEffectType::NOISE_FADE, "noise_fade" },
-            { RasterEffectType::WIPE, "wipe" }
+            { RasterEffectType::WIPE, "wipe" },
+            { RasterEffectType::SHATTER, "shatter" },
+            { RasterEffectType::SMEAR, "smear|cc_smear" },
+            { RasterEffectType::ROUGHEN_EDGES, "roughen_edges|roughen|roughenedges" }
         };
 
         QString normalizeEffectName(const QString &name)
@@ -1763,6 +1828,58 @@ namespace Friction
                 // the path caches (edit/path/outline/fill) must be
                 // invalidated explicitly, otherwise the render data
                 // keeps serving the pre-effect path
+                pathBox->setPathsOutdated(UpdateReason::userChange);
+                pathBox->setOutlinePathOutdated(UpdateReason::userChange);
+                pathBox->setFillPathOutdated(UpdateReason::userChange);
+                finishAction();
+                return true;
+            } else if (type == QLatin1String("trim") || type == QLatin1String("subpath")) {
+                const auto effect = enve::make_shared<SubPathEffect>();
+                collection->addChild(effect);
+
+                qreal min = 0.;
+                qreal max = 100.;
+                qreal offset = 0.;
+                if (settings.isObject()) {
+                    if (settings.hasProperty(QStringLiteral("start"))) {
+                        min = settings.property(QStringLiteral("start")).toNumber();
+                    } else if (settings.hasProperty(QStringLiteral("min"))) {
+                        min = settings.property(QStringLiteral("min")).toNumber();
+                    }
+                    if (settings.hasProperty(QStringLiteral("end"))) {
+                        max = settings.property(QStringLiteral("end")).toNumber();
+                    } else if (settings.hasProperty(QStringLiteral("max"))) {
+                        max = settings.property(QStringLiteral("max")).toNumber();
+                    }
+                    if (settings.hasProperty(QStringLiteral("offset"))) {
+                        offset = settings.property(QStringLiteral("offset")).toNumber();
+                    }
+                    if (settings.hasProperty(QStringLiteral("pathWise"))) {
+                        effect->pathWiseProperty()->setValue(settings.property(QStringLiteral("pathWise")).toBool());
+                    }
+                }
+                effect->setSubPathValues(min, max, offset);
+
+                auto applyKeys = [](QrealAnimator *anim, const QJSValue &keys) {
+                    if (!anim || !keys.isArray()) { return; }
+                    const int n = keys.property(QStringLiteral("length")).toInt();
+                    for (int i = 0; i < n; i++) {
+                        const auto pair = keys.property(i);
+                        if (!pair.isArray()) { continue; }
+                        anim->saveValueToKey(pair.property(0).toInt(),
+                                             pair.property(1).toNumber());
+                    }
+                    anim->prp_afterWholeInfluenceRangeChanged();
+                };
+
+                if (settings.isObject()) {
+                    applyKeys(effect->minAnimator(), settings.property(QStringLiteral("startKeys")));
+                    applyKeys(effect->minAnimator(), settings.property(QStringLiteral("minKeys")));
+                    applyKeys(effect->maxAnimator(), settings.property(QStringLiteral("endKeys")));
+                    applyKeys(effect->maxAnimator(), settings.property(QStringLiteral("maxKeys")));
+                    applyKeys(effect->offsetAnimator(), settings.property(QStringLiteral("offsetKeys")));
+                }
+
                 pathBox->setPathsOutdated(UpdateReason::userChange);
                 pathBox->setOutlinePathOutdated(UpdateReason::userChange);
                 pathBox->setFillPathOutdated(UpdateReason::userChange);
@@ -2425,6 +2542,53 @@ namespace Friction
                 if (collection) { collection->loadSkPath(path); }
             }
             return result;
+        }
+
+        QJSValue JsSceneProxy::addSound(const QString &filePath,
+                                       const QString &name)
+        {
+            if (!mScene) { return QJSValue(QJSValue::NullValue); }
+            const QFile file(filePath);
+            if (!file.exists()) {
+                qWarning() << "JsSceneProxy::addSound file does not exist:" << filePath;
+                return QJSValue(QJSValue::NullValue);
+            }
+            const auto sound = enve::make_shared<eIndependentSound>();
+            sound->setFilePath(filePath);
+            mScene->getCurrentGroup()->addContained(sound);
+            if (!name.isEmpty()) {
+                sound->prp_setName(name);
+            }
+            finishAction();
+            return mEngine->toScriptValue(true);
+        }
+
+        QJSValue JsSceneProxy::importFile(const QString &filePath)
+        {
+            if (!mScene) { return QJSValue(QJSValue::NullValue); }
+            if (Actions::sInstance) {
+                auto *imported = Actions::sInstance->importFile(filePath);
+                finishAction();
+                if (auto *bb = enve_cast<BoundingBox*>(imported)) {
+                    return wrapBox(bb);
+                }
+                return mEngine->toScriptValue(imported != nullptr);
+            }
+            return QJSValue(QJSValue::NullValue);
+        }
+
+        bool JsSceneProxy::setMarker(const int frame,
+                                    const QString &title)
+        {
+            if (!mScene) { return false; }
+            mScene->setMarker(title, frame);
+            return true;
+        }
+
+        void JsSceneProxy::clearMarkers()
+        {
+            if (!mScene) { return; }
+            mScene->clearMarkers();
         }
 
         //---------------------------- JsProjectProxy ----------------------------

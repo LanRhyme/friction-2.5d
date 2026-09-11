@@ -4,213 +4,279 @@
 <context>
     <name>AEPropertiesInspector</name>
     <message>
-        <location filename="../GUI/aepropertiesinspector.cpp" line="400"/>
-        <location filename="../GUI/aepropertiesinspector.cpp" line="446"/>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="406"/>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="452"/>
         <source>跳转至上一关键帧</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/aepropertiesinspector.cpp" line="411"/>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="417"/>
         <source>添加/删除当前帧关键帧</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/aepropertiesinspector.cpp" line="420"/>
-        <location filename="../GUI/aepropertiesinspector.cpp" line="469"/>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="426"/>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="475"/>
         <source>跳转至下一关键帧</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/aepropertiesinspector.cpp" line="460"/>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="466"/>
         <source>添加/删除 X/Y 关键帧</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/aepropertiesinspector.cpp" line="499"/>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="505"/>
         <source>分辨率</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/aepropertiesinspector.cpp" line="500"/>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="506"/>
         <source>帧率</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/aepropertiesinspector.cpp" line="501"/>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="507"/>
         <source>持续时长</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/aepropertiesinspector.cpp" line="540"/>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="551"/>
         <source>图层</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/aepropertiesinspector.cpp" line="541"/>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="552"/>
         <source>调整图层</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/aepropertiesinspector.cpp" line="542"/>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="555"/>
         <source>矢量路径</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/aepropertiesinspector.cpp" line="543"/>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="553"/>
         <source>空对象</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/aepropertiesinspector.cpp" line="565"/>
-        <location filename="../GUI/aepropertiesinspector.cpp" line="574"/>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="577"/>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="586"/>
         <source>已锁定图层 (点击解锁)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/aepropertiesinspector.cpp" line="565"/>
-        <location filename="../GUI/aepropertiesinspector.cpp" line="574"/>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="577"/>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="586"/>
         <source>未锁定图层 (点击锁定)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/aepropertiesinspector.cpp" line="487"/>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="493"/>
         <source>合成属性</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/aepropertiesinspector.cpp" line="552"/>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="554"/>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="618"/>
+        <source>蒙版</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="564"/>
         <source>显示/隐藏图层</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/aepropertiesinspector.cpp" line="589"/>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="601"/>
         <source>2.5D 图层开关</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/aepropertiesinspector.cpp" line="604"/>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="625"/>
         <source>变换</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/aepropertiesinspector.cpp" line="611"/>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="632"/>
         <source>形状与样式</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/aepropertiesinspector.cpp" line="684"/>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="705"/>
         <source>等比缩放已锁定 (点击解锁独立缩放)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/aepropertiesinspector.cpp" line="695"/>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="716"/>
         <source>等比缩放已解锁 (点击锁定等比缩放)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/aepropertiesinspector.cpp" line="747"/>
-        <location filename="../GUI/aepropertiesinspector.cpp" line="783"/>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="768"/>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="804"/>
         <source>重置为默认值</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/aepropertiesinspector.cpp" line="796"/>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="817"/>
         <source>锚点</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/aepropertiesinspector.cpp" line="801"/>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="822"/>
         <source>位置</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/aepropertiesinspector.cpp" line="806"/>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="827"/>
         <source>缩放</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/aepropertiesinspector.cpp" line="810"/>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="831"/>
         <source>旋转</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/aepropertiesinspector.cpp" line="810"/>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="831"/>
         <source>°</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/aepropertiesinspector.cpp" line="813"/>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="834"/>
         <source>不透明度</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/aepropertiesinspector.cpp" line="817"/>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="838"/>
         <source>3D旋转</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/aepropertiesinspector.cpp" line="818"/>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="839"/>
         <source>深度 Z</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/aepropertiesinspector.cpp" line="833"/>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="854"/>
         <source>填充</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/aepropertiesinspector.cpp" line="848"/>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="869"/>
         <source>重置为白色</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/aepropertiesinspector.cpp" line="865"/>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="886"/>
         <source>描边</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/aepropertiesinspector.cpp" line="880"/>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="901"/>
         <source>重置为黑色</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/aepropertiesinspector.cpp" line="894"/>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="915"/>
         <source>线宽</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/aepropertiesinspector.cpp" line="911"/>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="932"/>
         <source>重置为默认宽度</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/aepropertiesinspector.cpp" line="934"/>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="956"/>
+        <source>模式</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="963"/>
+        <source>相加=并入蒙版区域，相减=从已有蒙版中擦除</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="964"/>
+        <source>相加</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="965"/>
+        <source>相减</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="1001"/>
+        <source>模糊</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="1010"/>
+        <source>蒙版边缘羽化强度（可打关键帧）</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="1019"/>
+        <source>重置为硬边</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="1039"/>
         <source>特效管线</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/aepropertiesinspector.cpp" line="974"/>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="1079"/>
         <source>通用</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/aepropertiesinspector.cpp" line="939"/>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="1342"/>
+        <source>在时间轴对应行内编辑</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="1044"/>
         <source>添加特效...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/aepropertiesinspector.cpp" line="995"/>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="1101"/>
+        <source>启用/禁用全部特效</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="1139"/>
         <source>当前图层未添加任何特效</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/aepropertiesinspector.cpp" line="1024"/>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="1173"/>
+        <source>启用/禁用此特效</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="1193"/>
+        <source>复制特效</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="1204"/>
+        <source>删除特效</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="1218"/>
         <source>删除此特效</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/aepropertiesinspector.cpp" line="1083"/>
-        <location filename="../GUI/aepropertiesinspector.cpp" line="1108"/>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="1277"/>
+        <location filename="../GUI/aepropertiesinspector.cpp" line="1302"/>
         <source>重置</source>
         <translation type="unfinished"></translation>
     </message>
@@ -218,160 +284,238 @@
 <context>
     <name>AIAgentSettingsWidget</name>
     <message>
-        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="56"/>
+        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="67"/>
         <source>Server Status</source>
         <translation>服务运行状态</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="70"/>
+        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="81"/>
         <source>Status:</source>
         <translation>运行状态：</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="71"/>
+        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="82"/>
         <source>HTTP / REST Endpoint:</source>
         <translation>HTTP / REST 接口：</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="72"/>
+        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="83"/>
         <source>Local Socket / Named Pipe:</source>
         <translation>本地套接字 / 命名管道：</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="77"/>
+        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="88"/>
         <source>Connection Settings</source>
         <translation>连接与端口设置</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="83"/>
+        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="94"/>
         <source>Enable AI Agent &amp; MCP Server</source>
         <translation>启用 AI Agent &amp; MCP 服务</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="84"/>
+        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="95"/>
         <source>Auto-start server when application launches</source>
         <translation>软件启动时自动开启 AI 服务</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="99"/>
+        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="110"/>
         <source>TCP Port (HTTP &amp; JSON-RPC):</source>
         <translation>TCP 端口 (HTTP &amp; JSON-RPC)：</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="100"/>
+        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="111"/>
         <source>IPC Socket / Pipe Name:</source>
         <translation>IPC 套接字 / 管道名称：</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="104"/>
+        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="117"/>
+        <source>HTTP requests must carry this token (Authorization: Bearer &lt;token&gt;, X-Friction-Token header or ?token= query). The local named pipe does not require it.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="118"/>
+        <source>Regenerate</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="119"/>
+        <source>Generate a new access token; clients configured with the old token will stop working</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="124"/>
+        <source>Access Token (HTTP):</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="130"/>
         <source>Restart Server</source>
         <translation>重启服务</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="105"/>
+        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="131"/>
         <source>Test Connection</source>
         <translation>测试连接</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="120"/>
+        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="146"/>
         <source>AI Agent One-Click Configs</source>
         <translation>AI 智能体一键连接配置</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="127"/>
+        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="153"/>
         <source>Click below to copy ready-to-use configuration files or client snippets for your AI Agent:</source>
         <translation>点击下方按钮，一键复制预配置的智能体客户端配置文件或代码片段：</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="133"/>
+        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="159"/>
         <source>Copy Claude Desktop Config</source>
         <translation>复制 Claude Desktop 配置</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="134"/>
+        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="160"/>
         <source>Copy Cursor / Antigravity Config</source>
         <translation>复制 Cursor / Antigravity 配置</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="135"/>
+        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="161"/>
         <source>Copy Python Snippet</source>
         <translation>复制 Python 调用脚本</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="136"/>
+        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="162"/>
         <source>Copy cURL Command</source>
         <translation>复制 cURL 调试命令</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="209"/>
+        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="242"/>
         <source>&lt;span style=&apos;color: #48bb78; font-weight: bold;&apos;&gt;● RUNNING&lt;/span&gt; (Listening on Port %1)</source>
         <translation>&lt;span style=&apos;color: #48bb78; font-weight: bold;&apos;&gt;● 运行中&lt;/span&gt; (监听端口 %1)</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="213"/>
+        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="246"/>
         <source>&lt;span style=&apos;color: #e53e3e; font-weight: bold;&apos;&gt;○ STOPPED&lt;/span&gt;</source>
         <translation>&lt;span style=&apos;color: #e53e3e; font-weight: bold;&apos;&gt;○ 已停止&lt;/span&gt;</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="214"/>
-        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="215"/>
+        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="247"/>
+        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="248"/>
         <source>Not active</source>
         <translation>未激活</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="236"/>
+        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="263"/>
+        <source>Server restarted</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="269"/>
         <source>Testing...</source>
         <translation>正在测试连接...</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="245"/>
+        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="278"/>
         <source>&lt;span style=&apos;color: #48bb78;&apos;&gt;Connected successfully (%1 ms)&lt;/span&gt;</source>
         <translation>&lt;span style=&apos;color: #48bb78;&apos;&gt;连接成功 (延迟 %1 ms)&lt;/span&gt;</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="247"/>
+        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="280"/>
         <source>&lt;span style=&apos;color: #e53e3e;&apos;&gt;Connection failed&lt;/span&gt;</source>
         <translation>&lt;span style=&apos;color: #e53e3e;&apos;&gt;连接失败&lt;/span&gt;</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="272"/>
+        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="296"/>
+        <source>Access token regenerated</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="323"/>
         <source>Copied Claude Desktop configuration to clipboard</source>
         <translation>已复制 Claude Desktop 配置文件到剪贴板</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="297"/>
+        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="350"/>
         <source>Copied Cursor / Antigravity configuration to clipboard</source>
         <translation>已复制 Cursor / Antigravity 配置文件到剪贴板</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="322"/>
+        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="377"/>
         <source>Copied Python snippet to clipboard</source>
         <translation>已复制 Python 调用脚本到剪贴板</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="337"/>
+        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="393"/>
         <source>Copied cURL command to clipboard</source>
         <translation>已复制 cURL 调试命令到剪贴板</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="137"/>
+        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="424"/>
+        <source># Friction 2.5D AI 动画助手
+
+- **接口**：http://127.0.0.1:%1/mcp（POST JSON-RPC），请求头带 X-Friction-Token: &lt;访问令牌&gt;（本页&quot;访问令牌&quot;即令牌值）
+- **图层寻址**：行号为主（index:3 = 顶层第 3 行，1-based）；组内行号与组外重复须用组路径（path:&quot;2/1&quot;）；名称仅兜底；先 friction_list_layers 看树
+
+## 默认动效流程（无详细要求时，一次调用）
+
+friction_apply_anim_preset {&quot;preset&quot;:&quot;l-sheet-slide-up&quot;,&quot;scope&quot;:&quot;all&quot;}
+= 每层套预设 + 按行序在时间轴上错开 8 帧（图层连关键帧整体后移，单步撤销）。
+推荐预设：l-fade / l-pop / l-drop / l-sheet-slide-up / l-elastic-scale / l-rubber-bounce / l-flip-y（图层）；sharp-elastic-pop / sharp-cascade-word-pop（文字，kind:&quot;text&quot;）。
+已有动画只加节奏：friction_stagger_layers {&quot;staggerFrames&quot;:8}。
+打关键帧后套缓动：friction_set_keyframe_easing（id 见 friction_list_easing_presets）。
+
+## 声明式 markup（文字 PV 首选）
+
+friction_render_markup 传 HTML 风格标记（scene/seq/card/col/text/h1/line，动画值 from-&gt;to，mode:&quot;append&quot; 追加）：
+&lt;scene width=&quot;1920&quot; height=&quot;1080&quot; fps=&quot;60&quot; duration=&quot;6&quot; bg=&quot;#0a0c12&quot;&gt;&lt;seq from=&quot;0&quot; to=&quot;2.5&quot;&gt;&lt;card 3d=&quot;true&quot; rotY=&quot;-25-&gt;0&quot;&gt;&lt;col&gt;&lt;h1&gt;KINETIC&lt;/h1&gt;&lt;line in=&quot;expand&quot;/&gt;&lt;/col&gt;&lt;/card&gt;&lt;/seq&gt;&lt;/scene&gt;
+
+## 协作守则
+
+1. 严禁清屏重绘——改已有内容用 friction_update_layer 或 markup mode:&quot;append&quot;
+2. 报错附可用图层/属性清单，直接自纠重试
+3. 仅被明确要求时才截图审片，不要主动多轮复查
+4. 缓动优先，禁线性插值
+</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="466"/>
+        <source>## 当前场景实时状态
+
+| 属性 | 值 |
+|:---|:---|
+| 分辨率 | %1 × %2 px |
+| 帧率 | %3 FPS |
+| 时长 | %4 秒（共 %5 帧）|
+| 当前帧 | %6 帧 |
+| 图层数 | %7 |
+
+Friction 正在运行，可直接发送指令开始创作
+</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="482"/>
+        <source>AI connection prompt copied to clipboard</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="163"/>
         <source>Copy AI Connection Prompt</source>
         <translation>复制 AI 连接提示词</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="138"/>
+        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="164"/>
         <source>Generate and copy a ready-to-paste prompt for any AI (Claude, GPT, Gemini, etc.) to connect to Friction</source>
         <translation>生成并复制一段可直接粘贴给任意 AI（Claude、GPT、Gemini 等）的连接提示词，让 AI 立即开始操作 Friction</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="433"/>
         <source>AI connection prompt copied (with live scene info)</source>
-        <translation>AI 连接提示词已复制（含实时场景信息）</translation>
+        <translation type="vanished">AI 连接提示词已复制（含实时场景信息）</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/aiagentsettingswidget.cpp" line="435"/>
         <source>AI connection prompt copied (Friction not running)</source>
-        <translation>AI 连接提示词已复制（Friction 未运行）</translation>
+        <translation type="vanished">AI 连接提示词已复制（Friction 未运行）</translation>
     </message>
 </context>
 <context>
@@ -435,22 +579,22 @@
         <translation>场景属性</translation>
     </message>
     <message>
-        <location filename="../../core/actions.cpp" line="851"/>
+        <location filename="../../core/actions.cpp" line="856"/>
         <source>Import File</source>
         <translation>导入文件</translation>
     </message>
     <message>
-        <location filename="../../core/actions.cpp" line="883"/>
+        <location filename="../../core/actions.cpp" line="888"/>
         <source>Unable to parse SVG</source>
         <translation>无法解析 SVG</translation>
     </message>
     <message>
-        <location filename="../../core/actions.cpp" line="898"/>
+        <location filename="../../core/actions.cpp" line="903"/>
         <source>Import from Clipboard</source>
         <translation>从剪贴板导入</translation>
     </message>
     <message>
-        <location filename="../../core/actions.cpp" line="927"/>
+        <location filename="../../core/actions.cpp" line="932"/>
         <source>Cannot link file format %1</source>
         <translation>无法链接文件格式 %1</translation>
     </message>
@@ -512,522 +656,575 @@
 <context>
     <name>AiDepthDialog</name>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="126"/>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="359"/>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="364"/>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="436"/>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="468"/>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="481"/>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="485"/>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="515"/>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="563"/>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="568"/>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="575"/>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="830"/>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="885"/>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="1106"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="120"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="353"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="358"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="430"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="462"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="475"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="479"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="509"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="557"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="562"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="569"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="802"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="864"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="1184"/>
         <source>AI 深度估计</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="129"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="123"/>
         <source>为选中的图层生成&lt;b&gt;单目深度图&lt;/b&gt;（Depth Anything V2，本机离线推理）：结果作为新图片图层叠放在源图层位置，可用作 2.5D 视差、蒙版或调色辅助。</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="140"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="134"/>
         <source>在画布上选中的图层，任意类型均可（组、矢量、位图）</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="143"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="137"/>
         <source>小型（快，随程序内置）</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="144"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="138"/>
         <source>基础（更精细，需下载）</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="145"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="139"/>
         <source>大型（最精细，需下载）</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="146"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="140"/>
         <source>Depth Anything V2 Small · 24.8M 参数 · Apache-2.0 许可</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="148"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="142"/>
         <source>Depth Anything V2 Base · 97.5M 参数 · CC-BY-NC-4.0（非商业）许可，约 196 MB，联网下载后保存在本机</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="151"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="145"/>
         <source>Depth Anything V2 Large · 335.3M 参数 · CC-BY-NC-4.0（非商业）许可，约 630 MB，联网下载后保存在本机；视频时序稳定性最好，推理也最慢</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="159"/>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="336"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="153"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="330"/>
         <source>下载模型</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="169"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="163"/>
         <source>392（快速）</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="170"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="164"/>
         <source>518（均衡）</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="171"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="165"/>
         <source>700（精细）</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="173"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="167"/>
         <source>推理分辨率（长边）。越高细节越多、速度越慢</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="176"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="170"/>
         <source>灰度（亮=近）</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="177"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="171"/>
         <source>灰度（亮=远）</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="178"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="172"/>
         <source>伪彩（JET）</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="179"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="173"/>
         <source>深度图的着色方式</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="182"/>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="206"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="176"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="200"/>
         <source>源图层</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="183"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="177"/>
         <source>模型</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="189"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="183"/>
         <source>推理尺寸</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="190"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="184"/>
         <source>输出样式</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="192"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="186"/>
         <source>参数</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="198"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="192"/>
         <source>预览</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="199"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="193"/>
         <source>（点击&quot;生成预览&quot;）</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="200"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="194"/>
         <source>（暂无深度图）</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="207"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="201"/>
         <source>深度图</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="221"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="215"/>
         <source>生成预览</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="224"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="218"/>
         <source>插入为图层</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="227"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="221"/>
         <source>帧批量...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="228"/>
-        <source>按时间轴入出点（或图层自身时长）逐帧推理，含时序平滑，生成图片序列图层</source>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="222"/>
+        <source>按时间轴入出点（或图层自身时长）逐帧推理，生成图片序列图层（逐帧独立，无时序平滑）</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="232"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="576"/>
+        <source>将处理 %1 帧（第 %2 ~ %3 帧），预计约 %4 分钟，结果将作为图片序列图层插入。是否开始？</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="798"/>
+        <source>已插入深度序列图层（%1 帧，可 Ctrl+Z 撤销）。</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="226"/>
         <source>设置</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="233"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="227"/>
         <source>打开模型文件夹，查看手动放置模型的目录结构</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="236"/>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="871"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="230"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="847"/>
         <source>关闭</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="258"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="252"/>
         <source>推理引擎：%1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="260"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="254"/>
         <source>&lt;b&gt;未找到 onnxruntime.dll&lt;/b&gt;，推理不可用。请确认它已随程序一起部署。</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="311"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="305"/>
         <source>✓ 已就绪</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="315"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="309"/>
         <source>✗ 未就绪（需 %1）</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="318"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="312"/>
         <source>下载到：%1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="334"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="328"/>
         <source>取消下载</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="360"/>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="564"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="354"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="558"/>
         <source>未找到 onnxruntime.dll，无法推理。</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="365"/>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="569"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="359"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="563"/>
         <source>所选模型尚未就绪，请先点击「下载模型」。</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="371"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="365"/>
         <source>正在渲染源图层...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="378"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="372"/>
         <source>无法创建渲染任务。</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="389"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="383"/>
         <source>源图层渲染失败（内容为空？）。</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="400"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="394"/>
         <source>源图层渲染已取消。</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="413"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="407"/>
         <source>推理中（首次运行需加载模型，可能较慢）...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="435"/>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="437"/>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="619"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="429"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="431"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="613"/>
         <source>推理失败：%1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="444"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="438"/>
         <source>深度图就绪（%1×%2）。</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="453"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="447"/>
         <source>推理已取消。</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="469"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="463"/>
         <source>请先生成预览。</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="482"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="476"/>
         <source>源图层没有父容器，无法插入。</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="509"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="503"/>
         <source>深度 - %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="512"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="506"/>
         <source>已插入深度图层（可 Ctrl+Z 撤销）。</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="516"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="510"/>
         <source>插入图层失败，详见日志。</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="528"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="522"/>
         <source>⚠ 检测到 %1 个 .pth 文件（PyTorch 权重）：本程序需要 ONNX 格式，无法直接使用；正确的目录与文件结构见「设置」。</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="535"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="529"/>
         <source>没有活动场景</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="536"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="530"/>
         <source>没有源图层</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="538"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="532"/>
         <source>源图层无效</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="552"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="546"/>
         <source>可用帧范围为空（时间轴范围与图层时长无交集）</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="581"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="575"/>
         <source>帧批量</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="582"/>
-        <source>将处理 %1 帧（第 %2 ~ %3 帧，含时序平滑），预计约 %4 分钟，结果将作为图片序列图层插入。是否开始？</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="603"/>
-        <source>批量推理中（含时序平滑）...</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="603"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="597"/>
         <source>取消</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="611"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="597"/>
+        <source>批量推理中...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="605"/>
         <source>批量推理：共 %1 帧...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="622"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="616"/>
         <source>已取消</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="628"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="622"/>
         <source>源图层已失效</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="634"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="628"/>
         <source>第 %1 帧渲染任务创建失败</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="644"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="638"/>
         <source>第 %1 帧渲染失败（内容为空）</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="651"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="645"/>
         <source>源渲染已取消</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="753"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="725"/>
         <source>第 %1 帧推理失败：%2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="765"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="737"/>
         <source>推理任务已取消</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="784"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="756"/>
         <source>批量未完成：%1。已生成 %2/%3 帧，文件保留在 %4</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="793"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="765"/>
         <source>帧图已生成于 %1，但场景/源图层已失效，未插入图层。</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="807"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="779"/>
         <source>AI 深度估计（帧批量）</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="824"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="796"/>
         <source>深度序列 - %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="826"/>
-        <source>已插入深度序列图层（%1 帧，含时序平滑，可 Ctrl+Z 撤销）。</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="831"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="803"/>
         <source>插入序列图层失败，帧图保留在：%1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="839"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="811"/>
         <source>AI 深度估计 设置</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="846"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="818"/>
         <source>手动下载的模型放到&lt;b&gt;模型文件夹&lt;/b&gt;（在线下载也会保存到这里）。每个模型一个子文件夹，含两个同名文件、缺一不可：&lt;ul&gt;&lt;li&gt;&lt;code&gt;depth_anything_v2_small/model_fp16.onnx&lt;/code&gt; + &lt;code&gt;model_fp16.onnx_data&lt;/code&gt;（约 50 MB）&lt;/li&gt;&lt;li&gt;&lt;code&gt;depth_anything_v2_base/model_fp16.onnx&lt;/code&gt; + &lt;code&gt;model_fp16.onnx_data&lt;/code&gt;（约 196 MB）&lt;/li&gt;&lt;/ul&gt;文件放好后回到这里点「刷新状态」。</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="857"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="829"/>
         <source>模型文件夹：&lt;code&gt;%1&lt;/code&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="864"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="836"/>
         <source>内置模型目录（随程序安装，只读）：&lt;code&gt;%1&lt;/code&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="869"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="841"/>
         <source>打开模型文件夹</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="870"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="842"/>
         <source>刷新状态</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="881"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="843"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="888"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="943"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="952"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="973"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="977"/>
+        <source>清除缓存</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="844"/>
+        <source>删除未被当前工程引用的深度图缓存（正在引用的单帧与序列会保留）</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="860"/>
         <source>当前所选模型已就绪 ✓（可切换上方模型逐个检查）</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="882"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="861"/>
         <source>当前所选模型仍未就绪：文件缺失、大小或校验不符。</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="918"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="889"/>
+        <source>推理或下载正在进行，请稍后再清理。</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="944"/>
+        <source>没有可清理的深度图缓存%1。</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="945"/>
+        <source>（%1 项正被引用，已跳过）</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="953"/>
+        <source>将删除 %1 项深度图缓存，共约 %2 MB：
+• 单帧深度图 %3 张
+• 序列文件夹 %4 个
+
+跳过 %5 项（当前工程正在引用）。
+
+⚠ 注意：清理只保护&lt;b&gt;当前已打开工程&lt;/b&gt;引用的文件；其它未打开的工程若引用了这些缓存深度图，重新打开后对应图层会断链失效。
+
+是否继续清理？</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="974"/>
+        <source>清理完成，另有 %1 项因文件被占用跳过（关闭相关工程后可重试）。</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="978"/>
+        <source>清理完成，共释放约 %1 MB。</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="996"/>
         <source>基础模型</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="919"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="997"/>
         <source>大型模型</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="921"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="999"/>
         <source>许可确认</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="922"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="1000"/>
         <source>%1采用 &lt;b&gt;CC-BY-NC-4.0&lt;/b&gt; 许可：个人学习与非商业创作可自由使用，&lt;b&gt;禁止商业用途&lt;/b&gt;。下载即表示你接受该许可。&lt;br&gt;&lt;br&gt;需要商业用途时请改用小型模型（Apache-2.0）。是否下载？</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="940"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="1018"/>
         <source>开始下载...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="963"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="1041"/>
         <source>下载已取消（已下载部分保留，下次继续）。</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="1031"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="1109"/>
         <source>下载 %1 ...（源 %2/%3）</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="1105"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="1183"/>
         <source>模型下载完成，可以开始推理。</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="1107"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="1185"/>
         <source>模型下载完成。</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="1119"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="1197"/>
         <source>自动下载失败，可手动下载（部分进度已保留）。</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="1137"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="1215"/>
         <source>手动下载指引</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="1139"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="1217"/>
         <source>自动下载失败（网络阻断）。请手动下载以下文件并放入模型目录：&lt;br&gt;&lt;br&gt;%1&lt;br&gt;&lt;br&gt;模型目录：&lt;code&gt;%2&lt;/code&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="1143"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="1221"/>
         <source>打开下载页</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="1144"/>
+        <location filename="../GUI/Dialogs/aidepthdialog.cpp" line="1222"/>
         <source>打开模型目录</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1135,27 +1332,27 @@
 <context>
     <name>Animator</name>
     <message>
-        <location filename="../../core/Animators/animator.cpp" line="256"/>
+        <location filename="../../core/Animators/animator.cpp" line="285"/>
         <source>Add Key</source>
         <translation>添加关键帧</translation>
     </message>
     <message>
-        <location filename="../../core/Animators/animator.cpp" line="268"/>
+        <location filename="../../core/Animators/animator.cpp" line="297"/>
         <source>Remove Key</source>
         <translation>移除关键帧</translation>
     </message>
     <message>
-        <location filename="../../core/Animators/animator.cpp" line="382"/>
+        <location filename="../../core/Animators/animator.cpp" line="411"/>
         <source>Set Recording</source>
         <translation>设置录制</translation>
     </message>
     <message>
-        <location filename="../../core/Animators/animator.cpp" line="611"/>
+        <location filename="../../core/Animators/animator.cpp" line="640"/>
         <source>Add Key(s)</source>
         <translation>添加关键帧</translation>
     </message>
     <message>
-        <location filename="../../core/Animators/animator.cpp" line="617"/>
+        <location filename="../../core/Animators/animator.cpp" line="646"/>
         <source>Delete Key(s)</source>
         <translation>删除关键帧</translation>
     </message>
@@ -1213,12 +1410,12 @@
         <translation>GPU 优先</translation>
     </message>
     <message>
-        <location filename="../../core/appsupport.cpp" line="1582"/>
+        <location filename="../../core/appsupport.cpp" line="1584"/>
         <source>Portable Mode</source>
         <translation>便携模式</translation>
     </message>
     <message>
-        <location filename="../../core/appsupport.cpp" line="1583"/>
+        <location filename="../../core/appsupport.cpp" line="1585"/>
         <source>You are in portable mode, your config directory is:&lt;br&gt;&lt;br&gt;&lt;code&gt;%1&lt;/code&gt;</source>
         <translation>您正处于便携模式，配置目录为：&lt;br&gt;&lt;br&gt;&lt;code&gt;%1&lt;/code&gt;</translation>
     </message>
@@ -1333,88 +1530,123 @@
 <context>
     <name>BoundingBox</name>
     <message>
-        <location filename="../../core/Boxes/boundingbox.cpp" line="533"/>
+        <location filename="../../core/Boxes/boundingbox.cpp" line="548"/>
         <source>Set Blend Mode</source>
         <translation>设置混合模式</translation>
     </message>
     <message>
-        <location filename="../../core/Boxes/boundingbox.cpp" line="553"/>
+        <location filename="../../core/Boxes/boundingbox.cpp" line="568"/>
         <source>Enable FX</source>
         <translation>启用特效</translation>
     </message>
     <message>
-        <location filename="../../core/Boxes/boundingbox.cpp" line="553"/>
+        <location filename="../../core/Boxes/boundingbox.cpp" line="568"/>
         <source>Disable FX</source>
         <translation>禁用特效</translation>
     </message>
     <message>
-        <location filename="../../core/Boxes/boundingbox.cpp" line="569"/>
+        <location filename="../../core/Boxes/boundingbox.cpp" line="584"/>
         <source>Preserve Underlying Transparency</source>
         <translation>保留底层透明度</translation>
     </message>
     <message>
-        <location filename="../../core/Boxes/boundingbox.cpp" line="570"/>
+        <location filename="../../core/Boxes/boundingbox.cpp" line="585"/>
         <source>Stop Preserving Underlying Transparency</source>
         <translation>取消保留底层透明度</translation>
     </message>
     <message>
-        <location filename="../../core/Boxes/boundingbox.cpp" line="1001"/>
+        <location filename="../../core/Boxes/boundingbox.cpp" line="606"/>
+        <source>Set Track Matte Mode</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../core/Boxes/boundingbox.cpp" line="1046"/>
         <source>Create Link</source>
         <translation>创建链接</translation>
     </message>
     <message>
-        <location filename="../../core/Boxes/boundingbox.cpp" line="1004"/>
+        <location filename="../../core/Boxes/boundingbox.cpp" line="1049"/>
         <source>Center Pivot</source>
         <translation>居中轴心</translation>
     </message>
     <message>
-        <location filename="../../core/Boxes/boundingbox.cpp" line="1007"/>
+        <location filename="../../core/Boxes/boundingbox.cpp" line="1052"/>
         <source>Center Align</source>
         <translation>居中对齐</translation>
     </message>
     <message>
-        <location filename="../../core/Boxes/boundingbox.cpp" line="1019"/>
+        <location filename="../../core/Boxes/boundingbox.cpp" line="1064"/>
         <source>Copy</source>
         <translation>复制</translation>
     </message>
     <message>
-        <location filename="../../core/Boxes/boundingbox.cpp" line="1023"/>
+        <location filename="../../core/Boxes/boundingbox.cpp" line="1068"/>
         <source>Cut</source>
         <translation>剪切</translation>
     </message>
     <message>
-        <location filename="../../core/Boxes/boundingbox.cpp" line="1027"/>
+        <location filename="../../core/Boxes/boundingbox.cpp" line="1072"/>
         <source>Duplicate</source>
         <translation>创建副本</translation>
     </message>
     <message>
-        <location filename="../../core/Boxes/boundingbox.cpp" line="1031"/>
-        <location filename="../../core/Boxes/boundingbox.cpp" line="1597"/>
+        <location filename="../../core/Boxes/boundingbox.cpp" line="1076"/>
+        <location filename="../../core/Boxes/boundingbox.cpp" line="1848"/>
         <source>Delete</source>
         <translation>删除</translation>
     </message>
     <message>
-        <location filename="../../core/Boxes/boundingbox.cpp" line="1037"/>
+        <location filename="../../core/Boxes/boundingbox.cpp" line="1082"/>
         <source>Group</source>
         <translation>群组</translation>
     </message>
     <message>
-        <location filename="../../core/Boxes/boundingbox.cpp" line="1043"/>
+        <location filename="../../core/Boxes/boundingbox.cpp" line="1088"/>
         <source>Raster Effects</source>
         <translation>栅格效果</translation>
     </message>
     <message>
-        <location filename="../../core/Boxes/boundingbox.cpp" line="1607"/>
+        <location filename="../../core/Boxes/boundingbox.cpp" line="1864"/>
+        <source>粘贴特效</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../core/Boxes/boundingbox.cpp" line="1888"/>
+        <source>图层样式</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../core/Boxes/boundingbox.cpp" line="1908"/>
+        <source>投影</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../core/Boxes/boundingbox.cpp" line="1912"/>
+        <source>外发光</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../core/Boxes/boundingbox.cpp" line="1916"/>
+        <source>描边</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../core/Boxes/boundingbox.cpp" line="1942"/>
+        <source>删除表达式</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../core/Boxes/boundingbox.cpp" line="1972"/>
         <source>Merge into Track</source>
         <translation>合并到轨道</translation>
     </message>
     <message>
-        <location filename="../../core/Boxes/boundingbox.cpp" line="1625"/>
+        <location filename="../../core/Boxes/boundingbox.cpp" line="1990"/>
         <source>Split Track</source>
         <translation>拆分轨道</translation>
     </message>
     <message>
-        <location filename="../../core/Boxes/boundingbox.cpp" line="1631"/>
+        <location filename="../../core/Boxes/boundingbox.cpp" line="1996"/>
         <source>Track Members</source>
         <translation>轨道成员</translation>
     </message>
@@ -1427,39 +1659,39 @@
         <translation type="vanished">确定要删除所选项目吗？</translation>
     </message>
     <message>
-        <location filename="../../core/Boxes/boundingbox.cpp" line="1525"/>
-        <location filename="../../core/Boxes/boundingbox.cpp" line="1661"/>
+        <location filename="../../core/Boxes/boundingbox.cpp" line="1755"/>
+        <location filename="../../core/Boxes/boundingbox.cpp" line="2026"/>
         <source>Custom Properties</source>
         <translation>自定义属性</translation>
     </message>
     <message>
-        <location filename="../../core/Boxes/boundingbox.cpp" line="1540"/>
-        <location filename="../../core/Boxes/boundingbox.cpp" line="1670"/>
+        <location filename="../../core/Boxes/boundingbox.cpp" line="1791"/>
+        <location filename="../../core/Boxes/boundingbox.cpp" line="2035"/>
         <source>Blend Effects</source>
         <translation>混合效果</translation>
     </message>
     <message>
-        <location filename="../../core/Boxes/boundingbox.cpp" line="1591"/>
+        <location filename="../../core/Boxes/boundingbox.cpp" line="1842"/>
         <source>Rename</source>
         <translation>重命名</translation>
     </message>
     <message>
-        <location filename="../../core/Boxes/boundingbox.cpp" line="1652"/>
+        <location filename="../../core/Boxes/boundingbox.cpp" line="2017"/>
         <source>SVG Properties</source>
         <translation>SVG 属性</translation>
     </message>
     <message>
-        <location filename="../../core/Boxes/boundingbox.cpp" line="1684"/>
+        <location filename="../../core/Boxes/boundingbox.cpp" line="2049"/>
         <source>Visibility Range</source>
         <translation>可见范围</translation>
     </message>
     <message>
-        <location filename="../../core/Boxes/boundingbox.cpp" line="1688"/>
+        <location filename="../../core/Boxes/boundingbox.cpp" line="2053"/>
         <source>Visibility Range Settings</source>
         <translation>可见范围设置</translation>
     </message>
     <message>
-        <location filename="../../core/Boxes/boundingbox.cpp" line="1697"/>
+        <location filename="../../core/Boxes/boundingbox.cpp" line="2062"/>
         <source>Actions</source>
         <translation>操作</translation>
     </message>
@@ -1479,774 +1711,847 @@
 <context>
     <name>BoxSingleWidget</name>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="97"/>
-        <location filename="../main.cpp" line="405"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="100"/>
+        <location filename="../main.cpp" line="410"/>
         <source>transform</source>
         <translation>变换</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="514"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="559"/>
         <source>Toggle expression editor</source>
         <translation>展开/收起表达式编辑器</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="902"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="971"/>
         <source>Expression script - click away or press Ctrl+Return to apply, Escape to close</source>
         <translation>表达式脚本——点击别处或按 Ctrl+回车 应用，Esc 关闭</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="909"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="978"/>
         <source>Remove expression</source>
         <translation>移除表达式</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="420"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="443"/>
         <source>Set layer label color</source>
         <translation>设置图层标签颜色</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="785"/>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="996"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="854"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="1081"/>
         <source>Parent link (click to pick, drag onto a layer row)</source>
         <translation>父级链接（单击选择父级，或拖到目标图层行）</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="699"/>
         <source>Toggle 3D layer (2.5D billboard: X/Y rotation, Z depth)</source>
-        <translation>3D 图层开关（2.5D：X/Y 旋转、Z 深度）</translation>
+        <translation type="vanished">3D 图层开关（2.5D：X/Y 旋转、Z 深度）</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="661"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="706"/>
         <source>Solo (show only soloed layers/sounds)</source>
         <translation>独奏（只显示开了独奏的图层/声音）</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="680"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="725"/>
         <source>Shy (hide this row when &apos;Hide Shy Layers&apos; is enabled in Filters)</source>
         <translation>隐藏条目（在筛选菜单开启“隐藏 Shy 图层”后，此行从时间轴消失）</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="726"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="795"/>
         <source>Toggle all effects on this layer</source>
         <translation>开关此图层的全部特效</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="765"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="834"/>
         <source>Preserve underlying transparency (paint only where layers below are opaque)</source>
         <translation>保留底层透明度（只画在下方图层的不透明区域）</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="1903"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="2044"/>
         <source>Merge into Track</source>
         <translation>合并到轨道</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="1934"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="2075"/>
         <source>Detach from Track</source>
         <translation>从轨道分离</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="746"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="815"/>
         <source>Motion blur on this layer</source>
         <translation>此图层的运动模糊开关</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="1034"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="1121"/>
         <source>Track matte layer</source>
         <translation>轨道遮罩层</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="1088"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="1186"/>
         <source>Track matte mode</source>
         <translation>轨道遮罩模式（点击切换）</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="98"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="101"/>
         <source>fill</source>
         <translation>填充</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="99"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="102"/>
         <source>outline</source>
         <translation>描边</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="100"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="103"/>
         <source>thickness</source>
         <translation>粗细</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="101"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="104"/>
         <source>color</source>
         <translation>颜色</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="102"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="105"/>
         <source>brush settings</source>
         <translation>笔刷设置</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="103"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="106"/>
         <source>width</source>
         <translation>宽度</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="104"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="107"/>
         <source>pressure</source>
         <translation>压力</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="105"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="108"/>
         <source>time</source>
         <translation>时间</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="106"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="109"/>
         <source>gradient points</source>
         <translation>渐变点</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="107"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="110"/>
         <source>translation</source>
         <translation>位移</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="108"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="111"/>
         <source>rotation</source>
         <translation>旋转</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="109"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="112"/>
         <source>rotate</source>
         <translation>旋转</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="110"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="113"/>
         <source>scale</source>
         <translation>缩放</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="111"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="114"/>
         <source>shear</source>
         <translation>切变</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="112"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="115"/>
         <source>opacity</source>
         <translation>不透明度</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="113"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="116"/>
         <source>alpha</source>
         <translation>Alpha</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="114"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="117"/>
         <source>red</source>
         <translation>红</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="115"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="118"/>
         <source>green</source>
         <translation>绿</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="116"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="119"/>
         <source>blue</source>
         <translation>蓝</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="117"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="120"/>
         <source>hue</source>
         <translation>色相</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="118"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="121"/>
         <source>saturation</source>
         <translation>饱和度</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="119"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="122"/>
         <source>lightness</source>
         <translation>明度</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="120"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="123"/>
         <source>value</source>
         <translation>值</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="121"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="124"/>
         <source>pivot</source>
         <translation>轴心</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="122"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="125"/>
         <source>x</source>
         <translation>X</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="123"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="126"/>
         <source>y</source>
         <translation>Y</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="124"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="127"/>
         <source>z-index</source>
         <translation>层级</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="125"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="128"/>
         <source>size</source>
         <translation>大小</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="126"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="129"/>
         <source>offset</source>
         <translation>偏移</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="127"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="130"/>
         <source>text</source>
         <translation>文本</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="128"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="131"/>
         <source>frame</source>
         <translation>帧</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="129"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="132"/>
         <source>frame step</source>
         <translation>帧步长</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="130"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="133"/>
         <source>flip book</source>
         <translation>逐帧预览</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="131"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="134"/>
         <source>seed</source>
         <translation>随机种子</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="132"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="135"/>
         <source>spacing</source>
         <translation>间距</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="133"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="136"/>
         <source>smoothness</source>
         <translation>平滑度</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="134"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="137"/>
         <source>periodic</source>
         <translation>周期性</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="135"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="138"/>
         <source>displacement</source>
         <translation>位移</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="136"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="139"/>
         <source>diminish</source>
         <translation>衰减</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="137"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="140"/>
         <source>blur radius</source>
         <translation>模糊半径</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="138"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="141"/>
         <source>round radius</source>
         <translation>圆角半径</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="139"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="142"/>
         <source>horizontal radius</source>
         <translation>水平半径</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="140"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="143"/>
         <source>vertical radius</source>
         <translation>垂直半径</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="141"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="144"/>
         <source>top left</source>
         <translation>左上</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="142"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="145"/>
         <source>bottom right</source>
         <translation>右下</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="143"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="146"/>
         <source>center</source>
         <translation>中心</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="144"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="147"/>
         <source>point 1</source>
         <translation>点 1</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="145"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="148"/>
         <source>point 2</source>
         <translation>点 2</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="146"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="149"/>
         <source>point 3</source>
         <translation>点 3</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="147"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="150"/>
         <source>point 4</source>
         <translation>点 4</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="148"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="151"/>
         <source>point1</source>
         <translation>点1</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="149"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="152"/>
         <source>point2</source>
         <translation>点2</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="150"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="153"/>
         <source>max deviation</source>
         <translation>最大偏差</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="151"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="154"/>
         <source>max length</source>
         <translation>最大长度</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="152"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="155"/>
         <source>min length</source>
         <translation>最小长度</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="153"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="156"/>
         <source>length based</source>
         <translation>按长度</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="154"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="157"/>
         <source>length inc</source>
         <translation>长度增量</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="155"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="158"/>
         <source>path-wise</source>
         <translation>沿路径</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="156"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="159"/>
         <source>segment length</source>
         <translation>线段长度</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="157"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="160"/>
         <source>samples count</source>
         <translation>采样数</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="158"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="161"/>
         <source>clip</source>
         <translation>裁剪</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="159"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="162"/>
         <source>clip path</source>
         <translation>裁剪路径</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="160"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="163"/>
         <source>target</source>
         <translation>目标</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="161"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="164"/>
         <source>link target</source>
         <translation>链接目标</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="162"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="165"/>
         <source>Empty Link</source>
         <translation>空链接</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="163"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="166"/>
         <source>fill effects</source>
         <translation>填充效果</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="164"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="167"/>
         <source>outline effects</source>
         <translation>描边效果</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="165"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="168"/>
         <source>outline base effects</source>
         <translation>描边基础效果</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="166"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="169"/>
         <source>path base effects</source>
         <translation>路径基础效果</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="221"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="191"/>
+        <source>CC Smear</source>
+        <translation>CC Smear 涂抹</translation>
+    </message>
+    <message>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="193"/>
+        <source>from X</source>
+        <translation>源 X</translation>
+    </message>
+    <message>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="195"/>
+        <source>from Y</source>
+        <translation>源 Y</translation>
+    </message>
+    <message>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="197"/>
+        <source>to X</source>
+        <translation>目标 X</translation>
+    </message>
+    <message>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="199"/>
+        <source>to Y</source>
+        <translation>目标 Y</translation>
+    </message>
+    <message>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="201"/>
+        <source>elasticity</source>
+        <translation>弹性</translation>
+    </message>
+    <message>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="203"/>
+        <source>Shatter</source>
+        <translation>Shatter 碎片</translation>
+    </message>
+    <message>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="205"/>
+        <source>progress</source>
+        <translation>进度</translation>
+    </message>
+    <message>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="207"/>
+        <source>pieces</source>
+        <translation>碎片数量</translation>
+    </message>
+    <message>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="209"/>
+        <source>dispersion</source>
+        <translation>扩散力</translation>
+    </message>
+    <message>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="211"/>
+        <source>gravity</source>
+        <translation>重力</translation>
+    </message>
+    <message>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="243"/>
         <source>Clear</source>
         <translation>清除</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="222"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="244"/>
         <source>Src</source>
         <translation>源</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="223"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="245"/>
         <source>Dst</source>
         <translation>目标</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="224"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="246"/>
         <source>SrcOver</source>
         <translation>源覆盖</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="225"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="247"/>
         <source>DstOver</source>
         <translation>目标覆盖</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="226"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="248"/>
         <source>SrcIn</source>
         <translation>源内</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="227"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="249"/>
         <source>DstIn</source>
         <translation>目标内</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="228"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="250"/>
         <source>SrcOut</source>
         <translation>源外</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="229"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="251"/>
         <source>DstOut</source>
         <translation>目标外</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="230"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="252"/>
         <source>SrcATop</source>
         <translation>源顶部</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="231"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="253"/>
         <source>DstATop</source>
         <translation>目标顶部</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="232"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="254"/>
         <source>Xor</source>
         <translation>异或</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="233"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="255"/>
         <source>Plus</source>
         <translation>相加</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="234"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="256"/>
         <source>Modulate</source>
         <translation>调制</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="235"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="257"/>
         <source>Screen</source>
         <translation>滤色</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="236"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="258"/>
         <source>Overlay</source>
         <translation>叠加</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="237"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="259"/>
         <source>Darken</source>
         <translation>变暗</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="238"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="260"/>
         <source>Lighten</source>
         <translation>变亮</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="239"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="261"/>
         <source>ColorDodge</source>
         <translation>颜色减淡</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="240"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="262"/>
         <source>ColorBurn</source>
         <translation>颜色加深</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="241"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="263"/>
         <source>HardLight</source>
         <translation>强光</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="242"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="264"/>
         <source>SoftLight</source>
         <translation>柔光</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="243"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="265"/>
         <source>Difference</source>
         <translation>差值</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="244"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="266"/>
         <source>Exclusion</source>
         <translation>排除</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="245"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="267"/>
         <source>Multiply</source>
         <translation>正片叠底</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="246"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="268"/>
         <source>Hue</source>
         <translation>色相</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="247"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="269"/>
         <source>Saturation</source>
         <translation>饱和度</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="248"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="270"/>
         <source>Color</source>
         <translation>颜色</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="249"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="271"/>
         <source>Luminosity</source>
         <translation>明度</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="800"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="744"/>
+        <source>3D图层开关：多选时作用于全部选中图层</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="869"/>
         <source>Adjust GPU/CPU Processing</source>
         <translation>调整 GPU/CPU 处理</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="835"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="904"/>
         <source>Promote to Layer</source>
         <translation>切换为隔离轨道（整轨预合成，启用轨道混合模式）</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="945"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="1014"/>
         <source>Reset to default value</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="1122"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="1065"/>
+        <source>蒙版模式</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="1066"/>
+        <source>相加</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="1067"/>
+        <source>相减</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="1220"/>
         <source>Normal</source>
         <translation>正常</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="1123"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="1221"/>
         <source>Add</source>
         <translation>添加</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="1123"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="1221"/>
         <source>Remove</source>
         <translation>移除</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="1123"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="1221"/>
         <source>Remove reverse</source>
         <translation>反向移除</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="1124"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="1222"/>
         <source>Intersect</source>
         <translation>相交</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="1124"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="1222"/>
         <source>Exclude</source>
         <translation>排除</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="1124"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="1222"/>
         <source>Divide</source>
         <translation>分割</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="1131"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="1229"/>
         <source>Winding</source>
         <translation>非零环绕</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="1131"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="1229"/>
         <source>Even-odd</source>
         <translation>奇偶</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="1589"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="1725"/>
         <source>Scaling issues</source>
         <translation>缩放问题</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="1590"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="1726"/>
         <source>&lt;p&gt;Requested icon size &lt;b&gt;%1&lt;/b&gt; is not available, expect blurry icons and possible UI size issues. This is usually related to font scaling.&lt;/p&gt;&lt;p&gt;Disable &lt;b&gt;&apos;HiDPI PassThrough&apos;&lt;/b&gt; in preferences, then restart Friction.&lt;/p&gt;</source>
         <translation>&lt;p&gt;请求的图标尺寸 &lt;b&gt;%1&lt;/b&gt; 不可用，图标可能模糊，界面尺寸也可能出现问题。这通常与字体缩放有关。&lt;/p&gt;&lt;p&gt;请在首选项中禁用 &lt;b&gt;“HiDPI PassThrough”&lt;/b&gt;，然后重启 Friction。&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="173"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="176"/>
         <source>3D Rotation X</source>
         <translation>3D 旋转 X</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="175"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="178"/>
         <source>3D Rotation Y</source>
         <translation>3D 旋转 Y</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="177"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="180"/>
         <source>3D Position Z</source>
         <translation>3D 位移 Z</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="179"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="182"/>
         <source>3D Perspective</source>
         <translation>3D 透视</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="182"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="185"/>
         <source>Blur</source>
         <translation>模糊</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="184"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="187"/>
         <source>Radius</source>
         <translation>半径</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="186"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="189"/>
         <source>Effects</source>
         <translation>特效</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="189"/>
         <source>Mask: </source>
-        <translation>蒙版: </translation>
+        <translation type="vanished">蒙版: </translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="484"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="531"/>
         <source>Red</source>
         <translation>红</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="485"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="532"/>
         <source>Orange</source>
         <translation>橙</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="486"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="533"/>
         <source>Yellow</source>
         <translation>黄</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="487"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="534"/>
         <source>Green</source>
         <translation>绿</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="488"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="535"/>
         <source>Cyan</source>
         <translation>青</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="489"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="536"/>
         <source>Blue</source>
         <translation>蓝</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="490"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="537"/>
         <source>Purple</source>
         <translation>紫</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="491"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="538"/>
         <source>Gray</source>
         <translation>灰</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="502"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="548"/>
         <source>No Color</source>
         <translation>无颜色</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="998"/>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="2372"/>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="2472"/>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="2517"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="1083"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="2605"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="2746"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="2791"/>
         <source>No Parent</source>
         <translation>无父级</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="1035"/>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="2441"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="1122"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="2674"/>
         <source>None</source>
         <translation>无</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="1955"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="2096"/>
         <source>Convert to Bone Layer</source>
         <translation>转换为骨骼层</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="1982"/>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="2013"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="2123"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="2158"/>
         <source>转换为切换组</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="2004"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="2149"/>
         <source>取消切换组</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="2042"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="2189"/>
         <source>Unbind from Bone</source>
         <translation>解绑骨骼</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="2066"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="2213"/>
         <source>Bind to Bone</source>
         <translation>绑定到骨骼</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="864"/>
+        <location filename="../GUI/BoxesList/boxsinglewidget.cpp" line="933"/>
         <source>Constrain scale proportions: link the X and Y scale, editing either scales both (same as holding Shift while dragging)</source>
         <translation>锁定等比缩放：链接 X/Y 缩放，编辑任一轴两轴同缩（与按住 Shift 拖动等效）</translation>
     </message>
@@ -2293,174 +2598,174 @@
 <context>
     <name>Canvas</name>
     <message>
-        <location filename="../../core/canvas.cpp" line="1314"/>
+        <location filename="../../core/canvas.cpp" line="1677"/>
         <source>Split Clip</source>
         <translation>拆分片段</translation>
     </message>
     <message>
-        <location filename="../../core/canvasselectedboxesactions.cpp" line="1220"/>
+        <location filename="../../core/canvasselectedboxesactions.cpp" line="1269"/>
         <source>Match Canvas Width</source>
         <translation>匹配画布宽度</translation>
     </message>
     <message>
-        <location filename="../../core/canvasselectedboxesactions.cpp" line="1221"/>
+        <location filename="../../core/canvasselectedboxesactions.cpp" line="1270"/>
         <source>Match Canvas Height</source>
         <translation>匹配画布高度</translation>
     </message>
     <message>
-        <location filename="../../core/canvas.cpp" line="621"/>
+        <location filename="../../core/canvas.cpp" line="891"/>
         <source>Scene Dimension Changed</source>
         <translation>场景尺寸已更改</translation>
     </message>
     <message>
-        <location filename="../../core/canvasselectedboxesactions.cpp" line="796"/>
+        <location filename="../../core/canvasselectedboxesactions.cpp" line="845"/>
         <source>Set In Point</source>
         <translation>设置入点</translation>
     </message>
     <message>
-        <location filename="../../core/canvasselectedboxesactions.cpp" line="810"/>
+        <location filename="../../core/canvasselectedboxesactions.cpp" line="859"/>
         <source>Set Out Point</source>
         <translation>设置出点</translation>
     </message>
     <message>
-        <location filename="../../core/canvas.cpp" line="646"/>
+        <location filename="../../core/canvas.cpp" line="916"/>
         <source>Frame Range Changed</source>
         <translation>帧范围已更改</translation>
     </message>
     <message>
-        <location filename="../../core/canvas.cpp" line="672"/>
+        <location filename="../../core/canvas.cpp" line="942"/>
         <source>Frame In Changed</source>
         <translation>入点已更改</translation>
     </message>
     <message>
-        <location filename="../../core/canvas.cpp" line="689"/>
+        <location filename="../../core/canvas.cpp" line="959"/>
         <source>Frame Out Changed</source>
         <translation>出点已更改</translation>
     </message>
     <message>
-        <location filename="../../core/canvas.cpp" line="719"/>
+        <location filename="../../core/canvas.cpp" line="989"/>
         <source>Cleared Frame In/Out</source>
         <translation>已清除入点/出点</translation>
     </message>
     <message>
-        <location filename="../../core/canvas.cpp" line="748"/>
+        <location filename="../../core/canvas.cpp" line="1018"/>
         <source>Added Marker</source>
         <translation>已添加标记</translation>
     </message>
     <message>
-        <location filename="../../core/canvas.cpp" line="770"/>
+        <location filename="../../core/canvas.cpp" line="1040"/>
         <source>Changed Marker State</source>
         <translation>已更改标记状态</translation>
     </message>
     <message>
-        <location filename="../../core/canvas.cpp" line="788"/>
+        <location filename="../../core/canvas.cpp" line="1058"/>
         <source>Removed Marker</source>
         <translation>已移除标记</translation>
     </message>
     <message>
-        <location filename="../../core/canvas.cpp" line="836"/>
+        <location filename="../../core/canvas.cpp" line="1106"/>
         <source>Changed Marker</source>
         <translation>已更改标记</translation>
     </message>
     <message>
-        <location filename="../../core/canvas.cpp" line="857"/>
+        <location filename="../../core/canvas.cpp" line="1127"/>
         <source>Moved Marker</source>
         <translation>已移动标记</translation>
     </message>
     <message>
-        <location filename="../../core/canvas.cpp" line="894"/>
+        <location filename="../../core/canvas.cpp" line="1164"/>
         <source>Cleared Markers</source>
         <translation>已清除标记</translation>
     </message>
     <message>
-        <location filename="../../core/canvas.cpp" line="1116"/>
+        <location filename="../../core/canvas.cpp" line="1421"/>
         <source>Make Nodes Symmetric</source>
         <translation>使节点对称</translation>
     </message>
     <message>
-        <location filename="../../core/canvas.cpp" line="1122"/>
+        <location filename="../../core/canvas.cpp" line="1427"/>
         <source>Make Nodes Smooth</source>
         <translation>使节点平滑</translation>
     </message>
     <message>
-        <location filename="../../core/canvas.cpp" line="1128"/>
+        <location filename="../../core/canvas.cpp" line="1433"/>
         <source>Make Nodes Corner</source>
         <translation>使节点为角点</translation>
     </message>
     <message>
-        <location filename="../../core/canvas.cpp" line="1776"/>
-        <location filename="../../core/canvas.cpp" line="1797"/>
+        <location filename="../../core/canvas.cpp" line="2328"/>
+        <location filename="../../core/canvas.cpp" line="2349"/>
         <source>Marker</source>
         <translation>标记</translation>
     </message>
     <message>
-        <location filename="../../core/canvas.cpp" line="1875"/>
+        <location filename="../../core/canvas.cpp" line="2427"/>
         <source>Create Gradient</source>
         <translation>创建渐变</translation>
     </message>
     <message>
-        <location filename="../../core/canvas.cpp" line="1883"/>
+        <location filename="../../core/canvas.cpp" line="2435"/>
         <source>Add Gradient</source>
         <translation>添加渐变</translation>
     </message>
     <message>
-        <location filename="../../core/canvas.cpp" line="1902"/>
+        <location filename="../../core/canvas.cpp" line="2454"/>
         <source>Remove Gradient</source>
         <translation>移除渐变</translation>
     </message>
     <message>
-        <location filename="../../core/canvas.h" line="1139"/>
+        <location filename="../../core/canvas.h" line="1237"/>
         <source>In</source>
         <translation>入点</translation>
     </message>
     <message>
-        <location filename="../../core/canvas.h" line="1140"/>
+        <location filename="../../core/canvas.h" line="1238"/>
         <source>Out</source>
         <translation>出点</translation>
     </message>
     <message>
-        <location filename="../../core/canvasmouseinteractions.cpp" line="109"/>
+        <location filename="../../core/canvasmouseinteractions.cpp" line="121"/>
         <source>Paste</source>
         <translation>粘贴</translation>
     </message>
     <message>
-        <location filename="../../core/canvasmouseinteractions.cpp" line="116"/>
+        <location filename="../../core/canvasmouseinteractions.cpp" line="128"/>
         <source>Link Scene</source>
         <translation>链接场景</translation>
     </message>
     <message>
-        <location filename="../../core/canvasmouseinteractions.cpp" line="134"/>
+        <location filename="../../core/canvasmouseinteractions.cpp" line="146"/>
         <source>Duplicate Scene</source>
         <translation>复制场景</translation>
     </message>
     <message>
-        <location filename="../../core/canvasmouseinteractions.cpp" line="145"/>
+        <location filename="../../core/canvasmouseinteractions.cpp" line="157"/>
         <source>Map to Different Fps</source>
         <translation>映射到不同帧率</translation>
     </message>
     <message>
-        <location filename="../../core/canvasmouseinteractions.cpp" line="154"/>
+        <location filename="../../core/canvasmouseinteractions.cpp" line="166"/>
         <source>Scene Properties</source>
         <translation>场景属性</translation>
     </message>
     <message>
-        <location filename="../../core/canvasselectedboxesactions.cpp" line="654"/>
-        <location filename="../../core/canvasselectedboxesactions.cpp" line="666"/>
+        <location filename="../../core/canvasselectedboxesactions.cpp" line="703"/>
+        <location filename="../../core/canvasselectedboxesactions.cpp" line="715"/>
         <source>is unsupported</source>
         <translation>不受支持</translation>
     </message>
     <message>
-        <location filename="../../core/canvasselectedboxesactions.cpp" line="659"/>
+        <location filename="../../core/canvasselectedboxesactions.cpp" line="708"/>
         <source>Blend effects are unsupported</source>
         <translation>混合效果不受支持</translation>
     </message>
     <message>
-        <location filename="../../core/canvasselectedboxesactions.cpp" line="672"/>
+        <location filename="../../core/canvasselectedboxesactions.cpp" line="721"/>
         <source>Text effects are unsupported</source>
         <translation>文本效果不受支持</translation>
     </message>
     <message>
-        <location filename="../../core/canvasselectedboxesactions.cpp" line="676"/>
+        <location filename="../../core/canvasselectedboxesactions.cpp" line="725"/>
         <source>For best compatibility convert text to path</source>
         <translation>为获得最佳兼容性，请将文本转换为路径</translation>
     </message>
@@ -2550,7 +2855,7 @@
 <context>
     <name>CanvasWindow</name>
     <message>
-        <location filename="../GUI/canvaswindow.cpp" line="779"/>
+        <location filename="../GUI/canvaswindow.cpp" line="1029"/>
         <source>Cannot link a scene to itself</source>
         <translation>无法将场景链接到自身</translation>
     </message>
@@ -2614,54 +2919,54 @@
 <context>
     <name>ContainerBox</name>
     <message>
-        <location filename="../../core/Boxes/containerbox.cpp" line="504"/>
-        <location filename="../../core/Boxes/containerbox.cpp" line="915"/>
+        <location filename="../../core/Boxes/containerbox.cpp" line="505"/>
+        <location filename="../../core/Boxes/containerbox.cpp" line="960"/>
         <source>Promote to Layer</source>
         <translation>升级为图层</translation>
     </message>
     <message>
-        <location filename="../../core/Boxes/containerbox.cpp" line="536"/>
-        <location filename="../../core/Boxes/containerbox.cpp" line="920"/>
+        <location filename="../../core/Boxes/containerbox.cpp" line="537"/>
+        <location filename="../../core/Boxes/containerbox.cpp" line="965"/>
         <source>Demote to Group</source>
         <translation>降级为群组</translation>
     </message>
     <message>
-        <location filename="../../core/Boxes/containerbox.cpp" line="929"/>
+        <location filename="../../core/Boxes/containerbox.cpp" line="974"/>
         <source>Ungroup</source>
         <translation>取消群组</translation>
     </message>
     <message>
-        <location filename="../../core/Boxes/containerbox.cpp" line="935"/>
+        <location filename="../../core/Boxes/containerbox.cpp" line="980"/>
         <source>Ungroup (Keep Transform)</source>
         <translation>取消群组（保留变换）</translation>
     </message>
     <message>
-        <location filename="../../core/Boxes/containerbox.cpp" line="1442"/>
+        <location filename="../../core/Boxes/containerbox.cpp" line="1574"/>
         <source>Insert </source>
         <translation>插入 </translation>
     </message>
     <message>
-        <location filename="../../core/Boxes/containerbox.cpp" line="1505"/>
+        <location filename="../../core/Boxes/containerbox.cpp" line="1637"/>
         <source>Remove </source>
         <translation>移除 </translation>
     </message>
     <message>
-        <location filename="../../core/Boxes/containerbox.cpp" line="1604"/>
+        <location filename="../../core/Boxes/containerbox.cpp" line="1736"/>
         <source>Lower %1 to Bottom</source>
         <translation>将 %1 降至底部</translation>
     </message>
     <message>
-        <location filename="../../core/Boxes/containerbox.cpp" line="1612"/>
+        <location filename="../../core/Boxes/containerbox.cpp" line="1744"/>
         <source>Raise %1 to Top</source>
         <translation>将 %1 升至顶部</translation>
     </message>
     <message>
-        <location filename="../../core/Boxes/containerbox.cpp" line="1646"/>
+        <location filename="../../core/Boxes/containerbox.cpp" line="1778"/>
         <source>Change Z-Index</source>
         <translation>更改层级顺序</translation>
     </message>
     <message>
-        <location filename="../../core/Boxes/containerbox.cpp" line="565"/>
+        <location filename="../../core/Boxes/containerbox.cpp" line="566"/>
         <source>Flip Book</source>
         <translation>翻页预览</translation>
     </message>
@@ -2703,17 +3008,17 @@
 <context>
     <name>DebugEventLogger</name>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="279"/>
+        <location filename="../GUI/mainwindow.cpp" line="376"/>
         <source>Click</source>
         <translation type="unfinished">点击</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="290"/>
+        <location filename="../GUI/mainwindow.cpp" line="387"/>
         <source>Menu</source>
         <translation type="unfinished">菜单</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="305"/>
+        <location filename="../GUI/mainwindow.cpp" line="402"/>
         <source>Key Press</source>
         <translation type="unfinished">按键</translation>
     </message>
@@ -2777,17 +3082,17 @@
 <context>
     <name>EasingPresetsWidget</name>
     <message>
-        <location filename="../GUI/easingpresetspanel.cpp" line="339"/>
+        <location filename="../GUI/easingpresetspanel.cpp" line="225"/>
         <source>Ease In</source>
         <translation type="unfinished">缓入</translation>
     </message>
     <message>
-        <location filename="../GUI/easingpresetspanel.cpp" line="340"/>
+        <location filename="../GUI/easingpresetspanel.cpp" line="226"/>
         <source>Ease Out</source>
         <translation type="unfinished">缓出</translation>
     </message>
     <message>
-        <location filename="../GUI/easingpresetspanel.cpp" line="341"/>
+        <location filename="../GUI/easingpresetspanel.cpp" line="227"/>
         <source>Ease In/Out</source>
         <translation type="unfinished">缓入/缓出</translation>
     </message>
@@ -3316,69 +3621,79 @@ you can create a new one by clicking on the &apos;+&apos; button.</source>
         <translation>描边</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/fillstrokesettings.cpp" line="78"/>
+        <location filename="../../ui/widgets/fillstrokesettings.cpp" line="79"/>
+        <source>Choose whether the settings below edit the fill or the stroke</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../ui/widgets/fillstrokesettings.cpp" line="88"/>
         <source>None</source>
         <translation>无</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/fillstrokesettings.cpp" line="79"/>
-        <location filename="../../ui/widgets/fillstrokesettings.cpp" line="201"/>
+        <location filename="../../ui/widgets/fillstrokesettings.cpp" line="89"/>
+        <location filename="../../ui/widgets/fillstrokesettings.cpp" line="198"/>
         <source>Flat</source>
         <translation>平涂</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/fillstrokesettings.cpp" line="80"/>
+        <location filename="../../ui/widgets/fillstrokesettings.cpp" line="90"/>
         <source>Gradient</source>
         <translation>渐变</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/fillstrokesettings.cpp" line="112"/>
+        <location filename="../../ui/widgets/fillstrokesettings.cpp" line="92"/>
+        <source>Paint type of the current target</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../ui/widgets/fillstrokesettings.cpp" line="109"/>
         <source>Width</source>
         <translation>宽度</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/fillstrokesettings.cpp" line="162"/>
+        <location filename="../../ui/widgets/fillstrokesettings.cpp" line="159"/>
         <source>Bevel</source>
         <translation>斜角</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/fillstrokesettings.cpp" line="163"/>
+        <location filename="../../ui/widgets/fillstrokesettings.cpp" line="160"/>
         <source>Miter</source>
         <translation>斜接</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/fillstrokesettings.cpp" line="164"/>
-        <location filename="../../ui/widgets/fillstrokesettings.cpp" line="203"/>
+        <location filename="../../ui/widgets/fillstrokesettings.cpp" line="161"/>
+        <location filename="../../ui/widgets/fillstrokesettings.cpp" line="200"/>
         <source>Round</source>
         <translation>圆角</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/fillstrokesettings.cpp" line="181"/>
+        <location filename="../../ui/widgets/fillstrokesettings.cpp" line="178"/>
         <source>Join</source>
         <translation>连接</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/fillstrokesettings.cpp" line="202"/>
+        <location filename="../../ui/widgets/fillstrokesettings.cpp" line="199"/>
         <source>Square</source>
         <translation>方形</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/fillstrokesettings.cpp" line="220"/>
+        <location filename="../../ui/widgets/fillstrokesettings.cpp" line="217"/>
         <source>Cap</source>
         <translation>端点</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/fillstrokesettings.cpp" line="236"/>
+        <location filename="../../ui/widgets/fillstrokesettings.cpp" line="233"/>
         <source>Linear</source>
         <translation>线性</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/fillstrokesettings.cpp" line="237"/>
+        <location filename="../../ui/widgets/fillstrokesettings.cpp" line="234"/>
         <source>Radial</source>
         <translation>径向</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/fillstrokesettings.cpp" line="564"/>
+        <location filename="../../ui/widgets/fillstrokesettings.cpp" line="536"/>
         <source>Invalid fill type.</source>
         <translation>无效的填充类型。</translation>
     </message>
@@ -3422,54 +3737,79 @@ you can create a new one by clicking on the &apos;+&apos; button.</source>
 <context>
     <name>FrameScrollBar</name>
     <message>
-        <location filename="../../ui/widgets/framescrollbar.cpp" line="171"/>
+        <location filename="../../ui/widgets/framescrollbar.cpp" line="187"/>
         <source>In</source>
         <translation>入点</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/framescrollbar.cpp" line="171"/>
+        <location filename="../../ui/widgets/framescrollbar.cpp" line="187"/>
         <source>Out</source>
         <translation>出点</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/framescrollbar.cpp" line="331"/>
+        <location filename="../../ui/widgets/framescrollbar.cpp" line="347"/>
         <source>Display Timecodes</source>
         <translation>显示时间码</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/framescrollbar.cpp" line="337"/>
+        <location filename="../../ui/widgets/framescrollbar.cpp" line="353"/>
         <source>Display Frames</source>
         <translation>显示帧</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/framescrollbar.cpp" line="345"/>
+        <location filename="../../ui/widgets/framescrollbar.cpp" line="361"/>
         <source>Set In</source>
         <translation>设置入点</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/framescrollbar.cpp" line="347"/>
+        <location filename="../../ui/widgets/framescrollbar.cpp" line="363"/>
         <source>Set Out</source>
         <translation>设置出点</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/framescrollbar.cpp" line="349"/>
+        <location filename="../../ui/widgets/framescrollbar.cpp" line="365"/>
         <source>Clear In/Out</source>
         <translation>清除入点/出点</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/framescrollbar.cpp" line="353"/>
+        <location filename="../../ui/widgets/framescrollbar.cpp" line="369"/>
         <source>Clear Markers</source>
         <translation>清除标记</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/framescrollbar.cpp" line="355"/>
+        <location filename="../../ui/widgets/framescrollbar.cpp" line="371"/>
         <source>Edit Markers</source>
         <translation>编辑标记</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/framescrollbar.cpp" line="357"/>
+        <location filename="../../ui/widgets/framescrollbar.cpp" line="373"/>
         <source>Split Clip</source>
         <translation>拆分剪辑</translation>
+    </message>
+    <message>
+        <location filename="../../ui/widgets/framescrollbar.cpp" line="414"/>
+        <source>In point must be before the Out point</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../ui/widgets/framescrollbar.cpp" line="427"/>
+        <source>Out point must be after the In point</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../ui/widgets/framescrollbar.cpp" line="520"/>
+        <source>Frame In Changed</source>
+        <translation type="unfinished">入点已更改</translation>
+    </message>
+    <message>
+        <location filename="../../ui/widgets/framescrollbar.cpp" line="530"/>
+        <source>Frame Out Changed</source>
+        <translation type="unfinished">出点已更改</translation>
+    </message>
+    <message>
+        <location filename="../../ui/widgets/framescrollbar.cpp" line="540"/>
+        <source>Moved Marker</source>
+        <translation type="unfinished">已移动标记</translation>
     </message>
 </context>
 <context>
@@ -3596,37 +3936,37 @@ you can create a new one by clicking on the &apos;+&apos; button.</source>
 <context>
     <name>Friction::Ui::CanvasToolBar</name>
     <message>
-        <location filename="../../ui/widgets/canvastoolbar.cpp" line="51"/>
+        <location filename="../../ui/widgets/canvastoolbar.cpp" line="52"/>
         <source>Canvas Toolbar</source>
         <translation>画布工具栏</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/canvastoolbar.cpp" line="73"/>
+        <location filename="../../ui/widgets/canvastoolbar.cpp" line="74"/>
         <source>No memory used</source>
         <translation>未占用内存</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/canvastoolbar.cpp" line="118"/>
+        <location filename="../../ui/widgets/canvastoolbar.cpp" line="119"/>
         <source>%1 memory used</source>
         <translation>已占用 %1 内存</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/canvastoolbar.cpp" line="137"/>
+        <location filename="../../ui/widgets/canvastoolbar.cpp" line="138"/>
         <source>Width</source>
         <translation>宽度</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/canvastoolbar.cpp" line="141"/>
+        <location filename="../../ui/widgets/canvastoolbar.cpp" line="142"/>
         <source>Height</source>
         <translation>高度</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/canvastoolbar.cpp" line="167"/>
+        <location filename="../../ui/widgets/canvastoolbar.cpp" line="176"/>
         <source>Resolution</source>
         <translation>分辨率</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/canvastoolbar.cpp" line="239"/>
+        <location filename="../../ui/widgets/canvastoolbar.cpp" line="264"/>
         <source>Labels</source>
         <translation>标签</translation>
     </message>
@@ -4034,199 +4374,225 @@ you can create a new one by clicking on the &apos;+&apos; button.</source>
 <context>
     <name>Friction::Ui::ToolBox</name>
     <message>
-        <location filename="../../ui/widgets/toolbox.cpp" line="374"/>
+        <location filename="../../ui/widgets/toolbox.cpp" line="381"/>
         <source>Add Bone</source>
         <translation>骨骼工具（点击画布创建骨骼链）</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/toolbox.cpp" line="382"/>
+        <location filename="../../ui/widgets/toolbox.cpp" line="389"/>
         <source>Bone Pose</source>
         <translation>操作骨骼（拖骨身旋转，拖头部移动）</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/toolbox.cpp" line="390"/>
+        <location filename="../../ui/widgets/toolbox.cpp" line="397"/>
         <source>Bone Bind</source>
         <translation>骨骼绑定（先选图层，再点骨骼）</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/toolbox.cpp" line="398"/>
+        <location filename="../../ui/widgets/toolbox.cpp" line="405"/>
         <source>Bone Parent</source>
         <translation>骨骼父子连接（先选一根骨骼，再点父级骨骼）</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/toolbox.cpp" line="406"/>
+        <location filename="../../ui/widgets/toolbox.cpp" line="413"/>
         <source>Bone Select</source>
         <translation>骨骼选择（只选中骨骼）</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/toolbox.cpp" line="417"/>
+        <location filename="../../ui/widgets/toolbox.cpp" line="424"/>
         <source>Camera</source>
         <translation>摄像机（左键拖动=轨道倾斜，Shift+左键=平移，Ctrl+左键=缩放）</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/toolbox.cpp" line="93"/>
+        <location filename="../../ui/widgets/toolbox.cpp" line="97"/>
         <source>ToolBox</source>
         <translation>工具箱</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/toolbox.cpp" line="459"/>
+        <location filename="../../ui/widgets/toolbox.cpp" line="466"/>
         <source>Mask Pen (draw shapes that clip layers below)</source>
         <translation>蒙版钢笔（绘制裁剪下方图层的形状）</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/toolbox.cpp" line="310"/>
+        <location filename="../../ui/widgets/toolbox.cpp" line="317"/>
         <source>Object Mode</source>
         <translation>对象模式</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/toolbox.cpp" line="317"/>
+        <location filename="../../ui/widgets/toolbox.cpp" line="324"/>
         <source>Point Mode</source>
         <translation>节点模式</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/toolbox.cpp" line="324"/>
+        <location filename="../../ui/widgets/toolbox.cpp" line="331"/>
         <source>Add Path</source>
         <translation>添加路径</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/toolbox.cpp" line="331"/>
+        <location filename="../../ui/widgets/toolbox.cpp" line="338"/>
         <source>Draw Path</source>
         <translation>绘制路径</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/toolbox.cpp" line="338"/>
+        <location filename="../../ui/widgets/toolbox.cpp" line="345"/>
         <source>Add Circle</source>
         <translation>添加圆形</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/toolbox.cpp" line="345"/>
+        <location filename="../../ui/widgets/toolbox.cpp" line="352"/>
         <source>Add Rectangle</source>
         <translation>添加矩形</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/toolbox.cpp" line="352"/>
+        <location filename="../../ui/widgets/toolbox.cpp" line="359"/>
         <source>Add Text</source>
         <translation>添加文本</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/toolbox.cpp" line="359"/>
+        <location filename="../../ui/widgets/toolbox.cpp" line="366"/>
         <source>Add Null Object</source>
         <translation>添加空对象</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/toolbox.cpp" line="424"/>
+        <location filename="../../ui/widgets/toolbox.cpp" line="431"/>
         <source>Color Pick Mode</source>
         <translation>取色模式</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/toolbox.cpp" line="436"/>
+        <location filename="../../ui/widgets/toolbox.cpp" line="443"/>
         <source>Pivot Global / Local</source>
         <translation>轴心 全局/局部</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/toolbox.cpp" line="543"/>
+        <location filename="../../ui/widgets/toolbox.cpp" line="555"/>
         <source>Nodes</source>
         <translation>节点</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/toolbox.cpp" line="546"/>
+        <location filename="../../ui/widgets/toolbox.cpp" line="558"/>
         <source>New Node</source>
         <translation>新建节点</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/toolbox.cpp" line="548"/>
+        <location filename="../../ui/widgets/toolbox.cpp" line="560"/>
         <source>Remove Node</source>
         <translation>移除节点</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/toolbox.cpp" line="550"/>
+        <location filename="../../ui/widgets/toolbox.cpp" line="562"/>
         <source>Remove Node Approx.</source>
         <translation>移除节点（近似）</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/toolbox.cpp" line="552"/>
+        <location filename="../../ui/widgets/toolbox.cpp" line="564"/>
         <source>Connect Nodes</source>
         <translation>连接节点</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/toolbox.cpp" line="554"/>
+        <location filename="../../ui/widgets/toolbox.cpp" line="566"/>
         <source>Disconnect Nodes</source>
         <translation>断开节点</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/toolbox.cpp" line="556"/>
+        <location filename="../../ui/widgets/toolbox.cpp" line="568"/>
         <source>Merge Nodes</source>
         <translation>合并节点</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/toolbox.cpp" line="558"/>
+        <location filename="../../ui/widgets/toolbox.cpp" line="570"/>
         <source>Split Nodes</source>
         <translation>拆分节点</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/toolbox.cpp" line="560"/>
+        <location filename="../../ui/widgets/toolbox.cpp" line="572"/>
         <source>Reverse Nodes Order</source>
         <translation>反转节点顺序</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/toolbox.cpp" line="562"/>
+        <location filename="../../ui/widgets/toolbox.cpp" line="574"/>
         <source>Set First Node</source>
         <translation>设为起始节点</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/toolbox.cpp" line="564"/>
+        <location filename="../../ui/widgets/toolbox.cpp" line="576"/>
         <source>Symmetric Nodes</source>
         <translation>对称节点</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/toolbox.cpp" line="566"/>
+        <location filename="../../ui/widgets/toolbox.cpp" line="578"/>
         <source>Smooth Nodes</source>
         <translation>平滑节点</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/toolbox.cpp" line="568"/>
+        <location filename="../../ui/widgets/toolbox.cpp" line="580"/>
         <source>Corner Nodes</source>
         <translation>角点节点</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/toolbox.cpp" line="570"/>
+        <location filename="../../ui/widgets/toolbox.cpp" line="582"/>
         <source>Make Segment Line</source>
         <translation>转换线段为直线</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/toolbox.cpp" line="572"/>
+        <location filename="../../ui/widgets/toolbox.cpp" line="584"/>
         <source>Make Segment Curve</source>
         <translation>转换线段为曲线</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/toolbox.cpp" line="581"/>
+        <location filename="../../ui/widgets/toolbox.cpp" line="593"/>
         <source>Dissolved and normal nodes</source>
         <translation>溶解与普通节点</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/toolbox.cpp" line="585"/>
+        <location filename="../../ui/widgets/toolbox.cpp" line="597"/>
         <source>Dissolved nodes only</source>
         <translation>仅溶解节点</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/toolbox.cpp" line="589"/>
+        <location filename="../../ui/widgets/toolbox.cpp" line="601"/>
         <source>Normal nodes only</source>
         <translation>仅普通节点</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/toolbox.cpp" line="629"/>
+        <location filename="../../ui/widgets/toolbox.cpp" line="641"/>
         <source>Max Error</source>
         <translation>最大误差</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/toolbox.cpp" line="630"/>
+        <location filename="../../ui/widgets/toolbox.cpp" line="642"/>
         <source>Smooth</source>
         <translation>平滑</translation>
     </message>
     <message>
-        <location filename="../../ui/widgets/toolbox.cpp" line="652"/>
+        <location filename="../../ui/widgets/toolbox.cpp" line="664"/>
         <source>Automatic/Manual Fitting</source>
         <translation>自动/手动拟合</translation>
+    </message>
+    <message>
+        <location filename="../../ui/widgets/toolbox.cpp" line="704"/>
+        <source>Auto-Select Layer</source>
+        <translation>自动选择图层</translation>
+    </message>
+    <message>
+        <location filename="../../ui/widgets/toolbox.cpp" line="706"/>
+        <source>Click visible pixels on the canvas to select and jump to the layer that owns them (Photoshop auto-select)</source>
+        <translation>对象模式下点击画布上的可见像素，自动选中并跳转到所属图层（PS 语义）</translation>
+    </message>
+    <message>
+        <location filename="../../ui/widgets/toolbox.cpp" line="725"/>
+        <location filename="../../ui/widgets/toolbox.cpp" line="768"/>
+        <source>Temporary Canvas</source>
+        <translation>临时画布</translation>
+    </message>
+    <message>
+        <location filename="../../ui/widgets/toolbox.cpp" line="767"/>
+        <source>Temporary Canvas: ON</source>
+        <translation>临时画布：开启</translation>
+    </message>
+    <message>
+        <location filename="../../ui/widgets/toolbox.cpp" line="728"/>
+        <source>While on, freely move layers apart to organize them (group/reorder); switching it off returns every moved layer to its original position, keeping all grouping edits</source>
+        <translation>开启后可自由摆开图层进行分组整理；关闭时所有移动过的图层自动回到原位，分组与顺序等操作全部保留</translation>
     </message>
 </context>
 <context>
@@ -4466,83 +4832,194 @@ you can create a new one by clicking on the &apos;+&apos; button.</source>
 <context>
     <name>GeneralSettingsWidget</name>
     <message>
-        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="68"/>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="71"/>
         <source>Project I/O</source>
         <translation>项目读写</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="198"/>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="201"/>
         <source>Language</source>
         <translation>语言</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="221"/>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="224"/>
         <source>Changing the language requires a restart of Friction.</source>
         <translation>更改语言需要重启 Friction。</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="245"/>
-        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="312"/>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="248"/>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="315"/>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="427"/>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="433"/>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="455"/>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="459"/>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="508"/>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="514"/>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="529"/>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="532"/>
         <source>Cache</source>
         <translation>缓存</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="255"/>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="258"/>
         <source>PSD layer pixel cache. Safe to clear - layers currently in use are re-extracted from their .fpsd packages.</source>
         <translation>PSD 图层像素缓存。可放心清除——正在使用的图层会从各自的 .fpsd 包中重新提取。</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="265"/>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="268"/>
         <source>Open Directory</source>
         <translation>打开目录</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="266"/>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="269"/>
         <source>Clear PSD Cache</source>
         <translation>清除 PSD 缓存</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="322"/>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="338"/>
+        <source>KRA 缓存文件夹</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="342"/>
+        <source>浏览...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="343"/>
+        <source>恢复默认</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="350"/>
+        <source>导入 .kra 工程时解码的图层图存放于此。路径只影响之后的导入，已有缓存不会被移动。</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="361"/>
+        <source>打开 KRA 缓存目录</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="362"/>
+        <source>清除 KRA 缓存</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="384"/>
+        <source>选择 KRA 缓存文件夹</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="428"/>
+        <source>没有可清理的 KRA 缓存%1。</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="429"/>
+        <source>（%1 张正被引用，已跳过）</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="434"/>
+        <source>将删除 %1 张 KRA 图层图，共约 %2 MB，跳过 %3 张（当前工程正在引用）。
+
+⚠ 注意：清理只保护当前已打开工程引用的文件；其它未打开的工程若含有 .kra 导入的图层，重新打开后这些图层会断链失效。
+
+是否继续清理？</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="456"/>
+        <source>清理完成，另有 %1 张因文件被占用跳过（关闭相关工程后可重试）。</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="460"/>
+        <source>清理完成，共删除 %1 张，释放约 %2 MB。</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="471"/>
+        <source>内存换页缓存（eCache）：内存吃紧时被暂存到磁盘的图片/视频帧像素，属纯性能缓存，清理不影响任何工程数据；被清理的数据下次使用时会从源文件重新解码。</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="484"/>
+        <source>清除内存换页缓存</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="509"/>
+        <source>没有可清理的换页缓存%1。</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="510"/>
+        <source>（%1 个正被使用，已跳过）</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="515"/>
+        <source>将删除 %1 个换页缓存文件，共约 %2 MB，跳过 %3 个（正在使用中）。
+
+纯性能缓存：不影响任何工程数据，被清理的内容下次使用时会从源文件重新解码（稍慢）。
+
+是否继续？</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="530"/>
+        <source>清理完成，另有 %1 个文件因被占用跳过。</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="533"/>
+        <source>清理完成，共删除 %1 个文件，释放约 %2 MB。</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="544"/>
         <source>Snapshots</source>
         <translation>快照</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="330"/>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="552"/>
         <source>Snapshot folder</source>
         <translation>快照保存文件夹</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="342"/>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="564"/>
         <source>Browse...</source>
         <translation>浏览……</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="356"/>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="578"/>
         <source>Choose Snapshot Folder</source>
         <translation>选择快照文件夹</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="348"/>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="570"/>
         <source>Snapshot PNGs are exported at 100% resolution. Empty folder means the Desktop is used.</source>
         <translation>快照 PNG 以 100% 分辨率导出。文件夹留空表示使用桌面。</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="313"/>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="316"/>
         <source>Removed %1 cache file(s). Re-extracted %2 layer(s) currently in use.</source>
         <translation>已删除 %1 个缓存文件。正在使用的 %2 个图层已重新提取。</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="72"/>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="75"/>
         <source>Enable Backup on Save</source>
         <translation>保存时启用备份</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="76"/>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="79"/>
         <source>Backup files are not supported in flatpak.</source>
         <translation>flatpak 版本不支持备份文件。</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="79"/>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="82"/>
         <source>Creates a backup file after each successful save.
 
 Backup files are stored in a folder called PROJECT.friction_backup.</source>
@@ -4551,12 +5028,12 @@ Backup files are stored in a folder called PROJECT.friction_backup.</source>
 备份文件存放在名为 PROJECT.friction_backup 的文件夹中。</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="93"/>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="96"/>
         <source>Enable Auto Save</source>
         <translation>启用自动保存</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="95"/>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="98"/>
         <source>Will auto save each X min if project is unsaved.
 
 Enable Backup on Save for incremental saves (and as a failsafe).</source>
@@ -4565,32 +5042,32 @@ Enable Backup on Save for incremental saves (and as a failsafe).</source>
 建议同时开启“保存时备份”，既可增量备份也是一道保险。</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="100"/>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="103"/>
         <source> min</source>
         <translation> 分钟</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="110"/>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="113"/>
         <source>Interface Scaling</source>
         <translation>界面缩放</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="132"/>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="135"/>
         <source>Auto</source>
         <translation>自动</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="133"/>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="136"/>
         <source>Use scaling reported by the system.</source>
         <translation>使用系统报告的缩放比例。</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="143"/>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="146"/>
         <source>HiDPI PassThrough</source>
         <translation>HiDPI PassThrough</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="144"/>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="147"/>
         <source>If enabled the scaling factor for the UI will not be rounded, recommended for HiDPI displays.
 If you use a negative font/display system scaling and/or see artifacts on UI elements then disable this option.
 The scaling factor will then round up for .75 and above.</source>
@@ -4599,32 +5076,32 @@ The scaling factor will then round up for .75 and above.</source>
 关闭后缩放系数将对 0.75 及以上向上取整。</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="162"/>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="165"/>
         <source>Changes here will require a restart of Friction.</source>
         <translation>此处的更改需要重启 Friction 后生效。</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="169"/>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="172"/>
         <source>Theme</source>
         <translation>主题</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="187"/>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="190"/>
         <source>Changing the theme requires a restart of Friction.</source>
         <translation>更改主题需要重启 Friction 后生效。</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="232"/>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="235"/>
         <source>Default import directory</source>
         <translation>默认导入目录</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="234"/>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="237"/>
         <source>Last used directory</source>
         <translation>最近使用的目录</translation>
     </message>
     <message>
-        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="235"/>
+        <location filename="../GUI/Settings/generalsettingswidget.cpp" line="238"/>
         <source>Project directory</source>
         <translation>项目目录</translation>
     </message>
@@ -4660,7 +5137,7 @@ The scaling factor will then round up for .75 and above.</source>
 <context>
     <name>ImageBox</name>
     <message>
-        <location filename="../../core/Boxes/imagebox.cpp" line="125"/>
+        <location filename="../../core/Boxes/imagebox.cpp" line="148"/>
         <source>Reload</source>
         <translation>重新加载</translation>
     </message>
@@ -4687,17 +5164,17 @@ Added layers: %3</source>
 新增图层：%3</translation>
     </message>
     <message>
-        <location filename="../../core/Boxes/imagebox.cpp" line="129"/>
+        <location filename="../../core/Boxes/imagebox.cpp" line="152"/>
         <source>Set Source File</source>
         <translation>设置源文件</translation>
     </message>
     <message>
-        <location filename="../../core/Boxes/imagebox.cpp" line="140"/>
+        <location filename="../../core/Boxes/imagebox.cpp" line="163"/>
         <source>Change Source</source>
         <translation>更换源</translation>
     </message>
     <message>
-        <location filename="../../core/Boxes/imagebox.cpp" line="142"/>
+        <location filename="../../core/Boxes/imagebox.cpp" line="165"/>
         <source>Image Files (%1)</source>
         <translation>图像文件 (%1)</translation>
     </message>
@@ -4740,24 +5217,88 @@ Added layers: %3</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/graphboxeslist.cpp" line="117"/>
+        <location filename="../GUI/graphboxeslist.cpp" line="124"/>
         <source>Smart paths does not support easing</source>
         <translation>智能路径不支持缓动</translation>
     </message>
     <message>
-        <location filename="../GUI/graphboxeslist.cpp" line="121"/>
+        <location filename="../GUI/graphboxeslist.cpp" line="128"/>
         <source>Failed to apply easing on %1</source>
         <translation>在 %1 上应用缓动失败</translation>
     </message>
     <message>
-        <location filename="../GUI/keysview.cpp" line="398"/>
+        <location filename="../GUI/keysview.cpp" line="451"/>
         <source>Edit duration</source>
         <translation>编辑时长</translation>
     </message>
     <message>
-        <location filename="../GUI/keysview.cpp" line="399"/>
+        <location filename="../GUI/keysview.cpp" line="452"/>
         <source>Split Clip</source>
         <translation>拆分剪辑</translation>
+    </message>
+</context>
+<context>
+    <name>KraImageBox</name>
+    <message>
+        <location filename="../../core/Kra/kraimagebox.cpp" line="206"/>
+        <source>Layer pixels unchanged.</source>
+        <translation>图层像素无变化。</translation>
+    </message>
+    <message>
+        <location filename="../../core/Kra/kraimagebox.cpp" line="301"/>
+        <source>All layers are up to date.</source>
+        <translation>所有图层均为最新。</translation>
+    </message>
+    <message>
+        <location filename="../../core/Kra/kraimagebox.cpp" line="150"/>
+        <source>Update Layer from Source KRA</source>
+        <translation>从源 KRA 更新此图层</translation>
+    </message>
+    <message>
+        <location filename="../../core/Kra/kraimagebox.cpp" line="161"/>
+        <source>Sync All Layers from Source KRA</source>
+        <translation>从源 KRA 同步所有图层</translation>
+    </message>
+    <message>
+        <location filename="../../core/Kra/kraimagebox.cpp" line="175"/>
+        <location filename="../../core/Kra/kraimagebox.cpp" line="187"/>
+        <location filename="../../core/Kra/kraimagebox.cpp" line="205"/>
+        <location filename="../../core/Kra/kraimagebox.cpp" line="232"/>
+        <source>KRA Update</source>
+        <translation>KRA 更新</translation>
+    </message>
+    <message>
+        <location filename="../../core/Kra/kraimagebox.cpp" line="241"/>
+        <location filename="../../core/Kra/kraimagebox.cpp" line="300"/>
+        <location filename="../../core/Kra/kraimagebox.cpp" line="303"/>
+        <source>KRA Sync</source>
+        <translation>KRA 同步</translation>
+    </message>
+    <message>
+        <location filename="../../core/Kra/kraimagebox.cpp" line="304"/>
+        <source>Updated layers: %1
+Missing layers: %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../core/Kra/kraimagebox.cpp" line="176"/>
+        <location filename="../../core/Kra/kraimagebox.cpp" line="242"/>
+        <source>Source KRA is missing:
+%1</source>
+        <translation>源 KRA 缺失：
+%1</translation>
+    </message>
+    <message>
+        <location filename="../../core/Kra/kraimagebox.cpp" line="188"/>
+        <source>Layer no longer exists in the source KRA.
+It is kept (marked as missing) with all animation data.</source>
+        <translation>该图层在源 KRA 中已不存在。
+图层将保留（标记为缺失）及其全部动画数据。</translation>
+    </message>
+    <message>
+        <location filename="../../core/Kra/kraimagebox.cpp" line="233"/>
+        <source>Layer updated from source KRA.</source>
+        <translation>图层已从源 KRA 更新。</translation>
     </message>
 </context>
 <context>
@@ -4801,100 +5342,108 @@ Added layers: %3</source>
         <translation>无法创建目录：%1</translation>
     </message>
     <message>
-        <location filename="../GUI/effectactions.cpp" line="96"/>
+        <location filename="../GUI/effectactions.cpp" line="104"/>
         <source>Path Effects</source>
         <translation>路径特效</translation>
     </message>
     <message>
-        <location filename="../GUI/effectactions.cpp" line="97"/>
+        <location filename="../GUI/effectactions.cpp" line="105"/>
         <source>Fill Effects</source>
         <translation>填充特效</translation>
     </message>
     <message>
-        <location filename="../GUI/effectactions.cpp" line="98"/>
+        <location filename="../GUI/effectactions.cpp" line="106"/>
         <source>Outline Base Effects</source>
         <translation>描边基础特效</translation>
     </message>
     <message>
-        <location filename="../GUI/effectactions.cpp" line="99"/>
+        <location filename="../GUI/effectactions.cpp" line="107"/>
         <source>Outline Effects</source>
         <translation>描边特效</translation>
     </message>
     <message>
-        <location filename="../GUI/effectactions.cpp" line="59"/>
-        <location filename="../GUI/effectactions.cpp" line="72"/>
-        <location filename="../GUI/effectactions.cpp" line="85"/>
-        <location filename="../GUI/effectactions.cpp" line="105"/>
+        <location filename="../GUI/effectactions.cpp" line="67"/>
+        <location filename="../GUI/effectactions.cpp" line="80"/>
+        <location filename="../GUI/effectactions.cpp" line="93"/>
         <location filename="../GUI/effectactions.cpp" line="113"/>
         <location filename="../GUI/effectactions.cpp" line="121"/>
         <location filename="../GUI/effectactions.cpp" line="129"/>
-        <location filename="../GUI/effectactions.cpp" line="146"/>
-        <location filename="../GUI/effectactions.cpp" line="162"/>
+        <location filename="../GUI/effectactions.cpp" line="137"/>
+        <location filename="../GUI/effectactions.cpp" line="154"/>
+        <location filename="../GUI/effectactions.cpp" line="170"/>
         <source>Add </source>
         <translation>添加 </translation>
     </message>
     <message>
-        <location filename="../GUI/effectactions.cpp" line="37"/>
+        <location filename="../GUI/effectactions.cpp" line="40"/>
         <source>Quick Search Effects...</source>
         <translation>快速搜索特效...</translation>
     </message>
     <message>
-        <location filename="../GUI/effectactions.cpp" line="38"/>
+        <location filename="../GUI/effectactions.cpp" line="41"/>
         <source>Quick Search Effects (AE: FX Console)</source>
         <translation>快速搜索特效（AE：FX 控制台）</translation>
     </message>
     <message>
-        <location filename="../GUI/effectactions.cpp" line="45"/>
+        <location filename="../GUI/effectactions.cpp" line="53"/>
         <source>General</source>
         <translation>常规</translation>
     </message>
     <message>
-        <location filename="../GUI/effectactions.cpp" line="70"/>
+        <location filename="../GUI/effectactions.cpp" line="78"/>
         <source>Custom</source>
         <translation>自定义</translation>
     </message>
     <message>
-        <location filename="../GUI/effectactions.cpp" line="83"/>
+        <location filename="../GUI/effectactions.cpp" line="91"/>
         <source>Shader</source>
         <translation>着色器</translation>
     </message>
     <message>
-        <location filename="../GUI/effectactions.cpp" line="105"/>
+        <location filename="../GUI/effectactions.cpp" line="113"/>
         <source> (Path Effect)</source>
         <translation>（路径特效）</translation>
     </message>
     <message>
-        <location filename="../GUI/effectactions.cpp" line="113"/>
+        <location filename="../GUI/effectactions.cpp" line="121"/>
         <source> (Fill Effect)</source>
         <translation>（填充特效）</translation>
     </message>
     <message>
-        <location filename="../GUI/effectactions.cpp" line="121"/>
+        <location filename="../GUI/effectactions.cpp" line="129"/>
         <source> (Outline Base Effect)</source>
         <translation>（描边基础特效）</translation>
     </message>
     <message>
-        <location filename="../GUI/effectactions.cpp" line="129"/>
+        <location filename="../GUI/effectactions.cpp" line="137"/>
         <source> (Outline Effect)</source>
         <translation>（描边特效）</translation>
     </message>
     <message>
-        <location filename="../GUI/effectactions.cpp" line="157"/>
+        <location filename="../GUI/effectactions.cpp" line="165"/>
         <source>Transform Effects</source>
         <translation>变换特效</translation>
     </message>
     <message>
-        <location filename="../GUI/effectactions.cpp" line="162"/>
+        <location filename="../GUI/effectactions.cpp" line="170"/>
         <source> (Transform Effect)</source>
         <translation>（变换特效）</translation>
     </message>
     <message>
-        <location filename="../GUI/effectactions.cpp" line="141"/>
+        <location filename="../GUI/effectactions.cpp" line="184"/>
+        <location filename="../GUI/effectactions.cpp" line="200"/>
+        <location filename="../GUI/effectactions.cpp" line="213"/>
+        <location filename="../GUI/effectactions.cpp" line="226"/>
+        <source>请先选中一个图层</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/effectactions.cpp" line="149"/>
         <source>Blend Effects</source>
         <translation>混合特效</translation>
     </message>
     <message>
-        <location filename="../GUI/effectactions.cpp" line="146"/>
+        <location filename="../GUI/effectactions.cpp" line="154"/>
         <source> (Blend Effect)</source>
         <translation>（混合特效）</translation>
     </message>
@@ -4903,9 +5452,9 @@ Added layers: %3</source>
         <translation type="vanished">栅格效果</translation>
     </message>
     <message>
-        <location filename="../GUI/effectactions.cpp" line="59"/>
-        <location filename="../GUI/effectactions.cpp" line="72"/>
-        <location filename="../GUI/effectactions.cpp" line="85"/>
+        <location filename="../GUI/effectactions.cpp" line="67"/>
+        <location filename="../GUI/effectactions.cpp" line="80"/>
+        <location filename="../GUI/effectactions.cpp" line="93"/>
         <source> (Raster Effect)</source>
         <translation>（光栅特效）</translation>
     </message>
@@ -4986,7 +5535,7 @@ Added layers: %3</source>
     </message>
     <message>
         <location filename="../GUI/extraactions.cpp" line="79"/>
-        <location filename="../GUI/menu.cpp" line="1067"/>
+        <location filename="../GUI/menu.cpp" line="1091"/>
         <source>Clear Markers</source>
         <translation>清除标记</translation>
     </message>
@@ -5028,7 +5577,7 @@ Added layers: %3</source>
     </message>
     <message>
         <location filename="../GUI/extraactions.cpp" line="132"/>
-        <location filename="../GUI/menu.cpp" line="1054"/>
+        <location filename="../GUI/menu.cpp" line="1078"/>
         <source>Clear In/Out</source>
         <translation>清除入点/出点</translation>
     </message>
@@ -5148,137 +5697,137 @@ Added layers: %3</source>
         <translation>已锁定</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="454"/>
+        <location filename="../GUI/mainwindow.cpp" line="554"/>
         <source>Auto Save canceled</source>
         <translation>自动保存已取消</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="455"/>
+        <location filename="../GUI/mainwindow.cpp" line="555"/>
         <source>Auto Save is not allowed to break project format compatibility (%1 vs. %2). Please save the project to confirm project format changes.</source>
         <translation>自动保存不允许破坏项目格式兼容性（%1 对 %2）。请手动保存项目以确认项目格式更改。</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="474"/>
+        <location filename="../GUI/mainwindow.cpp" line="574"/>
         <source>About</source>
         <translation>关于</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="491"/>
-        <location filename="../GUI/mainwindow.cpp" line="1580"/>
+        <location filename="../GUI/mainwindow.cpp" line="591"/>
+        <location filename="../GUI/mainwindow.cpp" line="1736"/>
         <source>Timeline</source>
         <translation>时间轴</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="535"/>
+        <location filename="../GUI/mainwindow.cpp" line="683"/>
         <source>Renderer</source>
         <translation>渲染器</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="557"/>
-        <location filename="../GUI/mainwindow.cpp" line="1532"/>
+        <location filename="../GUI/mainwindow.cpp" line="705"/>
+        <location filename="../GUI/mainwindow.cpp" line="1688"/>
         <source>Queue</source>
         <translation>队列</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="569"/>
+        <location filename="../GUI/mainwindow.cpp" line="717"/>
         <source>Restore default fill and stroke?</source>
         <translation>恢复默认填充和描边？</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="570"/>
+        <location filename="../GUI/mainwindow.cpp" line="718"/>
         <source>Are you sure you want to restore fill and stroke defaults?</source>
         <translation>确定要恢复默认填充和描边设置吗？</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="584"/>
+        <location filename="../GUI/mainwindow.cpp" line="732"/>
         <source>Restore default user interface?</source>
         <translation>恢复默认用户界面？</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="585"/>
+        <location filename="../GUI/mainwindow.cpp" line="733"/>
         <source>Are you sure you want to restore default user interface? You must restart Friction to apply.</source>
         <translation>确定要恢复默认用户界面吗？需重启 Friction 后生效。</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="594"/>
+        <location filename="../GUI/mainwindow.cpp" line="742"/>
         <source>Run Quick Setup on startup?</source>
         <translation>启动时运行快速设置？</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="595"/>
+        <location filename="../GUI/mainwindow.cpp" line="743"/>
         <source>Are you sure you want to run Quick Setup the next time you start Friction?</source>
         <translation>确定下次启动 Friction 时运行快速设置吗？</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="809"/>
+        <location filename="../GUI/mainwindow.cpp" line="957"/>
         <source>Toolbar</source>
         <translation>工具栏</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="833"/>
+        <location filename="../GUI/mainwindow.cpp" line="981"/>
         <source>Layout</source>
         <translation>布局</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="847"/>
+        <location filename="../GUI/mainwindow.cpp" line="995"/>
         <source>Changed audio output: %1</source>
         <translation>已更改音频输出：%1</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="974"/>
+        <location filename="../GUI/mainwindow.cpp" line="1122"/>
         <source>Save</source>
         <comment>AskSaveDialog_Title</comment>
         <translation>保存</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="977"/>
-        <location filename="../GUI/mainwindow.cpp" line="1726"/>
+        <location filename="../GUI/mainwindow.cpp" line="1125"/>
+        <location filename="../GUI/mainwindow.cpp" line="1896"/>
         <source>Untitled</source>
         <translation>未命名</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="979"/>
+        <location filename="../GUI/mainwindow.cpp" line="1127"/>
         <source>Save changes to document &quot;%1&quot;?</source>
         <comment>AskSaveDialog_Question</comment>
         <translation>保存对文档“%1”的更改吗？</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="982"/>
+        <location filename="../GUI/mainwindow.cpp" line="1130"/>
         <source>Close without saving</source>
         <comment>AskSaveDialog_Button</comment>
         <translation>不保存并关闭</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="984"/>
+        <location filename="../GUI/mainwindow.cpp" line="1132"/>
         <source>Cancel</source>
         <comment>AskSaveDialog_Button</comment>
         <translation>取消</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="985"/>
+        <location filename="../GUI/mainwindow.cpp" line="1133"/>
         <source>Save</source>
         <comment>AskSaveDialog_Button</comment>
         <translation>保存</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="1038"/>
+        <location filename="../GUI/mainwindow.cpp" line="1186"/>
         <location filename="../GUI/menu.cpp" line="55"/>
         <source>New Project</source>
         <translation>新建项目</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="1039"/>
+        <location filename="../GUI/mainwindow.cpp" line="1187"/>
         <source>Are you sure you want to create a new project?</source>
         <translation>确定要新建项目吗？</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="1425"/>
+        <location filename="../GUI/mainwindow.cpp" line="1581"/>
         <source>Sammie Roto AI 抠像…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="1522"/>
-        <location filename="../GUI/mainwindow.cpp" line="1584"/>
+        <location filename="../GUI/mainwindow.cpp" line="1678"/>
+        <location filename="../GUI/mainwindow.cpp" line="1740"/>
         <source>Properties</source>
         <translation>属性</translation>
     </message>
@@ -5291,64 +5840,64 @@ Added layers: %3</source>
         <translation type="vanished">查看器</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="1582"/>
+        <location filename="../GUI/mainwindow.cpp" line="1738"/>
         <source>Fill and Stroke</source>
         <translation>填充和描边</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="1601"/>
+        <location filename="../GUI/mainwindow.cpp" line="1757"/>
         <source>Project</source>
         <translation>项目</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="1404"/>
+        <location filename="../GUI/mainwindow.cpp" line="1561"/>
         <source>Panels</source>
         <translation>面板</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="1594"/>
+        <location filename="../GUI/mainwindow.cpp" line="1750"/>
         <source>Easing Presets</source>
         <translation>缓动预设</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="1607"/>
+        <location filename="../GUI/mainwindow.cpp" line="1763"/>
         <source>Text Animation Presets</source>
         <translation>文字动画预设</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="1614"/>
+        <location filename="../GUI/mainwindow.cpp" line="1784"/>
         <source>切换图层</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="1729"/>
+        <location filename="../GUI/mainwindow.cpp" line="1899"/>
         <source>Save *</source>
         <translation>保存 *</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="1729"/>
+        <location filename="../GUI/mainwindow.cpp" line="1899"/>
         <source>Save</source>
         <translation>保存</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="1738"/>
+        <location filename="../GUI/mainwindow.cpp" line="1908"/>
         <source>Open File</source>
         <comment>OpenDialog_Title</comment>
         <translation>打开文件</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="1739"/>
+        <location filename="../GUI/mainwindow.cpp" line="1909"/>
         <source>Friction Files %1</source>
         <comment>OpenDialog_FileType</comment>
         <translation>Friction 文件 %1</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="1777"/>
+        <location filename="../GUI/mainwindow.cpp" line="1947"/>
         <source>Project version</source>
         <translation>项目版本</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="1778"/>
+        <location filename="../GUI/mainwindow.cpp" line="1948"/>
         <source>Saving this project file will change the project format from version %1 to version %2. This breaks compatibility with older versions of Friction.
 
 Are you sure you want to save this project file?</source>
@@ -5357,174 +5906,174 @@ Are you sure you want to save this project file?</source>
 确定要保存此项目文件吗？</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="1820"/>
+        <location filename="../GUI/mainwindow.cpp" line="1990"/>
         <source>Save File</source>
         <comment>SaveDialog_Title</comment>
         <translation>保存文件</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="1821"/>
+        <location filename="../GUI/mainwindow.cpp" line="1991"/>
         <source>Friction Files %1</source>
         <comment>SaveDialog_FileType</comment>
         <translation>Friction 文件 %1</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="1931"/>
+        <location filename="../GUI/mainwindow.cpp" line="2101"/>
         <source>Import File(s)</source>
         <comment>ImportDialog_Title</comment>
         <translation>导入文件</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="1932"/>
+        <location filename="../GUI/mainwindow.cpp" line="2102"/>
         <source>Files %1</source>
         <comment>ImportDialog_FileTypes</comment>
         <translation>文件 %1</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="1959"/>
+        <location filename="../GUI/mainwindow.cpp" line="2129"/>
         <source>Link File</source>
         <comment>LinkDialog_Title</comment>
         <translation>链接文件</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="1960"/>
+        <location filename="../GUI/mainwindow.cpp" line="2130"/>
         <source>Files %1</source>
         <comment>LinkDialog_FileType</comment>
         <translation>文件 %1</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="1983"/>
+        <location filename="../GUI/mainwindow.cpp" line="2153"/>
         <source>Import Image Sequence</source>
         <comment>ImportSequenceDialog_Title</comment>
         <translation>导入图像序列</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="2021"/>
-        <location filename="../GUI/mainwindow.cpp" line="2026"/>
-        <location filename="../GUI/mainwindow.cpp" line="2039"/>
-        <location filename="../GUI/mainwindow.cpp" line="2108"/>
-        <location filename="../GUI/mainwindow.cpp" line="2129"/>
+        <location filename="../GUI/mainwindow.cpp" line="2191"/>
+        <location filename="../GUI/mainwindow.cpp" line="2196"/>
+        <location filename="../GUI/mainwindow.cpp" line="2209"/>
+        <location filename="../GUI/mainwindow.cpp" line="2278"/>
+        <location filename="../GUI/mainwindow.cpp" line="2299"/>
         <source>矢量描摹</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="2022"/>
-        <location filename="../GUI/mainwindow.cpp" line="2142"/>
+        <location filename="../GUI/mainwindow.cpp" line="2192"/>
+        <location filename="../GUI/mainwindow.cpp" line="2312"/>
         <source>请先打开场景。</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="2027"/>
+        <location filename="../GUI/mainwindow.cpp" line="2197"/>
         <source>未找到 vtracer.dll，请确认它已随程序一起部署。</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="2040"/>
+        <location filename="../GUI/mainwindow.cpp" line="2210"/>
         <source>请先选中一个或多个位图图层再转绘。</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="2050"/>
+        <location filename="../GUI/mainwindow.cpp" line="2220"/>
         <source>正在转绘，请稍候...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="2070"/>
+        <location filename="../GUI/mainwindow.cpp" line="2240"/>
         <source>%1（无法读取图像）</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="2080"/>
+        <location filename="../GUI/mainwindow.cpp" line="2250"/>
         <source>%1（过于复杂：%2 条路径 &gt; 上限 %3）</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="2086"/>
+        <location filename="../GUI/mainwindow.cpp" line="2256"/>
         <source>%1（转绘失败：%2）</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="2099"/>
-        <location filename="../GUI/mainwindow.cpp" line="2103"/>
+        <location filename="../GUI/mainwindow.cpp" line="2269"/>
+        <location filename="../GUI/mainwindow.cpp" line="2273"/>
         <source>%1（导入结果失败）</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="2121"/>
+        <location filename="../GUI/mainwindow.cpp" line="2291"/>
         <source>描摹 - %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="2130"/>
+        <location filename="../GUI/mainwindow.cpp" line="2300"/>
         <source>以下 %1 项未转绘（矢量描摹适用于文字、Logo 与简单图形，插画与照片类图像不建议使用）：
 
 • %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="2141"/>
-        <location filename="../GUI/mainwindow.cpp" line="2152"/>
+        <location filename="../GUI/mainwindow.cpp" line="2311"/>
+        <location filename="../GUI/mainwindow.cpp" line="2322"/>
         <source>AI 深度估计</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="2153"/>
+        <location filename="../GUI/mainwindow.cpp" line="2323"/>
         <source>请先选中一个或多个图层（任意类型：组、矢量、位图均可）。</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="2172"/>
-        <location filename="../GUI/mainwindow.cpp" line="2245"/>
+        <location filename="../GUI/mainwindow.cpp" line="2342"/>
+        <location filename="../GUI/mainwindow.cpp" line="2415"/>
         <source>Sammie Roto</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="2174"/>
+        <location filename="../GUI/mainwindow.cpp" line="2344"/>
         <source>&lt;b&gt;未检测到 Sammie Roto。&lt;/b&gt;&lt;br/&gt;它是与 Friction 同一作者的独立 AI 抠像工具（分割 / 抠像精修 / 物体移除），需单独安装，无需编译：&lt;ol&gt;&lt;li&gt;点击「去官网下载」打开 GitHub 发布页&lt;/li&gt;&lt;li&gt;下载 Windows 压缩包并解压到任意可写位置&lt;/li&gt;&lt;li&gt;运行一次 install.bat 自动安装依赖&lt;/li&gt;&lt;li&gt;回到这里点击「浏览本地」选中 run_sammie.bat&lt;/li&gt;&lt;/ol&gt;安装完成后即可从 Friction 一键启动并自动传入视频。</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="2182"/>
+        <location filename="../GUI/mainwindow.cpp" line="2352"/>
         <source>去官网下载</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="2184"/>
+        <location filename="../GUI/mainwindow.cpp" line="2354"/>
         <source>浏览本地</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="2197"/>
+        <location filename="../GUI/mainwindow.cpp" line="2367"/>
         <source>选择 Sammie Roto 启动程序</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="2199"/>
+        <location filename="../GUI/mainwindow.cpp" line="2369"/>
         <source>Sammie 启动程序 (*.bat *.cmd *.exe)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="2241"/>
+        <location filename="../GUI/mainwindow.cpp" line="2411"/>
         <source>已启动 Sammie Roto</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="2242"/>
+        <location filename="../GUI/mainwindow.cpp" line="2412"/>
         <source>已启动 Sammie Roto（已传入视频 %1）</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="2246"/>
+        <location filename="../GUI/mainwindow.cpp" line="2416"/>
         <source>无法启动 Sammie Roto：%1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="2253"/>
+        <location filename="../GUI/mainwindow.cpp" line="2423"/>
         <source>Confirm revert</source>
         <translation>确认还原</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="2254"/>
+        <location filename="../GUI/mainwindow.cpp" line="2424"/>
         <source>Are you sure you want to revert current project?&lt;p&gt;&lt;b&gt;Any changes will be lost.&lt;/b&gt;&lt;/p&gt;</source>
         <translation>确定要还原当前项目吗？&lt;p&gt;&lt;b&gt;所有更改将丢失。&lt;/b&gt;&lt;/p&gt;</translation>
     </message>
@@ -5798,49 +6347,49 @@ Are you sure you want to save this project file?</source>
         <translation>视图</translation>
     </message>
     <message>
-        <location filename="../GUI/menu.cpp" line="862"/>
+        <location filename="../GUI/menu.cpp" line="869"/>
         <source>Workspace</source>
         <comment>MenuBar</comment>
         <translation>工作区</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="1382"/>
+        <location filename="../GUI/mainwindow.cpp" line="1539"/>
         <source>Reset to Default Layout</source>
         <translation>重置为默认布局</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="1384"/>
+        <location filename="../GUI/mainwindow.cpp" line="1541"/>
         <source>Save Current Workspace...</source>
         <translation>保存当前工作区...</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="1395"/>
+        <location filename="../GUI/mainwindow.cpp" line="1552"/>
         <source>Delete Workspace</source>
         <translation>删除工作区</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="1297"/>
+        <location filename="../GUI/mainwindow.cpp" line="1447"/>
         <source>Save Workspace</source>
         <translation>保存工作区</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="1298"/>
+        <location filename="../GUI/mainwindow.cpp" line="1448"/>
         <source>Workspace name:</source>
         <translation>工作区名称：</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="1308"/>
+        <location filename="../GUI/mainwindow.cpp" line="1458"/>
         <source>Overwrite Workspace</source>
         <translation>覆盖工作区</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="1309"/>
+        <location filename="../GUI/mainwindow.cpp" line="1459"/>
         <source>Workspace &apos;%1&apos; already exists. Overwrite it?</source>
         <translation>工作区“%1”已存在，是否覆盖？</translation>
     </message>
     <message>
         <location filename="../GUI/menu.cpp" line="352"/>
-        <location filename="../main.cpp" line="402"/>
+        <location filename="../main.cpp" line="407"/>
         <source>Object</source>
         <comment>MenuBar</comment>
         <translation>对象</translation>
@@ -5950,7 +6499,7 @@ Are you sure you want to save this project file?</source>
     </message>
     <message>
         <location filename="../GUI/menu.cpp" line="455"/>
-        <location filename="../main.cpp" line="400"/>
+        <location filename="../main.cpp" line="405"/>
         <source>Union</source>
         <comment>MenuBar_Path</comment>
         <translation>并集</translation>
@@ -5992,7 +6541,7 @@ Are you sure you want to save this project file?</source>
         <translation>分离</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="1528"/>
+        <location filename="../GUI/mainwindow.cpp" line="1684"/>
         <location filename="../GUI/menu.cpp" line="524"/>
         <source>Effects</source>
         <translation>效果</translation>
@@ -6120,131 +6669,131 @@ Are you sure you want to save this project file?</source>
         <translation>全屏</translation>
     </message>
     <message>
-        <location filename="../GUI/menu.cpp" line="729"/>
+        <location filename="../GUI/menu.cpp" line="739"/>
         <source>Top View Window</source>
         <translation>顶视图窗口</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="520"/>
+        <location filename="../GUI/mainwindow.cpp" line="632"/>
         <source>Top View</source>
         <translation>顶视图</translation>
     </message>
     <message>
-        <location filename="../GUI/menu.cpp" line="737"/>
+        <location filename="../GUI/menu.cpp" line="744"/>
         <source>View Timeline</source>
         <translation>显示时间轴</translation>
     </message>
     <message>
-        <location filename="../GUI/menu.cpp" line="755"/>
+        <location filename="../GUI/menu.cpp" line="762"/>
         <source>View Fill and Stroke</source>
         <translation>显示填充和描边</translation>
     </message>
     <message>
-        <location filename="../GUI/menu.cpp" line="767"/>
+        <location filename="../GUI/menu.cpp" line="774"/>
         <source>Timeline in Window</source>
         <translation>时间轴窗口</translation>
     </message>
     <message>
-        <location filename="../GUI/menu.cpp" line="776"/>
+        <location filename="../GUI/menu.cpp" line="783"/>
         <source>Queue in Window</source>
         <translation>队列窗口</translation>
     </message>
     <message>
-        <location filename="../GUI/menu.cpp" line="787"/>
+        <location filename="../GUI/menu.cpp" line="794"/>
         <source>Main Toolbar</source>
         <translation>主工具栏</translation>
     </message>
     <message>
-        <location filename="../GUI/menu.cpp" line="797"/>
+        <location filename="../GUI/menu.cpp" line="804"/>
         <source>Color Toolbar</source>
         <translation>颜色色工具栏</translation>
     </message>
     <message>
-        <location filename="../GUI/menu.cpp" line="812"/>
+        <location filename="../GUI/menu.cpp" line="819"/>
         <source>Help</source>
         <comment>MenuBar</comment>
         <translation>帮助</translation>
     </message>
     <message>
-        <location filename="../GUI/menu.cpp" line="815"/>
+        <location filename="../GUI/menu.cpp" line="822"/>
         <source>About</source>
         <comment>MenuBar_Help</comment>
         <translation>关于</translation>
     </message>
     <message>
-        <location filename="../GUI/menu.cpp" line="826"/>
+        <location filename="../GUI/menu.cpp" line="833"/>
         <source>Command Palette</source>
         <translation>命令面板</translation>
     </message>
     <message>
-        <location filename="../GUI/menu.cpp" line="835"/>
+        <location filename="../GUI/menu.cpp" line="842"/>
         <source>Website</source>
         <translation>官网</translation>
     </message>
     <message>
-        <location filename="../GUI/menu.cpp" line="840"/>
+        <location filename="../GUI/menu.cpp" line="847"/>
         <source>Documentation</source>
         <translation>文档</translation>
     </message>
     <message>
-        <location filename="../GUI/menu.cpp" line="848"/>
+        <location filename="../GUI/menu.cpp" line="855"/>
         <source>Install default presets</source>
         <translation>安装默认预设</translation>
     </message>
     <message>
-        <location filename="../GUI/menu.cpp" line="851"/>
+        <location filename="../GUI/menu.cpp" line="858"/>
         <source>Restore default fill and stroke</source>
         <translation>恢复默认填充和描边</translation>
     </message>
     <message>
-        <location filename="../GUI/menu.cpp" line="854"/>
+        <location filename="../GUI/menu.cpp" line="861"/>
         <source>Restore default user interface</source>
         <translation>恢复默认用户界面</translation>
     </message>
     <message>
-        <location filename="../GUI/menu.cpp" line="857"/>
+        <location filename="../GUI/menu.cpp" line="864"/>
         <source>Run Quick Setup on startup</source>
         <translation>启动时运行快速设置</translation>
     </message>
     <message>
-        <location filename="../GUI/menu.cpp" line="891"/>
+        <location filename="../GUI/menu.cpp" line="898"/>
         <source>Render</source>
         <translation>渲染</translation>
     </message>
     <message>
-        <location filename="../GUI/menu.cpp" line="906"/>
+        <location filename="../GUI/menu.cpp" line="913"/>
         <source>Unlock all toolbars</source>
         <translation>解锁所有工具栏</translation>
     </message>
     <message>
-        <location filename="../GUI/menu.cpp" line="916"/>
+        <location filename="../GUI/menu.cpp" line="923"/>
         <source>Lock all toolbars</source>
         <translation>锁定所有工具栏</translation>
     </message>
     <message>
-        <location filename="../GUI/menu.cpp" line="928"/>
+        <location filename="../GUI/menu.cpp" line="935"/>
         <source>矢量描摹</source>
         <comment>MenuBar</comment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/menu.cpp" line="931"/>
+        <location filename="../GUI/menu.cpp" line="938"/>
         <source>转绘选中图像...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/menu.cpp" line="936"/>
-        <location filename="../GUI/menu.cpp" line="962"/>
+        <location filename="../GUI/menu.cpp" line="943"/>
+        <location filename="../GUI/menu.cpp" line="969"/>
         <source>使用说明</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/menu.cpp" line="939"/>
+        <location filename="../GUI/menu.cpp" line="946"/>
         <source>矢量描摹 使用说明</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/menu.cpp" line="940"/>
+        <location filename="../GUI/menu.cpp" line="947"/>
         <source>矢量描摹（基于开源库 vtracer）
 
 把选中的位图图层转绘为可编辑的矢量路径图层：
@@ -6258,23 +6807,23 @@ Are you sure you want to save this project file?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/menu.cpp" line="953"/>
+        <location filename="../GUI/menu.cpp" line="960"/>
         <source>AI 工具</source>
         <comment>MenuBar</comment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/menu.cpp" line="956"/>
+        <location filename="../GUI/menu.cpp" line="963"/>
         <source>深度估计...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/menu.cpp" line="965"/>
+        <location filename="../GUI/menu.cpp" line="972"/>
         <source>AI 深度估计 使用说明</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/menu.cpp" line="966"/>
+        <location filename="../GUI/menu.cpp" line="973"/>
         <source>AI 深度估计（基于 Depth Anything V2，本机离线推理）
 
 为选中的图层生成单目深度图，结果作为新图片图层叠放在源图层位置：
@@ -6288,76 +6837,78 @@ Are you sure you want to save this project file?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/menu.cpp" line="1010"/>
+        <location filename="../GUI/menu.cpp" line="1017"/>
         <source>Scene</source>
         <comment>MenuBar</comment>
         <translation>场景</translation>
     </message>
     <message>
-        <location filename="../GUI/menu.cpp" line="873"/>
-        <location filename="../GUI/menu.cpp" line="1013"/>
+        <location filename="../GUI/menu.cpp" line="880"/>
+        <location filename="../GUI/menu.cpp" line="1020"/>
         <source>New Scene</source>
         <comment>MenuBar_Scene</comment>
         <translation>新建场景</translation>
     </message>
     <message>
-        <location filename="../GUI/menu.cpp" line="982"/>
+        <location filename="../GUI/menu.cpp" line="989"/>
         <source>Restart AI / MCP Server</source>
         <translation>重启 AI / MCP 服务</translation>
     </message>
     <message>
-        <location filename="../GUI/menu.cpp" line="994"/>
+        <location filename="../GUI/menu.cpp" line="1001"/>
         <source>AI Server restarted (%1)</source>
         <translation>AI 服务已重启 (%1)</translation>
     </message>
     <message>
-        <location filename="../GUI/menu.cpp" line="999"/>
+        <location filename="../GUI/menu.cpp" line="1006"/>
         <source>AI / MCP Agent Settings...</source>
         <translation>AI / MCP 智能体设置...</translation>
     </message>
     <message>
-        <location filename="../GUI/menu.cpp" line="1020"/>
+        <location filename="../GUI/menu.cpp" line="1027"/>
         <source>Delete Scene</source>
         <comment>MenuBar_Scene</comment>
         <translation>删除场景</translation>
     </message>
     <message>
-        <location filename="../GUI/menu.cpp" line="1025"/>
+        <location filename="../GUI/menu.cpp" line="1032"/>
         <source>Scene Properties</source>
         <comment>MenuBar_Scene</comment>
         <translation>场景属性</translation>
     </message>
     <message>
-        <location filename="../GUI/menu.cpp" line="1032"/>
+        <location filename="../GUI/menu.cpp" line="1039"/>
         <source>Add to Render Queue</source>
         <comment>MenuBar_Scene</comment>
         <translation>添加到渲染队列</translation>
     </message>
     <message>
-        <location filename="../GUI/menu.cpp" line="1042"/>
+        <location filename="../GUI/menu.cpp" line="1049"/>
         <source>Set In</source>
         <translation>设置入点</translation>
     </message>
     <message>
-        <location filename="../GUI/menu.cpp" line="1048"/>
+        <location filename="../GUI/menu.cpp" line="1065"/>
         <source>Set Out</source>
         <translation>设置出点</translation>
     </message>
     <message>
+        <location filename="../GUI/menu.cpp" line="1059"/>
         <source>In point must be before the out point</source>
         <translation>入点必须在出点之前</translation>
     </message>
     <message>
+        <location filename="../GUI/menu.cpp" line="1072"/>
         <source>Out point must be after the in point</source>
         <translation>出点必须在入点之后</translation>
     </message>
     <message>
-        <location filename="../GUI/menu.cpp" line="1061"/>
+        <location filename="../GUI/menu.cpp" line="1085"/>
         <source>Add Marker</source>
         <translation>添加标记</translation>
     </message>
     <message>
-        <location filename="../GUI/menu.cpp" line="1073"/>
+        <location filename="../GUI/menu.cpp" line="1097"/>
         <source>Edit Markers</source>
         <translation>编辑标记</translation>
     </message>
@@ -6374,38 +6925,38 @@ Are you sure you want to save this project file?</source>
         <translation type="vanished">按键</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="617"/>
-        <location filename="../GUI/mainwindow.cpp" line="645"/>
+        <location filename="../GUI/mainwindow.cpp" line="765"/>
+        <location filename="../GUI/mainwindow.cpp" line="793"/>
         <source>Debug Log</source>
         <translation>调试日志</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="665"/>
+        <location filename="../GUI/mainwindow.cpp" line="813"/>
         <source>Copy Log</source>
         <translation>复制日志</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="666"/>
+        <location filename="../GUI/mainwindow.cpp" line="814"/>
         <source>Clear Log</source>
         <translation>清除日志</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="667"/>
+        <location filename="../GUI/mainwindow.cpp" line="815"/>
         <source>Close</source>
         <translation>关闭</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="673"/>
+        <location filename="../GUI/mainwindow.cpp" line="821"/>
         <source>Copied</source>
         <translation>已复制</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="653"/>
+        <location filename="../GUI/mainwindow.cpp" line="801"/>
         <source>Log file: %1</source>
         <translation>日志文件: %1</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="656"/>
+        <location filename="../GUI/mainwindow.cpp" line="804"/>
         <source>Even if the window freezes, this file can be opened in Notepad to read the log</source>
         <translation>即使窗口卡死，也可用记事本打开此文件查看日志</translation>
     </message>
@@ -6416,24 +6967,24 @@ Are you sure you want to save this project file?</source>
         <translation>导入 OCA</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="2000"/>
+        <location filename="../GUI/mainwindow.cpp" line="2170"/>
         <source>Select OCA Manifest</source>
         <comment>ImportOCADialog_Title</comment>
         <translation>选择 OCA 清单文件</translation>
     </message>
     <message>
-        <location filename="../GUI/mainwindow.cpp" line="2001"/>
+        <location filename="../GUI/mainwindow.cpp" line="2171"/>
         <source>OCA manifest %1</source>
         <comment>ImportOCADialog_FileTypes</comment>
         <translation>OCA 清单 %1</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="401"/>
+        <location filename="../main.cpp" line="406"/>
         <source>Union</source>
         <translation type="unfinished">并集</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="403"/>
+        <location filename="../main.cpp" line="408"/>
         <source>Object</source>
         <translation type="unfinished">对象</translation>
     </message>
@@ -6494,12 +7045,12 @@ Are you sure you want to save this project file?</source>
         <translation>选择输出配置</translation>
     </message>
     <message>
-        <location filename="../GUI/RenderWidgets/renderinstancewidget.cpp" line="518"/>
+        <location filename="../GUI/RenderWidgets/renderinstancewidget.cpp" line="519"/>
         <source>No profiles</source>
         <translation>暂无配置</translation>
     </message>
     <message>
-        <location filename="../GUI/RenderWidgets/renderinstancewidget.cpp" line="523"/>
+        <location filename="../GUI/RenderWidgets/renderinstancewidget.cpp" line="524"/>
         <source>Edit...</source>
         <translation>编辑...</translation>
     </message>
@@ -6513,217 +7064,352 @@ Are you sure you want to save this project file?</source>
     </message>
     <message>
         <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="126"/>
-        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="519"/>
+        <source>预设</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="128"/>
+        <source>按用途快速选择输出组合，选好后仍可在下方微调各项参数</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="133"/>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="559"/>
         <source>Format</source>
         <translation>格式</translation>
     </message>
     <message>
-        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="131"/>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="138"/>
         <source>Video</source>
         <translation>视频</translation>
     </message>
     <message>
-        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="136"/>
-        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="162"/>
-        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="520"/>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="143"/>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="169"/>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="560"/>
         <source>Codec</source>
         <translation>编码器</translation>
     </message>
     <message>
-        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="137"/>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="144"/>
         <source>Pixel format</source>
         <translation>像素格式</translation>
     </message>
     <message>
-        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="138"/>
-        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="165"/>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="145"/>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="172"/>
         <source>Bitrate</source>
         <translation>码率</translation>
     </message>
     <message>
-        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="146"/>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="153"/>
         <source>Profile</source>
         <translation>配置</translation>
     </message>
     <message>
-        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="158"/>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="165"/>
         <source>Audio</source>
         <translation>音频</translation>
     </message>
     <message>
-        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="163"/>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="170"/>
         <source>Sample rate</source>
         <translation>采样率</translation>
     </message>
     <message>
-        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="164"/>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="171"/>
         <source>Sample format</source>
         <translation>采样格式</translation>
     </message>
     <message>
-        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="166"/>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="173"/>
         <source>Channels</source>
         <translation>声道</translation>
     </message>
     <message>
-        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="186"/>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="193"/>
         <source>Show all formats and codecs</source>
         <translation>显示所有格式和编码器</translation>
     </message>
     <message>
-        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="203"/>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="210"/>
         <source>Ok</source>
         <translation>确定</translation>
     </message>
     <message>
-        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="204"/>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="211"/>
         <source>Cancel</source>
         <translation>取消</translation>
     </message>
     <message>
-        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="205"/>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="212"/>
         <source>Reset</source>
         <translation>重置</translation>
     </message>
     <message>
-        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="424"/>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="464"/>
         <source>Type</source>
         <translation>类型</translation>
     </message>
     <message>
-        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="425"/>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="465"/>
         <source>Key</source>
         <translation>键</translation>
     </message>
     <message>
-        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="426"/>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="466"/>
         <source>Value</source>
         <translation>值</translation>
     </message>
     <message>
-        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="477"/>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="517"/>
         <source>Advanced Options</source>
         <translation>高级选项</translation>
     </message>
     <message>
-        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="518"/>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="558"/>
         <source>Meta</source>
         <translation>元数据</translation>
     </message>
     <message>
-        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="731"/>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="771"/>
         <source>Default</source>
         <translation>默认</translation>
     </message>
     <message>
-        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="740"/>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="780"/>
         <source>Baseline</source>
         <translation>Baseline</translation>
     </message>
     <message>
-        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="741"/>
-        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="753"/>
-        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="766"/>
-        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="770"/>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="781"/>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="793"/>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="806"/>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="810"/>
         <source>Main</source>
         <translation>Main</translation>
     </message>
     <message>
-        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="742"/>
-        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="754"/>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="782"/>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="794"/>
         <source>High</source>
         <translation>High</translation>
     </message>
     <message>
-        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="745"/>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="785"/>
         <source>Proxy</source>
         <translation>Proxy</translation>
     </message>
     <message>
-        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="746"/>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="786"/>
         <source>LT</source>
         <translation>LT</translation>
     </message>
     <message>
-        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="747"/>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="787"/>
         <source>Standard</source>
         <translation>Standard</translation>
     </message>
     <message>
-        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="748"/>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="788"/>
         <source>HQ</source>
         <translation>HQ</translation>
     </message>
     <message>
-        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="749"/>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="789"/>
         <source>4444</source>
         <translation>4444</translation>
     </message>
     <message>
-        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="750"/>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="790"/>
         <source>XQ</source>
         <translation>XQ</translation>
     </message>
     <message>
-        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="755"/>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="795"/>
         <source>Professional</source>
         <translation>Professional</translation>
     </message>
     <message>
-        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="758"/>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="798"/>
         <source>0</source>
         <translation>0</translation>
     </message>
     <message>
-        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="759"/>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="799"/>
         <source>1</source>
         <translation>1</translation>
     </message>
     <message>
-        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="760"/>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="800"/>
         <source>2</source>
         <translation>2</translation>
     </message>
     <message>
-        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="761"/>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="801"/>
         <source>3</source>
         <translation>3</translation>
     </message>
     <message>
-        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="764"/>
-        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="769"/>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="804"/>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="809"/>
         <source>Simple</source>
         <translation>Simple</translation>
     </message>
     <message>
-        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="765"/>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="805"/>
         <source>Core</source>
         <translation>Core</translation>
     </message>
     <message>
-        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="771"/>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="811"/>
         <source>Complex</source>
         <translation>Complex</translation>
     </message>
     <message>
-        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="772"/>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="812"/>
         <source>Advanced</source>
         <translation>Advanced</translation>
     </message>
     <message>
-        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="788"/>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="828"/>
         <source>Loseless</source>
         <translation>无损</translation>
     </message>
     <message>
-        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="859"/>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="899"/>
         <source>Mono</source>
         <translation>单声道</translation>
     </message>
     <message>
-        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="860"/>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="900"/>
         <source>Stereo</source>
         <translation>立体声</translation>
+    </message>
+    <message>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="1064"/>
+        <source>流媒体 · MP4（H.264 标准画质）</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="1065"/>
+        <source>兼容性最好，适合B站/抖音/YouTube 等几乎全部平台</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="1068"/>
+        <source>流媒体 · MP4（H.264 高画质）</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="1069"/>
+        <source>高码率成片交付，适合 1080P 及以上</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="1072"/>
+        <source>流媒体 · MP4（H.265 高压缩）</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="1073"/>
+        <source>同画质体积约小一半；部分旧设备或平台不支持</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="1076"/>
+        <source>流媒体 · WebM（VP9）</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="1077"/>
+        <source>开源编码组合，YouTube 与网页场景常用</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="1080"/>
+        <source>流媒体 · WebM（AV1）</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="1081"/>
+        <source>压缩率最高，编码较慢；需本机带有 AV1 编码器</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="1085"/>
+        <source>制作 · MOV（ProRes 422）</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="1086"/>
+        <source>高质量中间格式，导入 Premiere/达芬奇等剪辑软件</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="1089"/>
+        <source>序列帧 · PNG（无损透明）</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="1090"/>
+        <source>逐帧无损输出并保留透明通道，供后期合成</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="1093"/>
+        <source>动图 · GIF（循环动画）</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="1094"/>
+        <source>网页/聊天动图，无声音且颜色数有限</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="1098"/>
+        <source>音频 · WAV（PCM 16bit）</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="1099"/>
+        <source>无压缩标准音频，通用性最好</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="1102"/>
+        <source>音频 · WAV（PCM 24bit）</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="1103"/>
+        <source>后期混音与母版处理常用</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="1106"/>
+        <source>音频 · MP3（320kbps）</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="1107"/>
+        <source>通用有损音频，适合分发</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="1110"/>
+        <source>音频 · FLAC（无损压缩）</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="1111"/>
+        <source>无损压缩，体积约为 WAV 的一半</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/RenderWidgets/outputsettingsdialog.cpp" line="1115"/>
+        <source>自定义</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -7058,49 +7744,133 @@ Are you sure you want to save this project file?</source>
 <context>
     <name>ProjectPanel</name>
     <message>
-        <location filename="../GUI/projectpanel.cpp" line="238"/>
         <source>Missing</source>
-        <translation>Missing</translation>
+        <translation type="vanished">Missing</translation>
     </message>
     <message>
-        <location filename="../GUI/projectpanel.cpp" line="406"/>
         <source>Open</source>
-        <translation>Open</translation>
+        <translation type="vanished">Open</translation>
     </message>
     <message>
-        <location filename="../GUI/projectpanel.cpp" line="411"/>
         <source>Reveal in Folder</source>
-        <translation>Reveal in Folder</translation>
+        <translation type="vanished">Reveal in Folder</translation>
     </message>
     <message>
-        <location filename="../GUI/projectpanel.cpp" line="135"/>
         <source>Scene</source>
-        <translation>场景</translation>
+        <translation type="vanished">场景</translation>
     </message>
     <message>
-        <location filename="../GUI/projectpanel.cpp" line="135"/>
         <source>Info</source>
-        <translation>信息</translation>
+        <translation type="vanished">信息</translation>
     </message>
     <message>
-        <location filename="../GUI/projectpanel.cpp" line="378"/>
         <source>New Scene</source>
-        <translation>新建场景</translation>
+        <translation type="vanished">新建场景</translation>
     </message>
     <message>
-        <location filename="../GUI/projectpanel.cpp" line="387"/>
         <source>Open Scene</source>
-        <translation>打开场景</translation>
+        <translation type="vanished">打开场景</translation>
     </message>
     <message>
-        <location filename="../GUI/projectpanel.cpp" line="392"/>
         <source>Link to Active Canvas</source>
-        <translation>链接到当前画布</translation>
+        <translation type="vanished">链接到当前画布</translation>
     </message>
     <message>
-        <location filename="../GUI/projectpanel.cpp" line="397"/>
         <source>Scene Properties...</source>
-        <translation>场景属性...</translation>
+        <translation type="vanished">场景属性...</translation>
+    </message>
+    <message>
+        <location filename="../GUI/projectpanel.cpp" line="254"/>
+        <source>场景</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/projectpanel.cpp" line="254"/>
+        <source>信息</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/projectpanel.cpp" line="370"/>
+        <source>文件丢失</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/projectpanel.cpp" line="577"/>
+        <source>新建场景</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/projectpanel.cpp" line="582"/>
+        <location filename="../GUI/projectpanel.cpp" line="586"/>
+        <source>新建文件夹</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/projectpanel.cpp" line="586"/>
+        <location filename="../GUI/projectpanel.cpp" line="602"/>
+        <source>名称：</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/projectpanel.cpp" line="587"/>
+        <source>文件夹</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/projectpanel.cpp" line="597"/>
+        <location filename="../GUI/projectpanel.cpp" line="602"/>
+        <source>重命名文件夹</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/projectpanel.cpp" line="611"/>
+        <source>删除文件夹</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/projectpanel.cpp" line="625"/>
+        <source>移动到文件夹</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/projectpanel.cpp" line="647"/>
+        <source>（移出文件夹）</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/projectpanel.cpp" line="659"/>
+        <source>先在空白处右键新建文件夹</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/projectpanel.cpp" line="667"/>
+        <source>打开场景</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/projectpanel.cpp" line="672"/>
+        <source>链接到当前画布</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/projectpanel.cpp" line="677"/>
+        <source>场景属性...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/projectpanel.cpp" line="686"/>
+        <source>打开</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/projectpanel.cpp" line="691"/>
+        <source>在文件夹中显示</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/projectpanel.cpp" line="793"/>
+        <source>%1 项</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -7129,76 +7899,76 @@ Are you sure you want to save this project file?</source>
 <context>
     <name>PsdImageBox</name>
     <message>
-        <location filename="../../core/Psd/psdimagebox.cpp" line="211"/>
+        <location filename="../../core/Psd/psdimagebox.cpp" line="238"/>
         <source>Update Layer from Source PSD</source>
         <translation>从源 PSD 更新此图层</translation>
     </message>
     <message>
-        <location filename="../../core/Psd/psdimagebox.cpp" line="222"/>
+        <location filename="../../core/Psd/psdimagebox.cpp" line="249"/>
         <source>Sync All Layers from Source PSD</source>
         <translation>从源 PSD 同步所有图层</translation>
     </message>
     <message>
-        <location filename="../../core/Psd/psdimagebox.cpp" line="265"/>
-        <location filename="../../core/Psd/psdimagebox.cpp" line="297"/>
-        <location filename="../../core/Psd/psdimagebox.cpp" line="300"/>
+        <location filename="../../core/Psd/psdimagebox.cpp" line="293"/>
+        <location filename="../../core/Psd/psdimagebox.cpp" line="327"/>
+        <location filename="../../core/Psd/psdimagebox.cpp" line="330"/>
         <source>PSD Update</source>
         <translation>PSD 更新</translation>
     </message>
     <message>
-        <location filename="../../core/Psd/psdimagebox.cpp" line="266"/>
+        <location filename="../../core/Psd/psdimagebox.cpp" line="294"/>
         <source>Layer no longer exists in the source PSD.
 It is kept (marked as missing) with all animation data.</source>
         <translation>该图层在源 PSD 中已不存在。
 图层将保留（标记为缺失）及其全部动画数据。</translation>
     </message>
     <message>
-        <location filename="../../core/Psd/psdimagebox.cpp" line="298"/>
+        <location filename="../../core/Psd/psdimagebox.cpp" line="328"/>
         <source>Layer updated from source PSD.</source>
         <translation>图层已从源 PSD 更新。</translation>
     </message>
     <message>
-        <location filename="../../core/Psd/psdimagebox.cpp" line="301"/>
+        <location filename="../../core/Psd/psdimagebox.cpp" line="331"/>
         <source>Layer pixels unchanged.</source>
         <translation>图层像素无变化。</translation>
     </message>
     <message>
-        <location filename="../../core/Psd/psdimagebox.cpp" line="318"/>
-        <location filename="../../core/Psd/psdimagebox.cpp" line="327"/>
-        <location filename="../../core/Psd/psdimagebox.cpp" line="434"/>
-        <location filename="../../core/Psd/psdimagebox.cpp" line="455"/>
-        <location filename="../../core/Psd/psdimagebox.cpp" line="458"/>
+        <location filename="../../core/Psd/psdimagebox.cpp" line="349"/>
+        <location filename="../../core/Psd/psdimagebox.cpp" line="358"/>
+        <location filename="../../core/Psd/psdimagebox.cpp" line="468"/>
+        <location filename="../../core/Psd/psdimagebox.cpp" line="489"/>
+        <location filename="../../core/Psd/psdimagebox.cpp" line="492"/>
         <source>PSD Sync</source>
         <translation>PSD 同步</translation>
     </message>
     <message>
-        <location filename="../../core/Psd/psdimagebox.cpp" line="319"/>
+        <location filename="../../core/Psd/psdimagebox.cpp" line="350"/>
         <source>Source PSD is missing:
 %1</source>
         <translation>源 PSD 缺失：
 %1</translation>
     </message>
     <message>
-        <location filename="../../core/Psd/psdimagebox.cpp" line="328"/>
+        <location filename="../../core/Psd/psdimagebox.cpp" line="359"/>
         <source>Failed to parse source PSD:
 %1</source>
         <translation>解析源 PSD 失败：
 %1</translation>
     </message>
     <message>
-        <location filename="../../core/Psd/psdimagebox.cpp" line="435"/>
+        <location filename="../../core/Psd/psdimagebox.cpp" line="469"/>
         <source>Failed to write package:
 %1</source>
         <translation>写入包失败：
 %1</translation>
     </message>
     <message>
-        <location filename="../../core/Psd/psdimagebox.cpp" line="456"/>
+        <location filename="../../core/Psd/psdimagebox.cpp" line="490"/>
         <source>All layers are up to date.</source>
         <translation>所有图层均为最新。</translation>
     </message>
     <message>
-        <location filename="../../core/Psd/psdimagebox.cpp" line="459"/>
+        <location filename="../../core/Psd/psdimagebox.cpp" line="493"/>
         <source>Updated layers: %1
 Missing layers: %2
 Added layers: %3</source>
@@ -7207,51 +7977,6 @@ Added layers: %3</source>
 新增图层：%3</translation>
     </message>
 </context>
-
-    <context>
-    <name>KraImageBox</name>
-    <message>
-        <source>Layer pixels unchanged.</source>
-        <translation>图层像素无变化。</translation>
-    </message>
-    <message>
-        <source>All layers are up to date.</source>
-        <translation>所有图层均为最新。</translation>
-    </message>
-    <message>
-        <source>Update Layer from Source KRA</source>
-        <translation>从源 KRA 更新此图层</translation>
-    </message>
-    <message>
-        <source>Sync All Layers from Source KRA</source>
-        <translation>从源 KRA 同步所有图层</translation>
-    </message>
-    <message>
-        <source>KRA Update</source>
-        <translation>KRA 更新</translation>
-    </message>
-    <message>
-        <source>KRA Sync</source>
-        <translation>KRA 同步</translation>
-    </message>
-    <message>
-        <source>Source KRA is missing:
-%1</source>
-        <translation>源 KRA 缺失：
-%1</translation>
-    </message>
-    <message>
-        <source>Layer no longer exists in the source KRA.
-It is kept (marked as missing) with all animation data.</source>
-        <translation>该图层在源 KRA 中已不存在。
-图层将保留（标记为缺失）及其全部动画数据。</translation>
-    </message>
-    <message>
-        <source>Layer updated from source KRA.</source>
-        <translation>图层已从源 KRA 更新。</translation>
-    </message>
-    </context>
-
 <context>
     <name>QFontDatabase</name>
     <message>
@@ -7319,66 +8044,67 @@ It is kept (marked as missing) with all animation data.</source>
         <translation>正在导入 PSD ...</translation>
     </message>
     <message>
-        <location filename="../eimporters.cpp" line="83"/>
+        <location filename="../eimporters.cpp" line="85"/>
         <source>Importing Krita file ...</source>
         <translation>正在导入 Krita 文件 ...</translation>
     </message>
     <message>
-        <location filename="../eimporters.cpp" line="103"/>
+        <location filename="../eimporters.cpp" line="105"/>
         <source>Krita import</source>
         <translation>Krita 导入</translation>
     </message>
     <message>
-        <location filename="../eimporters.cpp" line="104"/>
+        <location filename="../eimporters.cpp" line="106"/>
         <source>The following items were skipped:</source>
         <translation>以下项目未被导入：</translation>
     </message>
     <message>
-        <location filename="../../core/Kra/kraimporter.cpp" line="783"/>
+        <location filename="../../core/Kra/kraimporter.cpp" line="657"/>
         <source>masks are not imported</source>
         <translation>蒙版未导入</translation>
     </message>
     <message>
-        <location filename="../../core/Kra/kraimporter.cpp" line="800"/>
+        <location filename="../../core/Kra/kraimporter.cpp" line="686"/>
         <source>empty layer</source>
         <translation>空白图层</translation>
     </message>
     <message>
-        <location filename="../../core/Kra/kraimporter.cpp" line="821"/>
+        <location filename="../../core/Kra/kraimporter.cpp" line="706"/>
         <source>empty frame</source>
         <translation>空白帧</translation>
     </message>
     <message>
-        <location filename="../../core/Kra/kraimporter.cpp" line="921"/>
+        <location filename="../../core/Kra/kraimporter.cpp" line="838"/>
         <source>vector layer</source>
         <translation>矢量图层</translation>
     </message>
     <message>
-        <location filename="../../core/Kra/kraimporter.cpp" line="924"/>
+        <location filename="../../core/Kra/kraimporter.cpp" line="841"/>
         <source>filter layer</source>
         <translation>滤镜图层</translation>
     </message>
     <message>
-        <location filename="../../core/Kra/kraimporter.cpp" line="926"/>
+        <location filename="../../core/Kra/kraimporter.cpp" line="843"/>
         <source>generator layer</source>
         <translation>生成器图层</translation>
     </message>
     <message>
-        <location filename="../../core/Kra/kraimporter.cpp" line="928"/>
+        <location filename="../../core/Kra/kraimporter.cpp" line="845"/>
         <source>clone layer</source>
         <translation>克隆图层</translation>
     </message>
     <message>
-        <location filename="../../core/Kra/kraimporter.cpp" line="930"/>
+        <location filename="../../core/Kra/kraimporter.cpp" line="847"/>
         <source>file layer</source>
         <translation>文件图层</translation>
     </message>
     <message>
-        <location filename="../../core/Kra/kraimporter.cpp" line="932"/>
+        <location filename="../../core/Kra/kraimporter.cpp" line="849"/>
         <source>unsupported layer type %1</source>
         <translation>不支持的图层类型 %1</translation>
     </message>
     <message>
+        <location filename="../../core/RasterEffects/liquidglasseffect.cpp" line="171"/>
         <location filename="../../core/RasterEffects/rastereffectmenucreator.cpp" line="109"/>
         <source>Liquid Glass</source>
         <translation>液态玻璃</translation>
@@ -7391,6 +8117,7 @@ It is kept (marked as missing) with all animation data.</source>
         <location filename="../../core/RasterEffects/rastereffectmenucreator.cpp" line="79"/>
         <location filename="../../core/RasterEffects/rastereffectmenucreator.cpp" line="103"/>
         <location filename="../../core/RasterEffects/rastereffectmenucreator.cpp" line="109"/>
+        <location filename="../../core/RasterEffects/rastereffectmenucreator.cpp" line="121"/>
         <source>Distort</source>
         <translation>扭曲</translation>
     </message>
@@ -7457,6 +8184,7 @@ It is kept (marked as missing) with all animation data.</source>
         <translation>添加特效</translation>
     </message>
     <message>
+        <location filename="../../core/RasterEffects/blureffect.cpp" line="23"/>
         <location filename="../../core/RasterEffects/rastereffectmenucreator.cpp" line="42"/>
         <location filename="../../core/RasterEffects/rastereffectmenucreator.cpp" line="43"/>
         <location filename="../../core/RasterEffects/rastereffectmenucreator.cpp" line="45"/>
@@ -7466,34 +8194,40 @@ It is kept (marked as missing) with all animation data.</source>
         <translation>模糊</translation>
     </message>
     <message>
+        <location filename="../../core/RasterEffects/directionalblureffect.cpp" line="33"/>
         <location filename="../../core/RasterEffects/rastereffectmenucreator.cpp" line="43"/>
         <source>Directional Blur</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">定向模糊</translation>
     </message>
     <message>
+        <location filename="../../core/RasterEffects/radialblureffect.cpp" line="33"/>
         <location filename="../../core/RasterEffects/rastereffectmenucreator.cpp" line="45"/>
         <source>Radial Blur</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">径向模糊</translation>
     </message>
     <message>
+        <location filename="../../core/RasterEffects/channelblureffect.cpp" line="33"/>
         <location filename="../../core/RasterEffects/rastereffectmenucreator.cpp" line="47"/>
         <source>Channel Blur</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">通道模糊</translation>
     </message>
     <message>
         <location filename="../../core/RasterEffects/rastereffectmenucreator.cpp" line="49"/>
+        <location filename="../../core/RasterEffects/zoomblureffect.cpp" line="33"/>
         <source>Zoom Blur</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">缩放模糊</translation>
     </message>
     <message>
         <location filename="../../core/RasterEffects/rastereffectmenucreator.cpp" line="51"/>
+        <location filename="../../core/RasterEffects/shadoweffect.cpp" line="36"/>
         <source>Shadow</source>
         <translation>阴影</translation>
     </message>
     <message>
+        <location filename="../../core/RasterEffects/dropshadoweffect.cpp" line="35"/>
         <location filename="../../core/RasterEffects/rastereffectmenucreator.cpp" line="52"/>
         <source>Drop Shadow</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">投影</translation>
     </message>
     <message>
         <location filename="../../core/RasterEffects/rastereffectmenucreator.cpp" line="52"/>
@@ -7503,36 +8237,43 @@ It is kept (marked as missing) with all animation data.</source>
         <translation type="unfinished">细体</translation>
     </message>
     <message>
+        <location filename="../../core/RasterEffects/motionblureffect.cpp" line="70"/>
         <location filename="../../core/RasterEffects/rastereffectmenucreator.cpp" line="54"/>
         <source>Motion Blur</source>
         <translation>运动模糊</translation>
     </message>
     <message>
+        <location filename="../../core/RasterEffects/brightnesscontrasteffect.cpp" line="36"/>
         <location filename="../../core/RasterEffects/rastereffectmenucreator.cpp" line="55"/>
         <source>Brightness-Contrast</source>
         <translation>亮度-对比度</translation>
     </message>
     <message>
+        <location filename="../../core/RasterEffects/colorgradingeffect.cpp" line="33"/>
         <location filename="../../core/RasterEffects/rastereffectmenucreator.cpp" line="59"/>
         <source>Color Grading</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">色彩分级</translation>
     </message>
     <message>
+        <location filename="../../core/RasterEffects/inverteffect.cpp" line="32"/>
         <location filename="../../core/RasterEffects/rastereffectmenucreator.cpp" line="61"/>
         <source>Invert</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">反转</translation>
     </message>
     <message>
         <location filename="../../core/RasterEffects/rastereffectmenucreator.cpp" line="63"/>
+        <location filename="../../core/RasterEffects/tinteffect.cpp" line="34"/>
         <source>Tint</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">着色</translation>
     </message>
     <message>
+        <location filename="../../core/RasterEffects/posterizeeffect.cpp" line="32"/>
         <location filename="../../core/RasterEffects/rastereffectmenucreator.cpp" line="65"/>
         <source>Posterize</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">色调分离</translation>
     </message>
     <message>
+        <location filename="../../core/RasterEffects/chromakeyeffect.cpp" line="336"/>
         <location filename="../../core/RasterEffects/rastereffectmenucreator.cpp" line="67"/>
         <source>Chroma Key</source>
         <translation>色度键控（扣绿）</translation>
@@ -7643,44 +8384,52 @@ It is kept (marked as missing) with all animation data.</source>
         <translation>溢色遮罩</translation>
     </message>
     <message>
+        <location filename="../../core/RasterEffects/colorizeeffect.cpp" line="38"/>
         <location filename="../../core/RasterEffects/rastereffectmenucreator.cpp" line="57"/>
         <source>Colorize</source>
         <translation>颜色替换</translation>
     </message>
     <message>
+        <location filename="../../core/RasterEffects/gloweffect.cpp" line="34"/>
         <location filename="../../core/RasterEffects/rastereffectmenucreator.cpp" line="69"/>
         <source>Glow</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">辉光</translation>
     </message>
     <message>
+        <location filename="../../core/RasterEffects/chromaticaberrationeffect.cpp" line="33"/>
         <location filename="../../core/RasterEffects/rastereffectmenucreator.cpp" line="71"/>
         <source>Chromatic Aberration</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">色差</translation>
     </message>
     <message>
         <location filename="../../core/RasterEffects/rastereffectmenucreator.cpp" line="73"/>
+        <location filename="../../core/RasterEffects/wavewarpeffect.cpp" line="33"/>
         <source>Wave Warp</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">波纹扭曲</translation>
     </message>
     <message>
+        <location filename="../../core/RasterEffects/mirroreffect.cpp" line="32"/>
         <location filename="../../core/RasterEffects/rastereffectmenucreator.cpp" line="75"/>
         <source>Mirror</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">镜像</translation>
     </message>
     <message>
         <location filename="../../core/RasterEffects/rastereffectmenucreator.cpp" line="77"/>
+        <location filename="../../core/RasterEffects/twirleffect.cpp" line="33"/>
         <source>Twirl</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">旋转扭曲</translation>
     </message>
     <message>
         <location filename="../../core/RasterEffects/rastereffectmenucreator.cpp" line="79"/>
+        <location filename="../../core/RasterEffects/shakeeffect.cpp" line="33"/>
         <source>Shake</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">抖动</translation>
     </message>
     <message>
         <location filename="../../core/RasterEffects/rastereffectmenucreator.cpp" line="81"/>
+        <location filename="../../core/RasterEffects/vignetteeffect.cpp" line="34"/>
         <source>Vignette</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">暗角</translation>
     </message>
     <message>
         <location filename="../../core/RasterEffects/rastereffectmenucreator.cpp" line="81"/>
@@ -7696,104 +8445,135 @@ It is kept (marked as missing) with all animation data.</source>
         <location filename="../../core/RasterEffects/rastereffectmenucreator.cpp" line="107"/>
         <location filename="../../core/RasterEffects/rastereffectmenucreator.cpp" line="111"/>
         <source>Stylize</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">风格化</translation>
     </message>
     <message>
+        <location filename="../../core/RasterEffects/rastereffectmenucreator.cpp" line="121"/>
+        <location filename="../../core/RasterEffects/smeareffect.cpp" line="21"/>
+        <source>CC Smear</source>
+        <translation>CC Smear 涂抹</translation>
+    </message>
+    <message>
+        <location filename="../../core/RasterEffects/rastereffectmenucreator.cpp" line="123"/>
+        <location filename="../../core/RasterEffects/shattereffect.cpp" line="21"/>
+        <source>Shatter</source>
+        <translation>Shatter 碎片</translation>
+    </message>
+    <message>
+        <location filename="../../core/RasterEffects/letterboxeffect.cpp" line="34"/>
         <location filename="../../core/RasterEffects/rastereffectmenucreator.cpp" line="83"/>
         <source>Letterbox</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">遮幅</translation>
     </message>
     <message>
         <location filename="../../core/RasterEffects/rastereffectmenucreator.cpp" line="85"/>
+        <location filename="../../core/RasterEffects/scanlineseffect.cpp" line="33"/>
         <source>Scanlines</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">扫描线</translation>
     </message>
     <message>
+        <location filename="../../core/RasterEffects/edgedetecteffect.cpp" line="34"/>
         <location filename="../../core/RasterEffects/rastereffectmenucreator.cpp" line="87"/>
         <source>Edge Detect</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">边缘检测</translation>
     </message>
     <message>
+        <location filename="../../core/RasterEffects/pixelateeffect.cpp" line="321"/>
         <location filename="../../core/RasterEffects/rastereffectmenucreator.cpp" line="89"/>
         <source>Pixelate</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">像素化</translation>
     </message>
     <message>
+        <location filename="../../core/RasterEffects/noiseeffect.cpp" line="33"/>
         <location filename="../../core/RasterEffects/rastereffectmenucreator.cpp" line="91"/>
         <source>Noise</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">噪点</translation>
     </message>
     <message>
+        <location filename="../../core/RasterEffects/glitcheffect.cpp" line="33"/>
         <location filename="../../core/RasterEffects/rastereffectmenucreator.cpp" line="93"/>
         <source>Glitch</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">故障</translation>
     </message>
     <message>
+        <location filename="../../core/RasterEffects/halftoneeffect.cpp" line="33"/>
         <location filename="../../core/RasterEffects/rastereffectmenucreator.cpp" line="95"/>
         <source>Halftone</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">半调网点</translation>
     </message>
     <message>
+        <location filename="../../core/RasterEffects/motiontileeffect.cpp" line="34"/>
         <location filename="../../core/RasterEffects/rastereffectmenucreator.cpp" line="97"/>
         <source>Motion Tile</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">动态拼贴</translation>
     </message>
     <message>
+        <location filename="../../core/RasterEffects/fractalnoiseeffect.cpp" line="19"/>
         <location filename="../../core/RasterEffects/rastereffectmenucreator.cpp" line="99"/>
         <source>Fractal Noise</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">分形噪波</translation>
     </message>
     <message>
         <location filename="../../core/RasterEffects/rastereffectmenucreator.cpp" line="99"/>
         <source>Generate</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">生成</translation>
     </message>
     <message>
+        <location filename="../../core/RasterEffects/lightsweepeffect.cpp" line="20"/>
         <location filename="../../core/RasterEffects/rastereffectmenucreator.cpp" line="101"/>
         <source>Light Sweep</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">扫光</translation>
     </message>
     <message>
+        <location filename="../../core/RasterEffects/displacementwarpeffect.cpp" line="19"/>
         <location filename="../../core/RasterEffects/rastereffectmenucreator.cpp" line="103"/>
         <source>Displacement Warp</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">位移扭曲</translation>
     </message>
     <message>
+        <location filename="../../core/RasterEffects/filmgraineffect.cpp" line="18"/>
         <location filename="../../core/RasterEffects/rastereffectmenucreator.cpp" line="105"/>
         <source>Film Grain</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">胶片颗粒</translation>
     </message>
     <message>
+        <location filename="../../core/RasterEffects/blackwhiteflasheffect.cpp" line="572"/>
         <location filename="../../core/RasterEffects/rastereffectmenucreator.cpp" line="107"/>
         <source>Black-White Flash</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">黑白闪烁</translation>
     </message>
     <message>
+        <location filename="../../core/RasterEffects/pixelarteffect.cpp" line="18"/>
         <location filename="../../core/RasterEffects/rastereffectmenucreator.cpp" line="111"/>
         <source>Pixel Art</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">像素艺术</translation>
     </message>
     <message>
+        <location filename="../../core/RasterEffects/raineffect.cpp" line="35"/>
         <location filename="../../core/RasterEffects/rastereffectmenucreator.cpp" line="113"/>
         <source>Rain</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">下雨</translation>
     </message>
     <message>
         <location filename="../../core/RasterEffects/rastereffectmenucreator.cpp" line="113"/>
+        <location filename="../../core/RasterEffects/rastereffectmenucreator.cpp" line="123"/>
         <source>Simulation</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">模拟</translation>
     </message>
     <message>
         <location filename="../../core/RasterEffects/rastereffectmenucreator.cpp" line="115"/>
+        <location filename="../../core/RasterEffects/wipeeffect.cpp" line="35"/>
         <source>Wipe</source>
         <translation>擦除</translation>
     </message>
     <message>
         <location filename="../../core/RasterEffects/rastereffectmenucreator.cpp" line="117"/>
+        <location filename="../../core/RasterEffects/stripeeffect.cpp" line="33"/>
         <source>Stripe</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">条纹</translation>
     </message>
     <message>
+        <location filename="../../core/RasterEffects/noisefadeeffect.cpp" line="35"/>
         <location filename="../../core/RasterEffects/rastereffectmenucreator.cpp" line="119"/>
         <source>Noise Fade</source>
         <translation>噪波渐变</translation>
@@ -7817,33 +8597,33 @@ It is kept (marked as missing) with all animation data.</source>
         <translation>过渡</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="406"/>
-        <location filename="../main.cpp" line="453"/>
+        <location filename="../main.cpp" line="411"/>
+        <location filename="../main.cpp" line="458"/>
         <source>Loading ...</source>
         <translation>正在加载...</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="537"/>
+        <location filename="../main.cpp" line="542"/>
         <source>Initializing ...</source>
         <translation>正在初始化...</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="579"/>
+        <location filename="../main.cpp" line="584"/>
         <source>Loading Shaders ...</source>
         <translation>正在加载着色器...</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="606"/>
+        <location filename="../main.cpp" line="611"/>
         <source>Loading Audio ...</source>
         <translation>正在加载音频...</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="627"/>
+        <location filename="../main.cpp" line="632"/>
         <source>Loading Encoder ...</source>
         <translation>正在加载编码器...</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="641"/>
+        <location filename="../main.cpp" line="646"/>
         <source>Loading User Interface ...</source>
         <translation>正在加载用户界面...</translation>
     </message>
@@ -7863,59 +8643,61 @@ It is kept (marked as missing) with all animation data.</source>
         <translation>输入图像基础文件名：</translation>
     </message>
     <message>
-        <location filename="../../core/appsupport.cpp" line="1454"/>
+        <location filename="../../core/appsupport.cpp" line="1456"/>
         <source>Setup Desktop Integration</source>
         <translation>设置桌面集成</translation>
     </message>
     <message>
-        <location filename="../../core/appsupport.cpp" line="1455"/>
+        <location filename="../../core/appsupport.cpp" line="1457"/>
         <source>Would you like to setup desktop integration? This will add Friction to your application launcher and add required mime types.&lt;br&gt;&lt;br&gt;You also can manage the desktop integration with:&lt;br&gt;&lt;br&gt;&lt;code&gt;%1 --xdg-install&lt;/code&gt;&lt;br&gt;&lt;code&gt;%1 --xdg-remove&lt;/code&gt;</source>
         <translation>是否设置桌面集成？这会将 Friction 添加到应用启动器并添加所需的 MIME 类型。&lt;br&gt;&lt;br&gt;您也可以通过以下命令管理桌面集成：&lt;br&gt;&lt;br&gt;&lt;code&gt;%1 --xdg-install&lt;/code&gt;&lt;br&gt;&lt;code&gt;%1 --xdg-remove&lt;/code&gt;</translation>
     </message>
     <message>
-        <location filename="../../core/appsupport.cpp" line="1464"/>
+        <location filename="../../core/appsupport.cpp" line="1466"/>
         <source>Desktop Integration Failed</source>
         <translation>桌面集成失败</translation>
     </message>
     <message>
-        <location filename="../../core/appsupport.cpp" line="1465"/>
+        <location filename="../../core/appsupport.cpp" line="1467"/>
         <source>Failed to install the required files for desktop integration, please check your permissions.</source>
         <translation>安装桌面集成所需文件失败，请检查权限。</translation>
     </message>
     <message>
-        <location filename="../../core/appsupport.cpp" line="1489"/>
+        <location filename="../../core/appsupport.cpp" line="1491"/>
         <source>Friction needs read/write access to:
 - %1</source>
         <translation>Friction 需要对以下位置的读写权限：
 - %1</translation>
     </message>
     <message>
-        <location filename="../../core/appsupport.cpp" line="1492"/>
+        <location filename="../../core/appsupport.cpp" line="1494"/>
         <source>Permission issue</source>
         <translation>权限问题</translation>
     </message>
     <message>
-        <location filename="../../core/appsupport.cpp" line="1493"/>
+        <location filename="../../core/appsupport.cpp" line="1495"/>
         <source>Friction needs read/write access to:&lt;br&gt;&lt;br&gt;- %1</source>
         <translation>Friction 需要对以下位置的读写权限：&lt;br&gt;&lt;br&gt;- %1</translation>
     </message>
     <message>
-        <location filename="../../core/appsupport.cpp" line="1505"/>
+        <location filename="../../core/appsupport.cpp" line="1507"/>
         <source>Friction is using an unsupported FFmpeg version, video and/or image export will not work properly. Use at own risk and don&apos;t report any issues upstream.</source>
         <translation>Friction 正在使用不受支持的 FFmpeg 版本，视频和/或图像导出将无法正常工作。请自担风险使用，且请勿向上游报告相关问题。</translation>
     </message>
     <message>
-        <location filename="../../core/appsupport.cpp" line="1512"/>
+        <location filename="../../core/appsupport.cpp" line="1514"/>
         <source>Unsupported FFmpeg version</source>
         <translation>不支持的 FFmpeg 版本</translation>
     </message>
     <message>
         <location filename="../../core/BlendEffects/blendeffectmenucreator.cpp" line="31"/>
+        <location filename="../../core/BlendEffects/moveblendeffect.cpp" line="32"/>
         <source>Move</source>
         <translation>移动</translation>
     </message>
     <message>
         <location filename="../../core/BlendEffects/blendeffectmenucreator.cpp" line="33"/>
+        <location filename="../../core/BlendEffects/targetedblendeffect.cpp" line="32"/>
         <source>Targeted</source>
         <translation>定向</translation>
     </message>
@@ -8020,6 +8802,7 @@ It is kept (marked as missing) with all animation data.</source>
     </message>
     <message>
         <location filename="../../core/Boxes/patheffectsmenu.cpp" line="40"/>
+        <location filename="../../core/PathEffects/displacepatheffect.cpp" line="32"/>
         <location filename="../../core/PathEffects/patheffectmenucreator.cpp" line="39"/>
         <source>Displace</source>
         <translation>位移</translation>
@@ -8027,17 +8810,20 @@ It is kept (marked as missing) with all animation data.</source>
     <message>
         <location filename="../../core/Boxes/patheffectsmenu.cpp" line="42"/>
         <location filename="../../core/PathEffects/patheffectmenucreator.cpp" line="41"/>
+        <location filename="../../core/PathEffects/spatialdisplacepatheffect.cpp" line="33"/>
         <source>Spatial Displace</source>
         <translation>空间位移</translation>
     </message>
     <message>
         <location filename="../../core/Boxes/patheffectsmenu.cpp" line="44"/>
+        <location filename="../../core/PathEffects/dashpatheffect.cpp" line="30"/>
         <location filename="../../core/PathEffects/patheffectmenucreator.cpp" line="43"/>
         <source>Dash</source>
         <translation>虚线</translation>
     </message>
     <message>
         <location filename="../../core/Boxes/patheffectsmenu.cpp" line="46"/>
+        <location filename="../../core/PathEffects/duplicatepatheffect.cpp" line="31"/>
         <location filename="../../core/PathEffects/patheffectmenucreator.cpp" line="45"/>
         <source>Duplicate</source>
         <translation>复制</translation>
@@ -8045,23 +8831,27 @@ It is kept (marked as missing) with all animation data.</source>
     <message>
         <location filename="../../core/Boxes/patheffectsmenu.cpp" line="48"/>
         <location filename="../../core/PathEffects/patheffectmenucreator.cpp" line="47"/>
+        <location filename="../../core/PathEffects/subpatheffect.cpp" line="33"/>
         <source>Sub-Path</source>
         <translation>子路径</translation>
     </message>
     <message>
         <location filename="../../core/Boxes/patheffectsmenu.cpp" line="50"/>
         <location filename="../../core/PathEffects/patheffectmenucreator.cpp" line="49"/>
+        <location filename="../../core/PathEffects/solidifypatheffect.cpp" line="31"/>
         <source>Solidify</source>
         <translation>实体化</translation>
     </message>
     <message>
         <location filename="../../core/Boxes/patheffectsmenu.cpp" line="52"/>
         <location filename="../../core/PathEffects/patheffectmenucreator.cpp" line="51"/>
+        <location filename="../../core/PathEffects/sumpatheffect.cpp" line="31"/>
         <source>Sum</source>
         <translation>求和</translation>
     </message>
     <message>
         <location filename="../../core/Boxes/patheffectsmenu.cpp" line="54"/>
+        <location filename="../../core/PathEffects/linespatheffect.cpp" line="30"/>
         <location filename="../../core/PathEffects/patheffectmenucreator.cpp" line="53"/>
         <source>Lines</source>
         <translation>线条</translation>
@@ -8069,12 +8859,14 @@ It is kept (marked as missing) with all animation data.</source>
     <message>
         <location filename="../../core/Boxes/patheffectsmenu.cpp" line="56"/>
         <location filename="../../core/PathEffects/patheffectmenucreator.cpp" line="55"/>
+        <location filename="../../core/PathEffects/zigzagpatheffect.cpp" line="30"/>
         <source>ZigZag</source>
         <translation>锯齿</translation>
     </message>
     <message>
         <location filename="../../core/Boxes/patheffectsmenu.cpp" line="58"/>
         <location filename="../../core/PathEffects/patheffectmenucreator.cpp" line="57"/>
+        <location filename="../../core/PathEffects/subdividepatheffect.cpp" line="30"/>
         <source>Subdivide</source>
         <translation>细分</translation>
     </message>
@@ -8089,16 +8881,19 @@ It is kept (marked as missing) with all animation data.</source>
         <translation>删除属性</translation>
     </message>
     <message>
+        <location filename="../../core/TransformEffects/trackeffect.cpp" line="33"/>
         <location filename="../../core/TransformEffects/transformeffectmenucreator.cpp" line="34"/>
         <source>Track</source>
         <translation>跟踪</translation>
     </message>
     <message>
+        <location filename="../../core/TransformEffects/followpatheffect.cpp" line="34"/>
         <location filename="../../core/TransformEffects/transformeffectmenucreator.cpp" line="36"/>
         <source>Follow Path</source>
         <translation>跟随路径</translation>
     </message>
     <message>
+        <location filename="../../core/TransformEffects/followobjecteffect.cpp" line="33"/>
         <location filename="../../core/TransformEffects/transformeffectmenucreator.cpp" line="38"/>
         <source>Follow Object</source>
         <translation>跟随对象</translation>
@@ -8109,27 +8904,28 @@ It is kept (marked as missing) with all animation data.</source>
         <translation>跟随对象（相对）</translation>
     </message>
     <message>
+        <location filename="../../core/TransformEffects/parenteffect.cpp" line="36"/>
         <location filename="../../core/TransformEffects/transformeffectmenucreator.cpp" line="42"/>
         <source>Parent</source>
         <translation>父级</translation>
     </message>
     <message>
-        <location filename="../../core/canvasmouseinteractions.cpp" line="88"/>
+        <location filename="../../core/canvasmouseinteractions.cpp" line="100"/>
         <source>New Adjustment Layer</source>
         <translation>新建调整图层</translation>
     </message>
     <message>
-        <location filename="../../core/canvasmouseinteractions.cpp" line="96"/>
+        <location filename="../../core/canvasmouseinteractions.cpp" line="108"/>
         <source>New Bone Layer</source>
         <translation>新建骨骼层</translation>
     </message>
     <message>
-        <location filename="../../core/canvasmouseinteractions.cpp" line="103"/>
+        <location filename="../../core/canvasmouseinteractions.cpp" line="115"/>
         <source>New Solid Layer</source>
         <translation>新建固态层</translation>
     </message>
     <message>
-        <location filename="../GUI/BoxesList/boxscroller.cpp" line="1106"/>
+        <location filename="../GUI/BoxesList/boxscroller.cpp" line="1121"/>
         <source>Cannot merge into this track</source>
         <translation>无法合并到该轨道</translation>
     </message>
@@ -8179,27 +8975,27 @@ It is kept (marked as missing) with all animation data.</source>
         <translation>平移 Y</translation>
     </message>
     <message>
-        <location filename="../../core/Boxes/cameralayer.cpp" line="13"/>
+        <location filename="../../core/Boxes/cameralayer.cpp" line="19"/>
         <source>Zoom</source>
         <translation>缩放</translation>
     </message>
     <message>
-        <location filename="../../core/Boxes/cameralayer.cpp" line="15"/>
+        <location filename="../../core/Boxes/cameralayer.cpp" line="21"/>
         <source>Rotate</source>
         <translation>旋转</translation>
     </message>
     <message>
-        <location filename="../../core/Boxes/cameralayer.cpp" line="17"/>
+        <location filename="../../core/Boxes/cameralayer.cpp" line="23"/>
         <source>Tilt X</source>
         <translation>倾斜 X</translation>
     </message>
     <message>
-        <location filename="../../core/Boxes/cameralayer.cpp" line="19"/>
+        <location filename="../../core/Boxes/cameralayer.cpp" line="25"/>
         <source>Tilt Y</source>
         <translation>倾斜 Y</translation>
     </message>
     <message>
-        <location filename="../../core/Boxes/cameralayer.cpp" line="21"/>
+        <location filename="../../core/Boxes/cameralayer.cpp" line="27"/>
         <source>Focal Length</source>
         <translation>焦距</translation>
     </message>
@@ -8214,176 +9010,127 @@ It is kept (marked as missing) with all animation data.</source>
         <translation>默认</translation>
     </message>
     <message>
-        <location filename="../../core/Psd/psdimagebox.cpp" line="73"/>
+        <location filename="../../core/Psd/psdimagebox.cpp" line="74"/>
         <source>New Layers in Source PSD</source>
         <translation>源 PSD 中的新图层</translation>
     </message>
     <message>
-        <location filename="../../core/Psd/psdimagebox.cpp" line="75"/>
+        <location filename="../../core/Psd/psdimagebox.cpp" line="76"/>
         <source>The source PSD contains new layers.
 Select the layers you want to import:</source>
         <translation>源 PSD 包含新图层。
 请选择要导入的图层：</translation>
     </message>
     <message>
-        <location filename="../../core/Psd/psdimagebox.cpp" line="91"/>
+        <location filename="../../core/Psd/psdimagebox.cpp" line="92"/>
         <source>OK</source>
         <translation>确定</translation>
     </message>
     <message>
-        <location filename="../../core/Psd/psdimagebox.cpp" line="93"/>
+        <location filename="../../core/Psd/psdimagebox.cpp" line="94"/>
         <source>Cancel</source>
         <translation>取消</translation>
     </message>
     <message>
-        <location filename="../../core/canvas.cpp" line="1995"/>
+        <location filename="../../core/canvas.cpp" line="2547"/>
         <source>切换组</source>
         <translation type="unfinished"></translation>
     </message>
-        <message>
-            <source>Directional Blur</source>
-            <translation>定向模糊</translation>
-        </message>
-        <message>
-            <source>Radial Blur</source>
-            <translation>径向模糊</translation>
-        </message>
-        <message>
-            <source>Channel Blur</source>
-            <translation>通道模糊</translation>
-        </message>
-        <message>
-            <source>Zoom Blur</source>
-            <translation>缩放模糊</translation>
-        </message>
-        <message>
-            <source>Drop Shadow</source>
-            <translation>投影</translation>
-        </message>
-        <message>
-            <source>Color Grading</source>
-            <translation>色彩分级</translation>
-        </message>
-        <message>
-            <source>Invert</source>
-            <translation>反转</translation>
-        </message>
-        <message>
-            <source>Tint</source>
-            <translation>着色</translation>
-        </message>
-        <message>
-            <source>Posterize</source>
-            <translation>色调分离</translation>
-        </message>
-        <message>
-            <source>Glow</source>
-            <translation>辉光</translation>
-        </message>
-        <message>
-            <source>Chromatic Aberration</source>
-            <translation>色差</translation>
-        </message>
-        <message>
-            <source>Wave Warp</source>
-            <translation>波纹扭曲</translation>
-        </message>
-        <message>
-            <source>Mirror</source>
-            <translation>镜像</translation>
-        </message>
-        <message>
-            <source>Twirl</source>
-            <translation>旋转扭曲</translation>
-        </message>
-        <message>
-            <source>Shake</source>
-            <translation>抖动</translation>
-        </message>
-        <message>
-            <source>Vignette</source>
-            <translation>暗角</translation>
-        </message>
-        <message>
-            <source>Letterbox</source>
-            <translation>遮幅</translation>
-        </message>
-        <message>
-            <source>Scanlines</source>
-            <translation>扫描线</translation>
-        </message>
-        <message>
-            <source>Edge Detect</source>
-            <translation>边缘检测</translation>
-        </message>
-        <message>
-            <source>Pixelate</source>
-            <translation>像素化</translation>
-        </message>
-        <message>
-            <source>Noise</source>
-            <translation>噪点</translation>
-        </message>
-        <message>
-            <source>Glitch</source>
-            <translation>故障</translation>
-        </message>
-        <message>
-            <source>Halftone</source>
-            <translation>半调网点</translation>
-        </message>
-        <message>
-            <source>Motion Tile</source>
-            <translation>动态拼贴</translation>
-        </message>
-        <message>
-            <source>Fractal Noise</source>
-            <translation>分形噪波</translation>
-        </message>
-        <message>
-            <source>Light Sweep</source>
-            <translation>扫光</translation>
-        </message>
-        <message>
-            <source>Displacement Warp</source>
-            <translation>位移扭曲</translation>
-        </message>
-        <message>
-            <source>Film Grain</source>
-            <translation>胶片颗粒</translation>
-        </message>
-        <message>
-            <source>Black-White Flash</source>
-            <translation>黑白闪烁</translation>
-        </message>
-        <message>
-            <source>Pixel Art</source>
-            <translation>像素艺术</translation>
-        </message>
-        <message>
-            <source>Rain</source>
-            <translation>下雨</translation>
-        </message>
-        <message>
-            <source>Stripe</source>
-            <translation>条纹</translation>
-        </message>
-        <message>
-            <source>Light</source>
-            <translation>光效</translation>
-        </message>
-        <message>
-            <source>Stylize</source>
-            <translation>风格化</translation>
-        </message>
-        <message>
-            <source>Generate</source>
-            <translation>生成</translation>
-        </message>
-        <message>
-            <source>Simulation</source>
-            <translation>模拟</translation>
-        </message>
+    <message>
+        <location filename="../../core/canvas.cpp" line="2574"/>
+        <source>矢量图层</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../core/RasterEffects/layerstyleseffect.cpp" line="209"/>
+        <location filename="../../core/RasterEffects/rastereffectmenucreator.cpp" line="125"/>
+        <source>图层样式</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../core/RasterEffects/layerstyleseffect.cpp" line="215"/>
+        <source>投影</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../core/RasterEffects/layerstyleseffect.cpp" line="216"/>
+        <location filename="../../core/RasterEffects/layerstyleseffect.cpp" line="240"/>
+        <location filename="../../core/RasterEffects/layerstyleseffect.cpp" line="258"/>
+        <source>启用</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../core/RasterEffects/layerstyleseffect.cpp" line="220"/>
+        <source>角度</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../core/RasterEffects/layerstyleseffect.cpp" line="223"/>
+        <source>距离</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../core/RasterEffects/layerstyleseffect.cpp" line="226"/>
+        <location filename="../../core/RasterEffects/layerstyleseffect.cpp" line="244"/>
+        <source>扩展</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../core/RasterEffects/layerstyleseffect.cpp" line="229"/>
+        <location filename="../../core/RasterEffects/layerstyleseffect.cpp" line="247"/>
+        <location filename="../../core/RasterEffects/layerstyleseffect.cpp" line="266"/>
+        <source>大小</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../core/RasterEffects/layerstyleseffect.cpp" line="232"/>
+        <location filename="../../core/RasterEffects/layerstyleseffect.cpp" line="250"/>
+        <location filename="../../core/RasterEffects/layerstyleseffect.cpp" line="269"/>
+        <source>不透明度</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../core/RasterEffects/layerstyleseffect.cpp" line="234"/>
+        <location filename="../../core/RasterEffects/layerstyleseffect.cpp" line="252"/>
+        <location filename="../../core/RasterEffects/layerstyleseffect.cpp" line="271"/>
+        <source>颜色</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../core/RasterEffects/layerstyleseffect.cpp" line="239"/>
+        <source>外发光</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../core/RasterEffects/layerstyleseffect.cpp" line="257"/>
+        <source>描边</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../core/RasterEffects/layerstyleseffect.cpp" line="262"/>
+        <source>位置</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../core/RasterEffects/layerstyleseffect.cpp" line="263"/>
+        <source>外部</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../core/RasterEffects/layerstyleseffect.cpp" line="263"/>
+        <source>居中</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../core/RasterEffects/layerstyleseffect.cpp" line="263"/>
+        <source>内部</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../core/TransformEffects/followobjectrelativeeffect.cpp" line="33"/>
+        <source>Follow Object (Relative)</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>QrealAnimator</name>
@@ -8394,7 +9141,7 @@ Select the layers you want to import:</source>
     </message>
     <message>
         <location filename="../../core/Animators/qrealanimator.cpp" line="68"/>
-        <location filename="../../core/Animators/qrealanimator.cpp" line="385"/>
+        <location filename="../../core/Animators/qrealanimator.cpp" line="398"/>
         <source>Apply Expression</source>
         <translation>应用表达式</translation>
     </message>
@@ -8409,12 +9156,12 @@ Select the layers you want to import:</source>
         <translation>更改表达式</translation>
     </message>
     <message>
-        <location filename="../../core/Animators/qrealanimator.cpp" line="295"/>
+        <location filename="../../core/Animators/qrealanimator.cpp" line="297"/>
         <source>Change Easing</source>
         <translation>更改缓动</translation>
     </message>
     <message>
-        <location filename="../../core/Animators/qrealanimator.cpp" line="385"/>
+        <location filename="../../core/Animators/qrealanimator.cpp" line="398"/>
         <source>Apply Easing</source>
         <translation>应用缓动</translation>
     </message>
@@ -8473,37 +9220,46 @@ Select the layers you want to import:</source>
 <context>
     <name>QuickEffectSearchDialog</name>
     <message>
-        <location filename="../GUI/quickeffectsearchdialog.cpp" line="111"/>
         <source>Search Effects (Ctrl+Space)...</source>
-        <translation>搜索特效…（Ctrl+Space）</translation>
+        <translation type="vanished">搜索特效…（Ctrl+Space）</translation>
     </message>
     <message>
         <location filename="../GUI/quickeffectsearchdialog.cpp" line="143"/>
+        <source>搜索特效…（支持中文 / 模糊匹配）</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/quickeffectsearchdialog.cpp" line="186"/>
+        <source>没有匹配的特效，换个关键词试试</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/quickeffectsearchdialog.cpp" line="206"/>
         <source>General</source>
         <translation>常规</translation>
     </message>
     <message>
-        <location filename="../GUI/quickeffectsearchdialog.cpp" line="152"/>
+        <location filename="../GUI/quickeffectsearchdialog.cpp" line="215"/>
         <source>Custom</source>
         <translation>自定义</translation>
     </message>
     <message>
-        <location filename="../GUI/quickeffectsearchdialog.cpp" line="161"/>
+        <location filename="../GUI/quickeffectsearchdialog.cpp" line="224"/>
         <source>Shader</source>
         <translation>着色器</translation>
     </message>
     <message>
-        <location filename="../GUI/quickeffectsearchdialog.cpp" line="171"/>
+        <location filename="../GUI/quickeffectsearchdialog.cpp" line="234"/>
         <source>Path Effects</source>
         <translation>路径特效</translation>
     </message>
     <message>
-        <location filename="../GUI/quickeffectsearchdialog.cpp" line="180"/>
+        <location filename="../GUI/quickeffectsearchdialog.cpp" line="243"/>
         <source>Blend Effects</source>
         <translation>混合特效</translation>
     </message>
     <message>
-        <location filename="../GUI/quickeffectsearchdialog.cpp" line="189"/>
+        <location filename="../GUI/quickeffectsearchdialog.cpp" line="252"/>
         <source>Transform Effects</source>
         <translation>变换特效</translation>
     </message>
@@ -8680,42 +9436,42 @@ Select the layers you want to import:</source>
 <context>
     <name>RenderWidget</name>
     <message>
-        <location filename="../GUI/RenderWidgets/renderwidget.cpp" line="74"/>
+        <location filename="../GUI/RenderWidgets/renderwidget.cpp" line="73"/>
         <source>Render</source>
         <translation>渲染</translation>
     </message>
     <message>
-        <location filename="../GUI/RenderWidgets/renderwidget.cpp" line="102"/>
+        <location filename="../GUI/RenderWidgets/renderwidget.cpp" line="101"/>
         <source>Stop Rendering</source>
         <translation>停止渲染</translation>
     </message>
     <message>
-        <location filename="../GUI/RenderWidgets/renderwidget.cpp" line="113"/>
+        <location filename="../GUI/RenderWidgets/renderwidget.cpp" line="112"/>
         <source>Add current scene to queue</source>
         <translation>添加当前场景到队列</translation>
     </message>
     <message>
-        <location filename="../GUI/RenderWidgets/renderwidget.cpp" line="125"/>
+        <location filename="../GUI/RenderWidgets/renderwidget.cpp" line="124"/>
         <source>Clear Queue</source>
         <translation>清空队列</translation>
     </message>
     <message>
-        <location filename="../GUI/RenderWidgets/renderwidget.cpp" line="221"/>
+        <location filename="../GUI/RenderWidgets/renderwidget.cpp" line="220"/>
         <source>%p%</source>
         <translation>%p%</translation>
     </message>
     <message>
-        <location filename="../GUI/RenderWidgets/renderwidget.cpp" line="224"/>
+        <location filename="../GUI/RenderWidgets/renderwidget.cpp" line="223"/>
         <source>Error</source>
         <translation>错误</translation>
     </message>
     <message>
-        <location filename="../GUI/RenderWidgets/renderwidget.cpp" line="227"/>
+        <location filename="../GUI/RenderWidgets/renderwidget.cpp" line="226"/>
         <source>Paused %p%</source>
         <translation>已暂停 %p%</translation>
     </message>
     <message>
-        <location filename="../GUI/RenderWidgets/renderwidget.cpp" line="230"/>
+        <location filename="../GUI/RenderWidgets/renderwidget.cpp" line="229"/>
         <source>Waiting %p%</source>
         <translation>等待中 %p%</translation>
     </message>
@@ -8752,7 +9508,7 @@ Select the layers you want to import:</source>
 <context>
     <name>SceneSettingsDialog</name>
     <message>
-        <location filename="../main.cpp" line="404"/>
+        <location filename="../main.cpp" line="409"/>
         <location filename="../../ui/dialogs/scenesettingsdialog.cpp" line="154"/>
         <source>Scene Properties</source>
         <translation>场景属性</translation>
@@ -8851,57 +9607,57 @@ Select the layers you want to import:</source>
 <context>
     <name>ScriptConsoleDock</name>
     <message>
-        <location filename="../GUI/scriptconsole.cpp" line="87"/>
+        <location filename="../GUI/scriptconsole.cpp" line="103"/>
         <source>Script Console</source>
         <translation>脚本控制台</translation>
     </message>
     <message>
-        <location filename="../GUI/scriptconsole.cpp" line="115"/>
+        <location filename="../GUI/scriptconsole.cpp" line="148"/>
         <source>Clear</source>
         <translation>清空</translation>
     </message>
     <message>
-        <location filename="../GUI/scriptconsole.cpp" line="107"/>
         <source>Enter a JS expression and press Enter (Up/Down: history)</source>
-        <translation>输入 JS 表达式并按回车执行（↑/↓ 浏览历史）</translation>
+        <translation type="vanished">输入 JS 表达式并按回车执行（↑/↓ 浏览历史）</translation>
     </message>
     <message>
-        <location filename="../GUI/scriptconsole.cpp" line="130"/>
+        <location filename="../GUI/scriptconsole.cpp" line="165"/>
         <source>Friction JS console ready. Try:</source>
         <translation>Friction JS 控制台已就绪，试试：</translation>
     </message>
     <message>
-        <location filename="../GUI/scriptconsole.cpp" line="115"/>
+        <location filename="../GUI/scriptconsole.cpp" line="142"/>
         <source>Reload Scripts</source>
         <translation>重新加载脚本</translation>
     </message>
     <message>
-        <location filename="../GUI/scriptconsole.cpp" line="117"/>
+        <location filename="../GUI/scriptconsole.cpp" line="144"/>
         <source>Rescan the scripts folder and reload all plugins</source>
         <translation>重新扫描脚本文件夹并加载全部插件</translation>
     </message>
     <message>
-        <location filename="../GUI/scriptconsole.cpp" line="118"/>
+        <location filename="../GUI/scriptconsole.cpp" line="137"/>
+        <location filename="../GUI/scriptconsole.cpp" line="179"/>
         <source>Open Script</source>
         <translation>打开脚本</translation>
     </message>
     <message>
-        <location filename="../GUI/scriptconsole.cpp" line="120"/>
+        <location filename="../GUI/scriptconsole.cpp" line="139"/>
         <source>Pick a .js file and run it in the console</source>
         <translation>选择 .js 脚本文件并在控制台中执行</translation>
     </message>
     <message>
-        <location filename="../GUI/scriptconsole.cpp" line="162"/>
+        <location filename="../GUI/scriptconsole.cpp" line="181"/>
         <source>JavaScript files (*.js)</source>
         <translation>JavaScript 文件 (*.js)</translation>
     </message>
     <message>
-        <location filename="../GUI/scriptconsole.cpp" line="166"/>
+        <location filename="../GUI/scriptconsole.cpp" line="185"/>
         <source>Cannot open %1</source>
         <translation>无法打开 %1</translation>
     </message>
     <message>
-        <location filename="../GUI/scriptconsole.cpp" line="123"/>
+        <location filename="../GUI/scriptconsole.cpp" line="124"/>
         <source>Enter JS, Enter runs, Shift+Enter inserts a line break (Ctrl+Up/Down: history)</source>
         <translation>输入 JS，回车执行，Shift+回车换行（Ctrl+↑/↓ 浏览历史）</translation>
     </message>
@@ -8909,48 +9665,48 @@ Select the layers you want to import:</source>
 <context>
     <name>ScriptManager</name>
     <message>
-        <location filename="../GUI/scriptmanager.cpp" line="54"/>
+        <location filename="../GUI/scriptmanager.cpp" line="63"/>
         <source>Scripts</source>
         <translation>脚本</translation>
     </message>
     <message>
-        <location filename="../GUI/scriptmanager.cpp" line="58"/>
+        <location filename="../GUI/scriptmanager.cpp" line="69"/>
         <source>Script Console</source>
         <translation>脚本控制台</translation>
     </message>
     <message>
-        <location filename="../GUI/scriptmanager.cpp" line="70"/>
+        <location filename="../GUI/scriptmanager.cpp" line="81"/>
         <source>Reload Scripts</source>
         <translation>重新加载脚本</translation>
     </message>
     <message>
-        <location filename="../GUI/scriptmanager.cpp" line="74"/>
+        <location filename="../GUI/scriptmanager.cpp" line="85"/>
         <source>Open Scripts Folder</source>
         <translation>打开脚本文件夹</translation>
     </message>
     <message>
-        <location filename="../GUI/scriptmanager.cpp" line="327"/>
+        <location filename="../GUI/scriptmanager.cpp" line="691"/>
         <source>No scripts found (see Scripts folder)</source>
         <translation>未找到脚本（请查看脚本文件夹）</translation>
     </message>
     <message>
-        <location filename="../GUI/scriptmanager.cpp" line="127"/>
-        <location filename="../GUI/scriptmanager.cpp" line="133"/>
+        <location filename="../GUI/scriptmanager.cpp" line="330"/>
+        <location filename="../GUI/scriptmanager.cpp" line="336"/>
         <source>Script</source>
         <translation>脚本</translation>
     </message>
     <message>
-        <location filename="../GUI/scriptmanager.cpp" line="373"/>
+        <location filename="../GUI/scriptmanager.cpp" line="749"/>
         <source>Script error</source>
         <translation>脚本错误</translation>
     </message>
     <message>
-        <location filename="../GUI/scriptmanager.cpp" line="92"/>
+        <location filename="../GUI/scriptmanager.cpp" line="104"/>
         <source>Scripts reloaded (%1 command(s))</source>
         <translation>脚本已重新加载（%1 个命令）</translation>
     </message>
     <message>
-        <location filename="../GUI/scriptmanager.cpp" line="349"/>
+        <location filename="../GUI/scriptmanager.cpp" line="715"/>
         <source>Panel: %1</source>
         <translation>面板：%1</translation>
     </message>
@@ -9455,12 +10211,12 @@ Select the layers you want to import:</source>
 <context>
     <name>SmartVectorPath</name>
     <message>
-        <location filename="../../core/Boxes/smartvectorpath.cpp" line="175"/>
+        <location filename="../../core/Boxes/smartvectorpath.cpp" line="342"/>
         <source>Apply Transformation</source>
         <translation>应用变换</translation>
     </message>
     <message>
-        <location filename="../../core/Boxes/smartvectorpath.cpp" line="180"/>
+        <location filename="../../core/Boxes/smartvectorpath.cpp" line="361"/>
         <source>Apply Transform</source>
         <translation>应用变换</translation>
     </message>
@@ -9520,45 +10276,45 @@ Select the layers you want to import:</source>
 <context>
     <name>SwitchPanel</name>
     <message>
-        <location filename="../GUI/switchpanel.cpp" line="314"/>
+        <location filename="../GUI/switchpanel.cpp" line="317"/>
         <source>切换组</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/switchpanel.cpp" line="329"/>
+        <location filename="../GUI/switchpanel.cpp" line="332"/>
         <source>自动打关键帧</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/switchpanel.cpp" line="385"/>
-        <location filename="../GUI/switchpanel.cpp" line="505"/>
+        <location filename="../GUI/switchpanel.cpp" line="388"/>
+        <location filename="../GUI/switchpanel.cpp" line="508"/>
         <source>选择切换组中的图层
 或从上方下拉选择切换组</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/switchpanel.cpp" line="462"/>
+        <location filename="../GUI/switchpanel.cpp" line="465"/>
         <source>（场景中无切换组）</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/switchpanel.cpp" line="580"/>
+        <location filename="../GUI/switchpanel.cpp" line="583"/>
         <source>无激活图层（可见性全关）</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/switchpanel.cpp" line="665"/>
+        <location filename="../GUI/switchpanel.cpp" line="668"/>
         <source>切换图层</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/switchpanel.cpp" line="689"/>
+        <location filename="../GUI/switchpanel.cpp" line="692"/>
         <source>无预览</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../GUI/switchpanel.cpp" line="708"/>
-        <location filename="../GUI/switchpanel.cpp" line="740"/>
+        <location filename="../GUI/switchpanel.cpp" line="711"/>
+        <location filename="../GUI/switchpanel.cpp" line="743"/>
         <source>无法渲染预览</source>
         <translation type="unfinished"></translation>
     </message>
@@ -9566,7 +10322,7 @@ Select the layers you want to import:</source>
 <context>
     <name>SwitchPreview</name>
     <message>
-        <location filename="../GUI/switchpanel.cpp" line="119"/>
+        <location filename="../GUI/switchpanel.cpp" line="120"/>
         <source>无预览</source>
         <translation type="unfinished"></translation>
     </message>
@@ -9574,7 +10330,7 @@ Select the layers you want to import:</source>
 <context>
     <name>SwitchRuler</name>
     <message>
-        <location filename="../GUI/switchpanel.cpp" line="205"/>
+        <location filename="../GUI/switchpanel.cpp" line="208"/>
         <source>切换组没有子图层</source>
         <translation type="unfinished"></translation>
     </message>
@@ -9626,7 +10382,7 @@ Select the layers you want to import:</source>
         <translation>更改字体</translation>
     </message>
     <message>
-        <location filename="../../core/Boxes/textbox.cpp" line="526"/>
+        <location filename="../../core/Boxes/textbox.cpp" line="540"/>
         <source>Add Text Effect</source>
         <translation>添加文本效果</translation>
     </message>
@@ -9634,7 +10390,7 @@ Select the layers you want to import:</source>
 <context>
     <name>TextEffect</name>
     <message>
-        <location filename="../../core/texteffect.cpp" line="310"/>
+        <location filename="../../core/texteffect.cpp" line="470"/>
         <source>Delete Effect(s)</source>
         <translation>删除效果</translation>
     </message>
@@ -9866,256 +10622,279 @@ Select the layers you want to import:</source>
     </message>
 </context>
 <context>
-    <name>Friction::Ui::ToolBox</name>
-    <message>
-        <source>Auto-Select Layer</source>
-        <translation>自动选择图层</translation>
-    </message>
-    <message>
-        <source>Click visible pixels on the canvas to select and jump to the layer that owns them (Photoshop auto-select)</source>
-        <translation>对象模式下点击画布上的可见像素，自动选中并跳转到所属图层（PS 语义）</translation>
-    </message>
-    <message>
-        <source>Temporary Canvas</source>
-        <translation>临时画布</translation>
-    </message>
-    <message>
-        <source>Temporary Canvas: ON</source>
-        <translation>临时画布：开启</translation>
-    </message>
-    <message>
-        <source>While on, freely move layers apart to organize them (group/reorder); switching it off returns every moved layer to its original position, keeping all grouping edits</source>
-        <translation>开启后可自由摆开图层进行分组整理；关闭时所有移动过的图层自动回到原位，分组与顺序等操作全部保留</translation>
-    </message>
-</context>
-<context>
     <name>TimelineDockWidget</name>
     <message>
+        <location filename="../GUI/timelinedockwidget.cpp" line="996"/>
         <source>Cannot play: the preview range is empty - check the In/Out points</source>
         <translation>无法播放：预览范围为空，请检查入点/出点设置</translation>
     </message>
     <message>
-        <location filename="../GUI/timelinedockwidget.cpp" line="156"/>
+        <location filename="../GUI/timelinedockwidget.cpp" line="184"/>
         <source>Rewind</source>
         <translation>倒回</translation>
     </message>
     <message>
-        <location filename="../GUI/timelinedockwidget.cpp" line="161"/>
+        <location filename="../GUI/timelinedockwidget.cpp" line="189"/>
         <source>Go to First Frame</source>
         <translation>跳到第一帧</translation>
     </message>
     <message>
-        <location filename="../GUI/timelinedockwidget.cpp" line="176"/>
+        <location filename="../GUI/timelinedockwidget.cpp" line="204"/>
         <source>Fast Forward</source>
         <translation>快进</translation>
     </message>
     <message>
-        <location filename="../GUI/timelinedockwidget.cpp" line="181"/>
+        <location filename="../GUI/timelinedockwidget.cpp" line="209"/>
         <source>Go to Last Frame</source>
         <translation>跳到最后一帧</translation>
     </message>
     <message>
-        <location filename="../GUI/timelinedockwidget.cpp" line="196"/>
+        <location filename="../GUI/timelinedockwidget.cpp" line="224"/>
         <source>Play Preview From Start</source>
         <translation>从头播放预览</translation>
     </message>
     <message>
-        <location filename="../GUI/timelinedockwidget.cpp" line="209"/>
-        <location filename="../GUI/timelinedockwidget.cpp" line="961"/>
-        <location filename="../GUI/timelinedockwidget.cpp" line="994"/>
+        <location filename="../GUI/timelinedockwidget.cpp" line="237"/>
+        <location filename="../GUI/timelinedockwidget.cpp" line="1101"/>
+        <location filename="../GUI/timelinedockwidget.cpp" line="1134"/>
         <source>Play Preview</source>
         <translation>播放预览</translation>
     </message>
     <message>
-        <location filename="../GUI/timelinedockwidget.cpp" line="213"/>
+        <location filename="../GUI/timelinedockwidget.cpp" line="241"/>
         <source>Stop Preview</source>
         <translation>停止预览</translation>
     </message>
     <message>
-        <location filename="../GUI/timelinedockwidget.cpp" line="220"/>
+        <location filename="../GUI/timelinedockwidget.cpp" line="248"/>
         <source>Loop Preview</source>
         <translation>循环预览</translation>
     </message>
     <message>
-        <location filename="../GUI/timelinedockwidget.cpp" line="241"/>
+        <location filename="../GUI/timelinedockwidget.cpp" line="264"/>
         <source>Snapshot PNG</source>
         <translation>快照 PNG</translation>
     </message>
     <message>
-        <location filename="../GUI/timelinedockwidget.cpp" line="242"/>
+        <location filename="../GUI/timelinedockwidget.cpp" line="265"/>
         <source>Export the current frame as a 100% resolution PNG (snapshot path is configurable in Preferences, default: Desktop)</source>
         <translation>将当前帧导出为 100% 分辨率的 PNG（快照路径可在首选项中配置，默认：桌面）</translation>
     </message>
     <message>
-        <location filename="../GUI/timelinedockwidget.cpp" line="267"/>
+        <location filename="../GUI/timelinedockwidget.cpp" line="290"/>
         <source>Safe Frames</source>
         <translation>安全框</translation>
     </message>
     <message>
-        <location filename="../GUI/timelinedockwidget.cpp" line="269"/>
+        <location filename="../GUI/timelinedockwidget.cpp" line="292"/>
         <source>Show action/title safe frames (90%/80%)</source>
         <translation>显示动作/字幕安全框（90%%/80%%）</translation>
     </message>
     <message>
-        <location filename="../GUI/timelinedockwidget.cpp" line="299"/>
+        <location filename="../GUI/timelinedockwidget.cpp" line="306"/>
+        <source>顶视图</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/timelinedockwidget.cpp" line="311"/>
+        <source>打开/关闭顶视图窗口：X/Z 正交视图，显示摄像机位置与视野，可直接拖动 3D 图层调整深度（同视图菜单 Top View Window）</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/timelinedockwidget.cpp" line="325"/>
+        <source>遮蔽画布外</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/timelinedockwidget.cpp" line="328"/>
+        <source>遮蔽掉画布之外的内容（同视图菜单 Clip to Scene，快捷键 C）</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/timelinedockwidget.cpp" line="340"/>
+        <source>画布标尺</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/timelinedockwidget.cpp" line="345"/>
+        <source>显示画布标尺（像素坐标，跟随缩放平移）</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/timelinedockwidget.cpp" line="375"/>
         <source>Transparency Grid</source>
         <translation>透明网格</translation>
     </message>
     <message>
-        <location filename="../GUI/timelinedockwidget.cpp" line="302"/>
+        <location filename="../GUI/timelinedockwidget.cpp" line="378"/>
         <source>Toggle the transparency grid background</source>
         <translation>切换画布背景为透明网格</translation>
     </message>
     <message>
-        <location filename="../GUI/timelinedockwidget.cpp" line="582"/>
-        <location filename="../GUI/timelinedockwidget.cpp" line="584"/>
+        <location filename="../GUI/timelinedockwidget.cpp" line="658"/>
+        <location filename="../GUI/timelinedockwidget.cpp" line="660"/>
         <source>Set Layer In Point (Alt+[)</source>
         <translation>设置图层入点 (Alt+[</translation>
     </message>
     <message>
-        <location filename="../GUI/timelinedockwidget.cpp" line="594"/>
-        <location filename="../GUI/timelinedockwidget.cpp" line="596"/>
+        <location filename="../GUI/timelinedockwidget.cpp" line="670"/>
+        <location filename="../GUI/timelinedockwidget.cpp" line="672"/>
         <source>Set Layer Out Point (Alt+])</source>
         <translation>设置图层出点 (Alt+])</translation>
     </message>
     <message>
-        <location filename="../GUI/timelinedockwidget.cpp" line="606"/>
+        <location filename="../GUI/timelinedockwidget.cpp" line="682"/>
         <source>Split Clip (Ctrl+Shift+D)</source>
         <translation>拆分片段 (Ctrl+Shift+D)</translation>
     </message>
     <message>
-        <location filename="../GUI/timelinedockwidget.cpp" line="608"/>
+        <location filename="../GUI/timelinedockwidget.cpp" line="684"/>
         <source>Split Clip at Current Frame</source>
         <translation>在当前帧拆分片段</translation>
     </message>
     <message>
-        <location filename="../GUI/timelinedockwidget.cpp" line="849"/>
+        <location filename="../GUI/timelinedockwidget.cpp" line="715"/>
+        <source>时间轴缩放（右=放大，等价 Ctrl+滚轮）</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/timelinedockwidget.cpp" line="955"/>
         <source>Rendering snapshot at 100% resolution...</source>
         <translation>正在以 100% 分辨率渲染快照……</translation>
     </message>
     <message>
-        <location filename="../GUI/timelinedockwidget.cpp" line="837"/>
+        <location filename="../GUI/timelinedockwidget.cpp" line="1364"/>
+        <source>In point must be before the Out point</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/timelinedockwidget.cpp" line="1380"/>
+        <source>Out point must be after the In point</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/timelinedockwidget.cpp" line="943"/>
         <source>Snapshot timed out - the frame did not render in time</source>
         <translation>快照超时——帧未能及时渲染完成</translation>
     </message>
     <message>
-        <location filename="../GUI/timelinedockwidget.cpp" line="805"/>
+        <location filename="../GUI/timelinedockwidget.cpp" line="911"/>
         <source>No rendered frame available yet - wait for the preview to render this frame</source>
         <translation>暂无已渲染帧——请等待预览渲染完此帧</translation>
     </message>
     <message>
-        <location filename="../GUI/timelinedockwidget.cpp" line="790"/>
+        <location filename="../GUI/timelinedockwidget.cpp" line="896"/>
         <source>Snapshot saved: %1</source>
         <translation>快照已保存：%1</translation>
     </message>
     <message>
-        <location filename="../GUI/timelinedockwidget.cpp" line="792"/>
+        <location filename="../GUI/timelinedockwidget.cpp" line="898"/>
         <source>Failed to save snapshot: %1</source>
         <translation>快照保存失败：%1</translation>
     </message>
     <message>
-        <location filename="../GUI/timelinedockwidget.cpp" line="503"/>
+        <location filename="../GUI/timelinedockwidget.cpp" line="579"/>
         <source>Scene frame start</source>
         <translation>场景起始帧</translation>
     </message>
     <message>
-        <location filename="../GUI/timelinedockwidget.cpp" line="525"/>
+        <location filename="../GUI/timelinedockwidget.cpp" line="601"/>
         <source>Scene frame end</source>
         <translation>场景结束帧</translation>
     </message>
     <message>
-        <location filename="../GUI/timelinedockwidget.cpp" line="548"/>
+        <location filename="../GUI/timelinedockwidget.cpp" line="624"/>
         <source>Current frame</source>
         <translation>当前帧</translation>
     </message>
     <message>
-        <location filename="../GUI/timelinedockwidget.cpp" line="560"/>
+        <location filename="../GUI/timelinedockwidget.cpp" line="636"/>
         <source>Previous Keyframe</source>
         <translation>上一关键帧</translation>
     </message>
     <message>
-        <location filename="../GUI/timelinedockwidget.cpp" line="572"/>
+        <location filename="../GUI/timelinedockwidget.cpp" line="648"/>
         <source>Next Keyframe</source>
         <translation>下一关键帧</translation>
     </message>
     <message>
-        <location filename="../GUI/timelinedockwidget.cpp" line="622"/>
+        <location filename="../GUI/timelinedockwidget.cpp" line="698"/>
         <source>Cache %p%</source>
         <translation>缓存 %p%</translation>
     </message>
     <message>
-        <location filename="../GUI/timelinedockwidget.cpp" line="979"/>
+        <location filename="../GUI/timelinedockwidget.cpp" line="1119"/>
         <source>Pause Preview</source>
         <translation>暂停预览</translation>
     </message>
     <message>
-        <location filename="../GUI/timelinedockwidget.cpp" line="1014"/>
+        <location filename="../GUI/timelinedockwidget.cpp" line="1154"/>
         <source>Resume Preview</source>
         <translation>继续预览</translation>
     </message>
     <message>
-        <location filename="../GUI/timelinedockwidget.cpp" line="334"/>
+        <location filename="../GUI/timelinedockwidget.cpp" line="410"/>
         <source>Freeze Pose</source>
         <translation>冻结姿势</translation>
     </message>
     <message>
-        <location filename="../GUI/timelinedockwidget.cpp" line="336"/>
+        <location filename="../GUI/timelinedockwidget.cpp" line="412"/>
         <source>Auto freeze pose: key ALL bone channels on every pose edit (pinned poses, no drift)</source>
         <translation>自动冻结姿势：每次编辑姿势时为骨骼所有通道打关键帧（姿势固定、不漂移）</translation>
     </message>
     <message>
-        <location filename="../GUI/timelinedockwidget.cpp" line="371"/>
+        <location filename="../GUI/timelinedockwidget.cpp" line="447"/>
         <source>Loop Keys</source>
         <translation>正向循环</translation>
     </message>
     <message>
-        <location filename="../GUI/timelinedockwidget.cpp" line="373"/>
+        <location filename="../GUI/timelinedockwidget.cpp" line="449"/>
         <source>Cycle keyframed animation forward after the last key (1,2,3 -&gt; 1,2,3,1,...); applies a loop expression to every keyed property of the selected layers, bones included; click again to remove</source>
         <translation>在最后一个关键帧后正向循环动画（1,2,3 -&gt; 1,2,3,1,...）；为选中图层的所有已打帧属性应用循环表达式（含骨骼）；再次点击可移除</translation>
     </message>
     <message>
-        <location filename="../GUI/timelinedockwidget.cpp" line="390"/>
+        <location filename="../GUI/timelinedockwidget.cpp" line="466"/>
         <source>Ping-Pong Loop</source>
         <translation>乒乓循环（往复）</translation>
     </message>
     <message>
-        <location filename="../GUI/timelinedockwidget.cpp" line="392"/>
+        <location filename="../GUI/timelinedockwidget.cpp" line="468"/>
         <source>Bounce keyframed animation back and forth after the last key (1,2,3 -&gt; 1,2,3,2,1,...); applies a loop expression to every keyed property of the selected layers, bones included; click again to remove</source>
         <translation>在最后一个关键帧后往复循环动画（1,2,3 -&gt; 1,2,3,2,1,...）；为选中图层的所有已打帧属性应用循环表达式（含骨骼）；再次点击可移除</translation>
     </message>
     <message>
-        <location filename="../GUI/timelinedockwidget.cpp" line="409"/>
-        <location filename="../GUI/timelinedockwidget.cpp" line="427"/>
+        <location filename="../GUI/timelinedockwidget.cpp" line="485"/>
+        <location filename="../GUI/timelinedockwidget.cpp" line="503"/>
         <source>Skip Loop</source>
         <translation>跳帧循环</translation>
     </message>
     <message>
-        <location filename="../GUI/timelinedockwidget.cpp" line="411"/>
+        <location filename="../GUI/timelinedockwidget.cpp" line="487"/>
         <source>Cycle keyframed animation skipping the given number of leading keys (keys 1,2,3, skip 1 -&gt; cycles 2,3); the amount is asked for when enabled; applies a loop expression to every keyed property of the selected layers, bones included; click again to remove</source>
         <translation>跳过开头指定数量的关键帧后循环（帧 1,2,3，跳过 1 -&gt; 循环 2,3）；启用时会询问跳过数量；为选中图层的所有已打帧属性应用循环表达式（含骨骼）；再次点击可移除</translation>
     </message>
     <message>
-        <location filename="../GUI/timelinedockwidget.cpp" line="428"/>
+        <location filename="../GUI/timelinedockwidget.cpp" line="504"/>
         <source>Number of leading keys to skip:</source>
         <translation>跳过左侧关键帧的数量：</translation>
     </message>
     <message>
-        <location filename="../GUI/timelinedockwidget.cpp" line="476"/>
+        <location filename="../GUI/timelinedockwidget.cpp" line="552"/>
         <source>Match Canvas Width</source>
         <translation>按宽度匹配画布</translation>
     </message>
     <message>
-        <location filename="../GUI/timelinedockwidget.cpp" line="478"/>
+        <location filename="../GUI/timelinedockwidget.cpp" line="554"/>
         <source>Uniformly scale each selected layer so its width matches the canvas width, then center it on the canvas (aspect ratio preserved)</source>
         <translation>等比例缩放选中图层使其宽度匹配画布宽度，并居中到画布（保持宽高比）</translation>
     </message>
     <message>
-        <location filename="../GUI/timelinedockwidget.cpp" line="486"/>
+        <location filename="../GUI/timelinedockwidget.cpp" line="562"/>
         <source>Match Canvas Height</source>
         <translation>按高度匹配画布</translation>
     </message>
     <message>
-        <location filename="../GUI/timelinedockwidget.cpp" line="488"/>
+        <location filename="../GUI/timelinedockwidget.cpp" line="564"/>
         <source>Uniformly scale each selected layer so its height matches the canvas height, then center it on the canvas (aspect ratio preserved)</source>
         <translation>等比例缩放选中图层使其高度匹配画布高度，并居中到画布（保持宽高比）</translation>
     </message>
@@ -10166,7 +10945,7 @@ Select the layers you want to import:</source>
         <translation>固态图层</translation>
     </message>
     <message>
-        <location filename="../GUI/timelinewidget.cpp" line="277"/>
+        <location filename="../GUI/timelinewidget.cpp" line="287"/>
         <source>Camera</source>
         <translation>摄像机</translation>
     </message>
@@ -10233,7 +11012,7 @@ Select the layers you want to import:</source>
     </message>
     <message>
         <location filename="../GUI/timelinewidget.cpp" line="125"/>
-        <location filename="../main.cpp" line="407"/>
+        <location filename="../main.cpp" line="412"/>
         <source>Current Scene</source>
         <translation>当前场景</translation>
     </message>
@@ -10273,7 +11052,12 @@ Select the layers you want to import:</source>
         <translation>搜索...</translation>
     </message>
     <message>
-        <location filename="../GUI/timelinewidget.cpp" line="286"/>
+        <location filename="../GUI/timelinewidget.cpp" line="279"/>
+        <source>矢量图层</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GUI/timelinewidget.cpp" line="296"/>
         <source>新建切换组</source>
         <translation type="unfinished"></translation>
     </message>
@@ -10600,32 +11384,32 @@ Select the layers you want to import:</source>
 <context>
     <name>eBoxOrSound</name>
     <message>
-        <location filename="../../core/Animators/eboxorsound.cpp" line="566"/>
+        <location filename="../../core/Animators/eboxorsound.cpp" line="586"/>
         <source>Mute</source>
         <translation>静音</translation>
     </message>
     <message>
-        <location filename="../../core/Animators/eboxorsound.cpp" line="645"/>
+        <location filename="../../core/Animators/eboxorsound.cpp" line="682"/>
         <source>Solo</source>
         <translation>独奏</translation>
     </message>
     <message>
-        <location filename="../../core/Animators/eboxorsound.cpp" line="645"/>
+        <location filename="../../core/Animators/eboxorsound.cpp" line="682"/>
         <source>Unsolo</source>
         <translation>取消独奏</translation>
     </message>
     <message>
-        <location filename="../../core/Animators/eboxorsound.cpp" line="566"/>
+        <location filename="../../core/Animators/eboxorsound.cpp" line="586"/>
         <source>Unmute</source>
         <translation>取消静音</translation>
     </message>
     <message>
-        <location filename="../../core/Animators/eboxorsound.cpp" line="567"/>
+        <location filename="../../core/Animators/eboxorsound.cpp" line="587"/>
         <source>Hide</source>
         <translation>隐藏</translation>
     </message>
     <message>
-        <location filename="../../core/Animators/eboxorsound.cpp" line="567"/>
+        <location filename="../../core/Animators/eboxorsound.cpp" line="587"/>
         <source>Show</source>
         <translation>显示</translation>
     </message>

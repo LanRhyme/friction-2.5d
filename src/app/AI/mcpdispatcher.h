@@ -128,6 +128,10 @@ namespace Friction
             QJsonObject toolListEasingPresets(const QJsonObject &args);
             QJsonObject toolUndo(const QJsonObject &args);
             QJsonObject toolRedo(const QJsonObject &args);
+            QJsonObject toolImportFile(const QJsonObject &args);
+            QJsonObject toolSetMarker(const QJsonObject &args);
+            QJsonObject toolClearMarkers(const QJsonObject &args);
+            QJsonObject toolListMarkers(const QJsonObject &args);
 
             QJsonObject dispatchToolImpl(const QString &toolName,
                                          const QJsonObject &arguments);

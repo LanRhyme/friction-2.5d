@@ -118,6 +118,12 @@ void RasterEffectMenuCreator::forEveryEffectCore(const EffectAdder &add)
         []() { return enve::make_shared<StripeEffect>(); });
     add(QObject::tr("Noise Fade"), QObject::tr("Transitions"),
         []() { return enve::make_shared<NoiseFadeEffect>(); });
+    add(QObject::tr("CC Smear"), QObject::tr("Distort"),
+        []() { return enve::make_shared<SmearEffect>(); });
+    add(QObject::tr("Shatter"), QObject::tr("Simulation"),
+        []() { return enve::make_shared<ShatterEffect>(); });
+    add(QObject::tr("毛边粗糙化 (Roughen Edges)"), QObject::tr("Stylize"),
+        []() { return enve::make_shared<RoughenEdgesEffect>(); });
     add(QObject::tr("图层样式"), "",
         []() { return enve::make_shared<LayerStylesEffect>(); });
 }

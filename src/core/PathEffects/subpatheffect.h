@@ -26,6 +26,8 @@
 #ifndef SUBPATHEFFECT_H
 #define SUBPATHEFFECT_H
 #include "PathEffects/patheffect.h"
+#include "Animators/qrealanimator.h"
+#include "Properties/boolproperty.h"
 
 class CORE_EXPORT SubPathEffect : public PathEffect {
     e_OBJECT
@@ -34,6 +36,12 @@ protected:
 public:
     stdsptr<PathEffectCaller> getEffectCaller(
             const qreal relFrame, const qreal influence) const;
+
+    void setSubPathValues(const qreal min, const qreal max, const qreal offset = 0.0);
+    QrealAnimator *minAnimator() const { return mMin.get(); }
+    QrealAnimator *maxAnimator() const { return mMax.get(); }
+    QrealAnimator *offsetAnimator() const { return mOffset.get(); }
+    BoolProperty *pathWiseProperty() const { return mPathWise.get(); }
 private:
     qsptr<BoolProperty> mPathWise;
     qsptr<QrealAnimator> mMin;

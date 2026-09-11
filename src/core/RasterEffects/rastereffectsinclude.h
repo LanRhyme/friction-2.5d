@@ -43,5 +43,8 @@
 #include "pixelarteffect.h"
 #include "chromakeyeffect.h"
 #include "layerstyleseffect.h"
+#include "shattereffect.h"
+#include "smeareffect.h"
+#include "roughenedgeseffect.h"
 
 #endif // RASTEREFFECTSINCLUDE_H
